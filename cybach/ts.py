@@ -1,8 +1,7 @@
 import collections
 
 
-class KeySignatures(collections.MutableMapping):
-
+class TimeSignature(collections.MutableMapping):
     def __init__(self, *args, **kwargs):
         self.store = dict()
         self.update(dict(*args, **kwargs))
@@ -29,12 +28,28 @@ class KeySignatures(collections.MutableMapping):
     def __len__(self):
         return len(self.store)
 
+    def __keytransform__(self, key):
+        return key
+
     def __repr__(self):
         string = ''
         for key in self.store:
-            string += '\n' + str(key) + ': ' + str(self.store[key])
+            string += '\n' + str(key) + ': ' + str(self.store[key]) + str(self.store[key]) + str(self.store[key])
 
         return string
 
-    def __keytransform__(self, key):
-        return key
+
+def is_four_four(time_signature_event):
+    return time_signature_event.numerator == 4 and time_signature_event.denominator == 4
+
+
+def is_six_eight(time_signature_event):
+    return time_signature_event.numerator == 6 and time_signature_event.denominator == 8
+
+
+def is_two_four(time_signature_event):
+    return time_signature_event.numerator == 2 and time_signature_event.denominator == 4
+
+
+def is_three_four(time_signature_event):
+    return time_signature_event.numerator == 3 and time_signature_event.denominator == 4

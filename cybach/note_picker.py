@@ -1,9 +1,7 @@
-from domain import *
-import chords
 import notes
 import parts
-import math
 from constants import *
+import motion
 
 
 class NotePicker:
@@ -14,147 +12,193 @@ class NotePicker:
         self.bass = bass
         self.key_signatures = key_signatures
         self.chord_progression = chord_progression
+        self.position = 0
 
-    def pick_bass(self, index):
-        if self.bass[index].is_empty():
-            chord = self.chord_progression[index]
-            return Note(midi_value=first_at_or_below(chord.root, parts.BASS.middle))
+    def compute_next(self):
+        chord = self.chord_progression[self.position]
 
-        return self.bass[index].note
+        candidates = self.get_candidate_matrix(chord)
+        winner = self.compute_winner(candidates)
 
-    def pick_alto(self, index):
-        soprano_threshold = self.__last_soprano_pitch(index) - 2
-        unused = self.__unused_notes(index)
+        self.position += RESOLUTION
 
-        all_available_octaves = all_available_pitches \
-            (unused, parts.ALTO.max_low, min(soprano_threshold, parts.ALTO.max_high))
-        available = [x for x in all_available_octaves if x < soprano_threshold]
-        available.sort(reverse=True)
-        print unused
-        if index >= RESOLUTION:
-            last_beat = self.__used_notes(index - RESOLUTION)
+        return winner
 
-            for pitch in available:
-                self.alto[index] = Sample(pitch, Sample.TYPE_START)
+    def get_candidate_matrix(self, chord):
+        alto_candidates = self.alto.part.available_notes(chord)
+        alto_candidates.append(-1)  # -1 represents rest
 
-                if contains_parallel_movement(last_beat, self.__used_notes(index)):
-                    self.alto[index] = Sample(-1, None)
-                else:
-                    self.alto[index] = Sample(-1, None)
-                    return Note(midi_value=pitch)
+        tenor_candidates = self.tenor.part.available_notes(chord)
+        tenor_candidates.append(-1)  # -1 represents rest
 
-        if not available:
-            # handle me better
-            return self.alto[index].note
-        else:
-            return Note(midi_value=available[0])
+        bass_candidates = self.bass.part.available_notes(chord)
+        bass_candidates.append(-1)  # -1 represents rest
 
-    def pick_tenor(self, index):
-        bass_threshold = self.bass[index].note.midi_value + 3
+        matrix = motion.combinations(bass_candidates, tenor_candidates, alto_candidates)
 
-        unused = self.__unused_notes(index)
-        if not unused:
-            unused = self.chord_progression[index].all()
+        return self.filter_candidates(matrix)
 
-        available_octaves = all_available_pitches \
-            (unused, max(bass_threshold, parts.TENOR.max_low), parts.TENOR.max_high)
-        available_above_threshold = [x for x in available_octaves if x > bass_threshold]
+    def filter_candidates(self, matrix):
+        filtered = []
 
-        available_without_parallel_motion = []
+        for g in matrix:
+            if (g[0] < g[1] or g[1] == -1) and (g[2] < self.soprano[self.position].pitch() or g[2] == -1) \
+                    or (g[0] < g[1] or g[1] == -1) and (self.soprano[self.position].pitch() == -1):
+                filtered.append(g)
 
-        if index >= RESOLUTION:
-            last_beat = self.__used_notes(index - RESOLUTION)
+        return filtered
 
-            for pitch in available_above_threshold:
-                self.tenor[index] = Sample(pitch, Sample.TYPE_START)
+    def current_chord(self):
+        return self.chord_progression[self.position]
 
-                if contains_parallel_movement(last_beat, self.__used_notes(index)):
-                    self.tenor[index] = Sample(-1, None)
-                else:
-                    available_without_parallel_motion.append(pitch)
-                    self.tenor[index] = Sample(-1, None)
-        else:
-            available_without_parallel_motion.extend(available_above_threshold)
+    def compute_winner(self, candidates):
+        high_score = -1
+        current_winner = None
 
-        if not available_without_parallel_motion:
-            # handle me better
-            return self.tenor[index].note
-        else:
-            # now we have all of the notes that wouldn't cause parallel motion, are within the available range
-            # of the instrument, and above bass threshold
-            mean_bass_alto = (self.bass[index].note.midi_value + self.alto[index].note.midi_value) / 2
-            # print mean_bass_alto
-            midi_val = min(available_without_parallel_motion, key=lambda note: abs(note - mean_bass_alto))
+        for candidate in candidates:
+            candidate.append(self.soprano[self.position].pitch())
 
-            return Note(midi_value=midi_val)
+            bass_score = get_bass_score(candidate[0], self.position, self.bass, self.chord_progression)
+            tenor_score = get_tenor_score(candidate[1], self.position, self.tenor, self.chord_progression)
+            alto_score = get_alto_score(candidate[2], self.position, self.alto, self.chord_progression)
+            shape_score = get_shape_score(candidate)
+            harmony_score = get_harmony_score(candidate, self.current_chord())
 
-    def __used_notes(self, index):
-        return [self.soprano[index].note, self.alto[index].note, self.tenor[index].note, self.bass[index].note]
+            score = sum([bass_score, tenor_score, alto_score, shape_score, harmony_score])
 
-    def __unused_notes(self, index):
-        used_notes = self.__used_notes(index)
+            if score > high_score:
+                high_score = score
+                current_winner = candidate
 
-        chord = self.chord_progression[index]
-
-        unused_notes = []
-        for chord_note in chord.all():
-            contains = False
-            for used_note in used_notes:
-                if chord_note.as_text_without_octave() == used_note.as_text_without_octave():
-                    contains = True
-            if not contains:
-                unused_notes.append(chord_note)
-
-        return unused_notes
-
-    def __last_soprano_pitch(self, position):
-        for i in reversed(range(0, position + 1)):
-            sample = self.soprano[i]
-
-            if sample.note.midi_value > -1:
-                return sample.note.midi_value
-
-        return 1000
+        return current_winner
 
 
-def contains_parallel_movement(first_set, second_set):
-    for i in range(0, len(first_set)):
-        first = first_set[i]
+def get_bass_score(candidate, position, sequence, chord_progression):
+    score = 0.0
+    low_thresh = parts.BASS.max_low
+    high_thresh = parts.BASS.max_high
 
-        for j in range(0, len(first_set)):
-            second = first_set[j]
+    score += threshold_encroachment_score(candidate, low_thresh, low_thresh + 4)
+    score += threshold_encroachment_score(candidate, high_thresh, high_thresh - 4)
+    score += preferred_register_score(candidate, high_thresh, high_thresh - 7)
+    score += motion_tendency_score(candidate, position, sequence)
+    score += linear_motion_score(candidate, position, sequence)
+    score += root_tendency_score(candidate, position, chord_progression)
 
-            if first.midi_value == second.midi_value:
-                continue
-
-            if notes.is_perfect_interval(first.midi_value, second.midi_value):
-                first_interval = abs(first.midi_value - second.midi_value)
-                second_interval = abs(second_set[i].midi_value - second_set[j].midi_value)
-                if first_interval == second_interval and first.midi_value - second_set[i].midi_value != 0:
-                    # print 'offending pairs: (%d, %d), (%d, %d)' % (first.midi_value, second.midi_value, second_set[i].midi_value, second_set[j].midi_value)
-                    return True
-
-    return False
+    return score
 
 
-def first_at_or_below(note, threshold):
-    text = note.as_text_without_octave()
-    octaves = notes.OCTAVES[text]
+def get_tenor_score(candidate, position, sequence, chord_progression):
+    score = 0.0
+    low_thresh = parts.TENOR.max_low
+    high_thresh = parts.TENOR.max_high
 
-    last_pitch = octaves[0]
-    for pitch in octaves:
-        if pitch > threshold:
-            return last_pitch
-        last_pitch = pitch
+    score += threshold_encroachment_score(candidate, low_thresh, low_thresh + 4)
+    score += threshold_encroachment_score(candidate, high_thresh, high_thresh - 4)
+    score += preferred_register_score(candidate, low_thresh, low_thresh + 7)
+    score += motion_tendency_score(candidate, position, sequence)
+    score += linear_motion_score(candidate, position, sequence)
+
+    return score
 
 
-def all_available_pitches(note_list, low_threshold, high_threshold):
-    available = []
+def get_alto_score(candidate, position, sequence, chord_progression):
+    score = 0.0
+    low_thresh = parts.ALTO.max_low
+    high_thresh = parts.ALTO.max_high
 
-    for note in note_list:
-        octaves = notes.OCTAVES[note.as_text_without_octave()]
-        for octave in octaves:
-            if low_threshold <= octave <= high_threshold:
-                available.append(octave)
+    score += threshold_encroachment_score(candidate, low_thresh, low_thresh + 4)
+    score += threshold_encroachment_score(candidate, high_thresh, high_thresh - 4)
+    score += preferred_register_score(candidate, high_thresh, high_thresh - 7)
+    score += motion_tendency_score(candidate, position, sequence)
+    score += linear_motion_score(candidate, position, sequence)
 
-    return available
+    return score
+
+
+def get_shape_score(candidate):
+    return 0
+
+
+def get_harmony_score(candidate, chord):
+    base_position_chord = [notes.OCTAVES[n.as_text_without_octave()][0] for n in chord.all()]
+    base_position_candidate = [pitch % 12 for pitch in candidate]
+    added = []
+    count = 0
+
+    for pitch in base_position_candidate:
+        if pitch % 12 in base_position_chord and pitch not in added:
+            count += 1
+            added.append(pitch)
+
+    return count * 0.05
+
+
+def root_tendency_score(candidate, position, chord_progression):
+    this_chord = chord_progression[position]
+    this_note_text = notes.Note(midi_value=candidate).as_text_without_octave()
+
+    if position == 0:
+        return 0.10 if this_note_text == this_chord.root.as_text_without_octave() else 0.0
+
+    last_chord = chord_progression[position - RESOLUTION]
+
+    if last_chord.root.as_text_without_octave() == this_chord.root.as_text_without_octave():
+        return 0.03 if this_note_text == this_chord.root.as_text_without_octave() else 0.0
+    else:
+        return 0.10 if this_note_text == this_chord.root.as_text_without_octave() else 0.0
+
+
+def threshold_encroachment_score(val, threshold, soft_limit):
+    score = 0.0
+
+    if soft_limit < val <= threshold or threshold <= val < soft_limit:
+        score -= (2 ** abs(soft_limit - val)) * 0.01
+
+    return score
+
+
+def preferred_register_score(val, threshold, soft_limit):
+    score = 0.0
+
+    if soft_limit < val <= threshold or threshold <= val < soft_limit:
+        score -= abs(soft_limit - val) * 0.01
+
+    return score
+
+
+def motion_tendency_score(candidate, position, sequence):
+    score = 0.0
+
+    if position == 0:
+        return score
+
+    last_pitch = sequence[position - RESOLUTION].pitch()
+
+    if is_motion(candidate, last_pitch) and sequence.motion_tendency > 0.5:
+        score += sequence.motion_tendency - 0.5
+    elif not is_motion(candidate, last_pitch) and sequence.motion_tendency < 0.5:
+        score += 0.5 - sequence.motion_tendency
+
+    return score / 2
+
+
+def linear_motion_score(candidate, position, sequence):
+    score = 0.0
+
+    if position == 0:
+        return score
+    last_pitch = sequence[position - RESOLUTION].pitch()
+
+    if is_linear_motion(candidate, last_pitch):
+        score += 0.20
+
+    return score
+
+
+def is_motion(pitch1, pitch2):
+    return pitch2 - pitch1 != 0
+
+
+def is_linear_motion(pitch1, pitch2):
+    return abs(pitch1 - pitch2) < 3 and pitch1 - pitch2 != 0

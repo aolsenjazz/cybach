@@ -11,11 +11,12 @@ import midi
 
 import chords
 import instruments
+import ks
+import note_picker
+import parts
 import pat_util
 import track_util
-import note_picker
-import ks
-from notes import Note
+from cybach import motion
 from domain import *
 
 # verify command line arguments
@@ -138,7 +139,7 @@ key_signatures = ks.KeySignatures()
 #
 #         chord_progression[soprano.measure(measure - 1).sample_position() + (beat - 1) * RESOLUTION] = chord
 
-key_signatures[0] = 'C'
+key_signatures[0] = chords.parse('C')
 chord_progression[0] = chords.parse('C')
 chord_progression[(0 * 96) + (2 * 24)] = chords.parse('A-')
 chord_progression[(1 * 96) + (0 * 24)] = chords.parse('E-')
@@ -146,24 +147,67 @@ chord_progression[(1 * 96) + (2 * 24)] = chords.parse('G')
 chord_progression[(2 * 96) + (0 * 24)] = chords.parse('A-')
 chord_progression[(2 * 96) + (2 * 24)] = chords.parse('C')
 chord_progression[(3 * 96) + (2 * 24)] = chords.parse('G')
-chord_progression[(3 * 96) + (3 * 24)] = chords.parse('C')
+chord_progression[(3 * 96) + (3 * 24)] = chords.parse('E7')
 
 instrument_alto = instruments.VIOLA
 instrument_tenor = instruments.CELLO
 instrument_bass = instruments.BASS
 
-alto = Sequence(sequence=soprano)
-tenor = Sequence(sequence=soprano)
-bass = Sequence(sequence=soprano)
-picker = note_picker.NotePicker(soprano, alto, tenor, bass, key_signatures, chord_progression)
+alto_motion = 0.50
+tenor_motion = 0.50
+bass_motion = 0.50
 
+alto = Sequence(sequence=soprano, part=parts.ALTO, motion_tendency=alto_motion)
+tenor = Sequence(sequence=soprano, part=parts.TENOR, motion_tendency=tenor_motion)
+bass = Sequence(sequence=soprano, part=parts.BASS, motion_tendency=bass_motion)
+
+picker = note_picker.NotePicker(soprano, alto, tenor, bass, key_signatures, chord_progression)
 for measure in bass.measures():
     for beat in measure.beats():
         position = measure.sample_position() + beat.beat_index * RESOLUTION
 
-        bass.set_beat_at_position(position, picker.pick_bass(position))
-        alto.set_beat_at_position(position, picker.pick_alto(position))
-        tenor.set_beat_at_position(position, picker.pick_tenor(position))
+        pitches = picker.compute_next()
+
+        bass.set_beat_at_position(position, pitches[0])
+        tenor.set_beat_at_position(position, pitches[1])
+        alto.set_beat_at_position(position, pitches[2])
+
+
+motionizer = motion.Motionizer(key_signatures, chord_progression)
+for measure in bass.measures():
+    for beat in measure.beats():
+        position = measure.sample_position() + beat.beat_index * RESOLUTION
+
+        transforms = motionizer.compute_next(soprano, alto, tenor, bass)
+
+        bass.apply_transform(transforms[0])
+        tenor.apply_transform(transforms[1])
+        alto.apply_transform(transforms[2])
+
+
+# motionizer = motion.MacroMotionizer(key_signatures, chord_progression, bass_motion_tendency=0,
+#                                     alto_motion_tendency=0, tenor_motion_tendency=0)
+# for measure in bass.measures():
+#     for beat in measure.beats():
+#         position = measure.sample_position() + beat.beat_index * RESOLUTION
+#
+#         motionizer.compute_next(bass, alto, tenor)
+#         bass.apply_transform(motionizer.bass_transform)
+#         alto.apply_transform(motionizer.alto_transform)
+#         tenor.apply_transform(motionizer.tenor_transform)
+#         print motionizer.alto_transform
+#
+# motionizer = motion.MicroMotionizer(key_signatures, chord_progression, bass_motion_tendency=0.0,
+#                                     alto_motion_tendency=0.0, tenor_motion_tendency=0.0)
+# for measure in bass.measures():
+#     for beat in measure.beats():
+#         position = measure.sample_position() + beat.beat_index * RESOLUTION
+#
+#         motionizer.compute_next(bass, alto, tenor)
+#         # bass.apply_transform(motionizer.bass_transform)
+#         # alto.apply_transform(motionizer.alto_transform)
+#         # tenor.apply_transform(motionizer.tenor_transform)
+#
 
 midi.write_midifile('alto.mid', alto.to_pattern())
 midi.write_midifile('tenor.mid', tenor.to_pattern())

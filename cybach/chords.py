@@ -11,19 +11,85 @@ RE_DIMIN = re.compile('[A-G]dim')
 class Chord:
 
     def __init__(self, root):
-        self.root = root
+        note = -1
+
+        if isinstance(root, notes.Note):
+            note = root
+        elif isinstance(root, int):
+            note = notes.Note(midi_value=root)
+        elif isinstance(root, str):
+            note = notes.Note(text_value=root)
+
+        self.root = note
 
     def __repr__(self):
         return str(self.root)
 
     def __contains__(self, note):
-        if note.as_text_without_octave() == self.root.as_text_without_octave():
+        parsed = None
+
+        if isinstance(note, notes.Note):
+            parsed = note
+        elif isinstance(note, int):
+            parsed = notes.Note(midi_value=note)
+
+        if parsed.as_text_without_octave() == self.root.as_text_without_octave():
             return True
-        if note.as_text_without_octave() == self.third.as_text_without_octave():
+        if parsed.as_text_without_octave() == self.third.as_text_without_octave():
             return True
-        if note.as_text_without_octave() == self.fifth.as_text_without_octave():
+        if parsed.as_text_without_octave() == self.fifth.as_text_without_octave():
             return True
         return False
+
+    def note_above(self, note):
+        """
+        Basically just a wrapper for the private method to make up for improper API usage
+
+        :param note: midi value, text value, or Note object
+        :return:
+        """
+        if isinstance(note, notes.Note):
+            return self.__note_above(note.midi_value)
+        elif isinstance(note, int):
+            return self.__note_above(notes.Note(midi_value=note).midi_value)
+        elif isinstance(note, str):
+            return self.__note_above(notes.Note(text_value=note).midi_value)
+
+    def __note_above(self, pitch):
+        """
+        Returns the next highest note in the chord (e.g. submitted G to a C7 chord would return Bb above)
+
+        :param pitch: midi value pitch
+        :return: a midi value higher than the submitted pitch
+        """
+        all_octaves = self.__all_octaves()
+        for p in all_octaves:
+            if p > pitch:
+                return p
+
+        raise ValueError('midi value %d appears to be invalid' % pitch)
+
+    def scale(self):
+        """
+        Returns all of the pitches in this chord's chord scale. Minor chords return aeolian mode.
+        """
+        raise NotImplementedError
+
+    def indicates_dominant(self, *pitches):
+        """
+        Returns whether the pitches submitted indicate a dominant relationship to this chord
+
+        :param pitches: array of pitches
+        """
+        raise NotImplementedError
+
+    def indicates_subdominant(self, *pitches):
+        """
+        Returns whether the pitches submitted indicate a subdominant relationship to this chord
+
+        :param pitches: array of pitches
+        """
+        raise NotImplementedError
 
 
 class MajorChord(Chord):
@@ -33,8 +99,47 @@ class MajorChord(Chord):
         self.third = notes.Note(self.root.as_midi_value() + 4)
         self.fifth = notes.Note(self.root.as_midi_value() + 7)
 
+    def _Chord__all_octaves(self):
+        all_roots = notes.OCTAVES[self.root.as_text_without_octave()]
+        all_thirds = notes.OCTAVES[self.third.as_text_without_octave()]
+        all_fifths = notes.OCTAVES[self.fifth.as_text_without_octave()]
+
+        all = []
+        all.extend(all_roots)
+        all.extend(all_thirds)
+        all.extend(all_fifths)
+        all.sort()
+
+        return all
+
+    def __repr__(self):
+        return str(self.root) + ', ' + str(self.third) + ', ' + str(self.fifth)
+
     def all(self):
         return self.root, self.third, self.fifth
+
+    def scale(self):
+        return notes.ionian(self.root.midi_value)
+
+    def indicates_dominant(self, *pitches):
+        root_pitch = self.root.midi_value
+
+        black_list = (root_pitch % 12, (root_pitch + 6) % 12, (root_pitch + 10) % 12)
+        major_indicators = (root_pitch + 11) % 12, (root_pitch + 7) % 12
+        minor_indicators = (root_pitch + 2) % 12, (root_pitch + 5) % 12
+
+        return len([p for p in pitches if (p % 12) in black_list]) == 0 \
+            and len([p for p in pitches if (p % 12) in major_indicators]) == 1 \
+            and len([p for p in pitches if (p % 12) in minor_indicators]) >= 1
+
+    def indicates_subdominant(self, *pitches):
+        root_pitch = self.root.midi_value
+
+        black_list = ((root_pitch + 4) % 12, (root_pitch + 11) % 12)
+        indicators = ((root_pitch + 2) % 12, (root_pitch + 5) % 12, (root_pitch + 9) % 12)
+
+        return len([p for p in pitches if (p % 12) in black_list]) == 0 \
+               and len([p for p in pitches if (p % 12) in indicators]) >= 2
 
 
 class MinorChord(Chord):
@@ -44,10 +149,50 @@ class MinorChord(Chord):
         self.third = notes.Note(self.root.as_midi_value() + 3)
         self.fifth = notes.Note(self.root.as_midi_value() + 7)
 
+    def _Chord__all_octaves(self):
+        all_roots = notes.OCTAVES[self.root.as_text_without_octave()]
+        all_thirds = notes.OCTAVES[self.third.as_text_without_octave()]
+        all_fifths = notes.OCTAVES[self.fifth.as_text_without_octave()]
+
+        all = []
+        all.extend(all_roots)
+        all.extend(all_thirds)
+        all.extend(all_fifths)
+        all.sort()
+
+        return all
+
     def all(self):
         return self.root, self.third, self.fifth
 
-class SevenChord(Chord):
+    def __repr__(self):
+        return str(self.root) + ', ' + str(self.third) + ', ' + str(self.fifth)
+
+    def scale(self):
+        return notes.aeolian(self.root.midi_value)
+
+    def indicates_dominant(self, *pitches):
+        root_pitch = self.root.midi_value
+
+        black_list = (root_pitch % 12, (root_pitch + 10) % 12)
+        major_indicators = ((root_pitch + 11) % 12,)
+        minor_indicators = ((root_pitch + 2) % 12, (root_pitch + 5) % 12, (root_pitch + 7) % 12, (root_pitch + 8) % 12)
+
+        return len([p for p in pitches if (p % 12) in black_list]) == 0 \
+            and len([p for p in pitches if (p % 12) in major_indicators]) == 1 \
+            and len([p for p in pitches if (p % 12) in minor_indicators]) >= 1
+
+    def indicates_subdominant(self, *pitches):
+        root_pitch = self.root.midi_value
+
+        black_list = ((root_pitch + 10) % 12, (root_pitch + 11) % 12)
+        indicators = ((root_pitch + 2) % 12, (root_pitch + 5) % 12, (root_pitch + 8) % 12)
+
+        return len([p for p in pitches if (p % 12) in black_list]) == 0 \
+               and len([p for p in pitches if (p % 12) in indicators]) >= 2
+
+
+class SevenChord(MajorChord):
 
     def __init__(self, root_note):
         Chord.__init__(self, root_note)
@@ -56,15 +201,51 @@ class SevenChord(Chord):
         self.seventh = notes.Note(self.root.as_midi_value() + 10)
 
     def __contains__(self, note):
-        if note.as_text_without_octave() == self.seventh.as_text_without_octave():
+        parsed = None
+
+        if isinstance(note, notes.Note):
+            parsed = note
+        elif isinstance(note, int):
+            parsed = notes.Note(midi_value=note)
+
+        if parsed.as_text_without_octave() == self.seventh.as_text_without_octave():
             return True
-        return Chord.__contains__(self, note)
+        return Chord.__contains__(self, parsed)
 
     def all(self):
         return self.root, self.third, self.fifth, self.seventh
 
+    def __note_above(self, pitch):
+        if pitch == self.fifth:
+            return self.seventh.as_text_without_octave
 
-class DiminishedChord(Chord):
+        if pitch == self.seventh.as_text_without_octave:
+            return self.root
+
+        return Chord.__note_above(self, pitch)
+
+    def _Chord__all_octaves(self):
+        all_roots = notes.OCTAVES[self.root.as_text_without_octave()]
+        all_thirds = notes.OCTAVES[self.third.as_text_without_octave()]
+        all_fifths = notes.OCTAVES[self.fifth.as_text_without_octave()]
+        all_sevenths = notes.OCTAVES[self.seventh.as_text_without_octave()]
+
+        all = []
+        all.extend(all_roots)
+        all.extend(all_thirds)
+        all.extend(all_fifths)
+        all.extend(all_sevenths)
+        all.sort()
+        return all
+
+    def __repr__(self):
+        return str(self.root) + ', ' + str(self.third) + ', ' + str(self.fifth) + ', ' + str(self.seventh)
+
+    def scale(self):
+        return notes.mixolydian(self.root.midi_value)
+
+
+class DiminishedChord(MinorChord):
 
     def __init__(self, root_note):
         Chord.__init__(self, root_note)
@@ -73,12 +254,52 @@ class DiminishedChord(Chord):
         self.seventh = notes.Note(self.root.as_midi_value() + 9)
 
     def __contains__(self, note):
-        if note.as_text_without_octave() == self.seventh.as_text_without_octave():
+        parsed = None
+
+        if isinstance(note, notes.Note):
+            parsed = note
+        elif isinstance(note, int):
+            parsed = notes.Note(midi_value=note)
+
+        if parsed.as_text_without_octave() == self.seventh.as_text_without_octave():
             return True
-        return Chord.__contains__(self, note)
+        return Chord.__contains__(self, parsed)
 
     def all(self):
         return self.root, self.third, self.fifth
+
+    def __note_above(self, pitch):
+        if pitch == self.fifth:
+            return self.seventh.as_text_without_octave
+
+        if pitch == self.seventh.as_text_without_octave:
+            return self.root
+
+        return Chord.__note_above(self, pitch)
+
+    def _Chord__all_octaves(self):
+        all_roots = notes.OCTAVES[self.root.as_text_without_octave()]
+        all_thirds = notes.OCTAVES[self.third.as_text_without_octave()]
+        all_fifths = notes.OCTAVES[self.fifth.as_text_without_octave()]
+        all_sevenths = notes.OCTAVES[self.seventh.as_text_without_octave()]
+
+        all = []
+        all.extend(all_roots)
+        all.extend(all_thirds)
+        all.extend(all_fifths)
+        all.extend(all_sevenths)
+        all.sort()
+
+        return all
+
+    def __repr__(self):
+        return str(self.root) + ', ' + str(self.third) + ', ' + str(self.fifth) + ', ' + str(self.seventh)
+
+    def scale(self):
+        return notes.half_whole(self.root.midi_value)
+
+    def indicates_subdominant(self, *pitches):
+        return False
 
 
 class ChordProgression(collections.MutableMapping):

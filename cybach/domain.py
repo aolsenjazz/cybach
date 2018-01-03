@@ -1,6 +1,8 @@
 from pprint import pformat
+
 import midi
-import math
+
+import ts
 from constants import *
 from notes import Note
 
@@ -12,14 +14,18 @@ class Sequence(list):
     it only contains rests so that we can iterate over it and insert harmony.
     """
 
-    def __init__(self, track=None, sequence=None):
+    def __init__(self, track=None, sequence=None, part=None, motion_tendency = 0.5):
         super(Sequence, self).__init__()
 
-        self.time_signatures = {}
+        self.time_signatures = ts.TimeSignature()
         self.samples = []
+        self.motion_tendency = motion_tendency
 
         if track is not None:
             self.__build_samples(track)
+
+        if part is not None:
+            self.part = part
 
         if sequence is not None:
             self.__build_empty_samples(len(sequence.samples))
@@ -46,6 +52,13 @@ class Sequence(list):
     def __getslice__(self, i, j):
         return self.samples.__getslice__(i, j)
 
+    def measure_at(self, index):
+        for measure in self.measures():
+            if index >= measure.sample_position():
+                return measure
+
+    def apply_transform(self, transform):
+        self.samples = transform.apply()
 
     def beats(self):
         beats = []
@@ -54,6 +67,13 @@ class Sequence(list):
 
     def measure(self, index):
         return self.measures()[index]
+
+    def beat_at(self, index):
+        samples = self.samples[index:index + RESOLUTION]
+        measure = self.measure_at(index)
+        beat_index = (index - measure.sample_position()) / RESOLUTION
+
+        return Beat(samples, measure, beat_index)
 
     def measure_indexes(self):
         measures = self.measures()
@@ -124,18 +144,23 @@ class Sequence(list):
         pattern.append(track)
         return pattern
 
-    def set_beat_at_position(self, position, pitch):
+    def set_beat_at_position(self, position, note):
+        if isinstance(note, Note):
+            pitch = note.midi_value
+        elif isinstance(note, int):
+            pitch = note
+
         for i in range(position, position + RESOLUTION):
-            if pitch.midi_value == -1:
+            if pitch == -1:
                 self[i] = Sample(-1, None)
                 continue
 
             if i == position:
-                self[i] = Sample(pitch.midi_value, Sample.TYPE_START)
+                self[i] = Sample(pitch, Sample.TYPE_START)
             elif i == position + RESOLUTION - 1:
-                self[i] = Sample(pitch.midi_value, Sample.TYPE_END)
+                self[i] = Sample(pitch, Sample.TYPE_END)
             else:
-                self[i] = Sample(pitch.midi_value, Sample.TYPE_SUSTAIN)
+                self[i] = Sample(pitch, Sample.TYPE_SUSTAIN)
 
     def __build_samples(self, track):
         active_event = None
@@ -143,6 +168,10 @@ class Sequence(list):
             if isinstance(event, midi.NoteOnEvent):
                 if active_event is not None:
                     for i in range(0, event.tick):
+                        if i == 0:
+                            self.samples.append(Sample(active_event.data[0], Sample.TYPE_START))
+                            continue
+
                         self.samples.append(Sample(active_event.data[0], Sample.TYPE_SUSTAIN))
                     active_event = None
                 else:
@@ -154,6 +183,10 @@ class Sequence(list):
                 if active_event is not None:
                     if active_event.data[0] == event.data[0]:
                         for i in range(0, event.tick):
+                            if i == 0:
+                                self.samples.append(Sample(active_event.data[0], Sample.TYPE_START))
+                                continue
+
                             self.samples.append(Sample(active_event.data[0], Sample.TYPE_SUSTAIN))
                         active_event = None
 
@@ -166,6 +199,10 @@ class Sequence(list):
 
     def __add_time_signature(self, event):
         self.time_signatures[len(self.samples)] = event
+
+    def beat_index_in_measure(self, position):
+        measure = self.measure_at(position)
+        return position - measure.sample_position() / RESOLUTION
 
     def extend_samples(self):
         new_samples = []
@@ -245,7 +282,7 @@ class Beat(list):
         self.beat_index = beat_index
 
     def __repr__(self):
-        return '\nBeat(samples: %s)' % pformat(list(self))
+        return '\nBeat(samples: %s)' % pformat(list(self.samples))
 
     def __getitem__(self, item):
         return self.samples[item]
@@ -253,8 +290,26 @@ class Beat(list):
     def __setitem__(self, key, value):
         self.samples[key] = value
 
+    def __len__(self):
+        return len(self.samples)
+
     def beat_position(self):
         return len(self.parent) + (self.beat_index * RESOLUTION)
+
+    def contains_linear_movement(self):
+        last_pitch = self.samples[0].pitch()
+        contains_linear_motion = False
+
+        for sample in self.samples:
+            if last_pitch - 2 <= sample.pitch() <= last_pitch + 2 and sample.pitch() != last_pitch:
+                contains_linear_motion = True
+
+            if sample.pitch() < last_pitch - 2 or sample.pitch() > last_pitch + 2:
+                contains_linear_motion = False
+
+            last_pitch = sample.pitch()
+
+        return contains_linear_motion
 
 
 class Sample:
@@ -262,9 +317,9 @@ class Sample:
     TYPE_SUSTAIN = 2
     TYPE_END = 3
 
-    def __init__(self, pitch, sample_type):
+    def __init__(self, pitch, type):
         self.note = Note(midi_value=pitch)
-        self.type = sample_type
+        self.type = type
 
     def __eq__(self, other):
         if isinstance(self, other.__class__):
@@ -276,3 +331,6 @@ class Sample:
 
     def is_empty(self):
         return self.note.as_midi_value() == -1
+
+    def pitch(self):
+        return self.note.midi_value
