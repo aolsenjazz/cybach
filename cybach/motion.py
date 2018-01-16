@@ -1,6 +1,8 @@
 from __future__ import division
 
 import transforms
+import constants
+import vars
 from constants import RESOLUTION
 
 
@@ -51,14 +53,13 @@ class Motionizer:
                 difference = abs(inter_pitch - soprano_pitch)
 
                 if difference == 1 or difference % 12 == 1:
-                    score += -0.2
+                    score += vars.VERY_DISSONANT_WITH_SOPRANO
                 elif difference == 2:
-                    score += -0.1
+                    score += vars.SLIGHTLY_DISSONANT_WITH_SOPRANO
 
             scores.append(score)
 
         return 0 if len(scores) == 0 else sum(scores) / len(scores)
-
 
     def __compute_transform_synergies(self, candidates):
         synergies = []
@@ -107,7 +108,9 @@ class Motionizer:
 
         if sequence[position].pitch() != -1:
             trans.extend(self.__join_transforms(position, sequence))
-            trans.extend(self.__micro_transforms(position, sequence))
+
+            if constants.EIGHTH_NOTE in sequence.note_duration_count().keys():
+                trans.extend(self.__micro_transforms(position, sequence))
 
         return trans
 
@@ -116,7 +119,9 @@ class Motionizer:
 
         if sequence[position].pitch() != -1:
             trans.extend(self.__join_transforms(position, sequence))
-            trans.extend(self.__micro_transforms(position, sequence))
+
+            if constants.EIGHTH_NOTE in sequence.note_duration_count().keys():
+                trans.extend(self.__micro_transforms(position, sequence))
 
         return trans
 
@@ -125,7 +130,9 @@ class Motionizer:
 
         if sequence[position].pitch() != -1:
             trans.extend(self.__join_transforms(position, sequence))
-            trans.extend(self.__micro_transforms(position, sequence))
+
+            if constants.EIGHTH_NOTE in sequence.note_duration_count().keys():
+                trans.extend(self.__micro_transforms(position, sequence))
 
         return trans
 
@@ -152,7 +159,6 @@ class Motionizer:
 
         return trans
 
-
     def __join_transforms(self, position, sequence):
         trans = []
 
@@ -172,10 +178,6 @@ class Motionizer:
             trans.append(transforms.SixBeatJoinTransform(position, sequence, self.chord_prog))
 
         return trans
-
-
-    def calculate_score(self, motion_factors, musicality_factors):
-        pass
 
 
 def combinations(*args):

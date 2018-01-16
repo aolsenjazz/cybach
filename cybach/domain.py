@@ -219,18 +219,19 @@ class Sequence(list):
         measure = self.parent_measure(position)
         return position - measure.sample_position() / RESOLUTION
 
-    def motion_preferences(self):
+    def note_duration_count(self):
         i = -1
         preferences = {}
 
         for sample in self.samples:
             if sample.type == Sample.TYPE_START:
-                i = 0
+                i = 1
             elif sample.type == Sample.TYPE_END and i != RESOLUTION:
                 if preferences.get(i, None) is None:
                     preferences[i] = 0
 
                 preferences[i] += 1
+            i += 1
 
         return preferences
 

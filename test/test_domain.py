@@ -5,6 +5,7 @@ import midi
 from cybach import chords, transforms
 from cybach import domain
 from cybach import ks
+from cybach import constants
 from cybach import parts
 from cybach.constants import RESOLUTION
 from cybach.pat_util import normalize_resolution
@@ -30,8 +31,15 @@ class TestDomain(TestCase):
         self.assertFalse(sequence.beat_at(0).contains_motion())
         self.assertTrue(sequence.beat_at(24).contains_motion())
 
-    def test__motion_preferences(self):
-        
+    def test__Sequence_note_duration_count(self):
+        pattern = normalize_resolution(read_pattern('test/midi/linear_motion.mid'))
+        sequence = domain.Sequence(pattern=pattern[0])
+
+        number_of_sixteenths = 2
+        number_of_eighths = 5
+
+        self.assertEqual(sequence.note_duration_count().get(domain.SIXTEENTH_NOTE, 0), number_of_sixteenths)
+        self.assertEqual(sequence.note_duration_count().get(domain.EIGHTH_NOTE, 0), number_of_eighths)
 
 
 def read_pattern(file_name):

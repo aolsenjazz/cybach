@@ -17,6 +17,7 @@ import note_picker
 import parts
 import examples
 import songloader
+from domain import RESOLUTION
 
 # ~~~~~~~~ verify command line arguments ~~~~~~~~
 midi_regex = re.compile('.+\.(midi|mid)')

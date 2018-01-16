@@ -3,6 +3,8 @@ import constants
 import ts
 import chords
 import domain
+import vars
+import notes
 from constants import RESOLUTION
 
 
@@ -32,7 +34,7 @@ class JoinTransform(MotionTransform):
         self.scale = self.SCALE_MACRO
 
     def synergy(self, transform):
-        return -0.02 if isinstance(transform, self.__class__) else 0.0
+        return vars.JOIN_SAME if isinstance(transform, self.__class__) else 0.0
 
     def apply(self):
         raise NotImplementedError
@@ -45,8 +47,8 @@ class TwoBeatJoinTransform(JoinTransform):
 
         self.sequence = sequence
         self.position = position
-        self.intrinsic_motion = 0.42
-        self.intrinsic_musicality = 0.0  # default
+        self.intrinsic_motion = vars.TWO_BEAT_MOTION
+        self.intrinsic_musicality = 0.0
         self.__set_musicality(position, sequence, chord_progression)
 
     def __set_musicality(self, position, sequence, chord_progression):
@@ -54,16 +56,16 @@ class TwoBeatJoinTransform(JoinTransform):
         beat_index = sequence.beat_index_in_measure(position)
 
         if beat_index == 0:
-            self.intrinsic_musicality += 0.02
+            self.intrinsic_musicality += vars.TWO_BEAT_FIRST_BEAT
         elif ts.is_four_four(sig) or ts.is_two_four(sig):
             if beat_index % 2 == 1:
-                self.intrinsic_musicality += 0.15
+                self.intrinsic_musicality += vars.TWO_BEAT_WEAK_BEAT
         elif ts.is_three_four(sig) or ts.is_six_eight(sig):
             if beat_index % 2 == 0:
-                self.intrinsic_musicality += 0.15
+                self.intrinsic_musicality += vars.TWO_BEAT_WEAK_BEAT
 
         num_unique_chords = unique_chord_count(position, 1, chord_progression)
-        self.intrinsic_musicality += 0.04 * num_unique_chords
+        self.intrinsic_musicality += vars.TWO_BEAT_MULTIPLE_CHORDS * num_unique_chords
 
     def apply(self):
         return apply_join(self.position, 2, self.sequence)
@@ -93,8 +95,8 @@ class ThreeBeatJoinTransform(JoinTransform):
 
         self.sequence = sequence
         self.position = position
-        self.intrinsic_motion = 0.34
-        self.intrinsic_musicality = 0.01  # default
+        self.intrinsic_motion = vars.THREE_BEAT_MOTION
+        self.intrinsic_musicality = vars.THREE_BEAT_MUSICALITY
         self.__set_musicality(position, sequence, chord_progression)
 
     @staticmethod
@@ -122,15 +124,15 @@ class ThreeBeatJoinTransform(JoinTransform):
         beat_index = sequence.beat_index_in_measure(position)
 
         if beat_index == 0:
-            self.intrinsic_musicality += 0.02
+            self.intrinsic_musicality += vars.THREE_BEAT_FIRST_BEAT
         elif ts.is_four_four(sig) or ts.is_two_four(sig):
             if beat_index % 2 == 0:
-                self.intrinsic_musicality += 0.15
+                self.intrinsic_musicality += vars.THREE_BEAT_WEAK_BEAT_DENOM_MULTIPLE_OF_2
         elif ts.is_three_four(sig) or ts.is_six_eight(sig):
-            self.intrinsic_musicality += 0.02
+            self.intrinsic_musicality += vars.THREE_BEAT_WEAK_BEAT_DENOM_MULTIPLE_OF_3
 
         num_unique_chords = unique_chord_count(position, 2, chord_progression)
-        self.intrinsic_musicality += 0.04 * num_unique_chords
+        self.intrinsic_musicality += vars.THREE_BEAT_MULTIPLE_CHORDS * num_unique_chords
 
 
 class FourBeatJoinTransform(JoinTransform):
@@ -140,8 +142,8 @@ class FourBeatJoinTransform(JoinTransform):
 
         self.sequence = sequence
         self.position = position
-        self.intrinsic_motion = 0.26
-        self.intrinsic_musicality = 0.15  # default
+        self.intrinsic_motion = vars.FOUR_BEAT_MOTION
+        self.intrinsic_musicality = vars.FOUR_BEAT_MUSICALITY
         self.__set_musicality(position, sequence, chord_progression)
 
     @staticmethod
@@ -169,13 +171,13 @@ class FourBeatJoinTransform(JoinTransform):
         beat_index = sequence.beat_index_in_measure(position)
 
         if beat_index == 0:
-            self.intrinsic_musicality += 0.02
+            self.intrinsic_musicality += vars.FOUR_BEAT_FIRST_BEAT
         elif ts.is_four_four(sig):
             if beat_index == 1:
-                self.intrinsic_musicality += 0.03
+                self.intrinsic_musicality += vars.FOUR_BEAT_SECOND_BEAT
 
         num_unique_chords = unique_chord_count(position, 3, chord_progression)
-        self.intrinsic_musicality += 0.04 * num_unique_chords
+        self.intrinsic_musicality += vars.FOUR_BEAT_MULTIPLE_CHORDS * num_unique_chords
 
 
 class FiveBeatJoinTransform(JoinTransform):
@@ -214,13 +216,13 @@ class FiveBeatJoinTransform(JoinTransform):
         beat_index = sequence.beat_index_in_measure(position)
 
         if beat_index == 0:
-            self.intrinsic_musicality += 0.14
+            self.intrinsic_musicality += vars.FIVE_BEAT_FIRST_BEAT
         elif ts.is_six_eight(sig):
             if beat_index == 4:
-                self.intrinsic_musicality += 0.03
+                self.intrinsic_musicality += vars.FIVE_BEAT_FIFTH_BEAT
 
         num_unique_chords = unique_chord_count(position, 4, chord_progression)
-        self.intrinsic_musicality += 0.04 * num_unique_chords
+        self.intrinsic_musicality += vars.FIVE_BEAT_MULTIPLE_CHORDS * num_unique_chords
 
 
 class SixBeatJoinTransform(JoinTransform):
@@ -230,8 +232,8 @@ class SixBeatJoinTransform(JoinTransform):
 
         self.sequence = sequence
         self.position = position
-        self.intrinsic_motion = 0.10
-        self.intrinsic_musicality = 0.25  # default
+        self.intrinsic_motion = vars.SIX_BEAT_MOTION
+        self.intrinsic_musicality = vars.SIX_BEAT_MUSICALITY
         self.__set_musicality(position, sequence, chord_progression)
 
     def apply(self):
@@ -260,14 +262,14 @@ class SixBeatJoinTransform(JoinTransform):
 
         if ts.is_six_eight(sig):
             if beat_index == 1:
-                self.intrinsic_musicality += 0.02
+                self.intrinsic_musicality += vars.SIX_BEAT_SECOND_BEAT
             else:
-                self.intrinsic_musicality += 0.05
+                self.intrinsic_musicality += vars.SIX_BEAT_ANY_OTHER_BEAT
         elif ts.is_three_four(sig):
-            self.intrinsic_musicality += 0.03
+            self.intrinsic_musicality += vars.SIX_BEAT_THREE_FOUR
 
         num_unique_chords = unique_chord_count(position, 5, chord_progression)
-        self.intrinsic_musicality += 0.04 * num_unique_chords
+        self.intrinsic_musicality += vars.SIX_BEAT_MULTIPLE_CHORDS * num_unique_chords
 
 
 class NoneTransform(MotionTransform):
@@ -316,17 +318,17 @@ class EighthNoteTransform(MotionTransform):
             next_chord = self.chord_progression[self.position + RESOLUTION]
 
             if dissonant(self.intermediate_pitch, transform.intermediate_pitch):
-                return -0.1
+                return vars.EIGHTH_NOTE_DISSONANCE
             elif next_chord.indicates_dominant(self.intermediate_pitch, transform.intermediate_pitch):
-                return 0.1
+                return vars.EIGHTH_NOTE_DOMINANT
             elif next_chord.indicates_subdominant(self.intermediate_pitch, transform.intermediate_pitch):
-                return 0.05
+                return vars.EIGHTH_NOTE_SUBDOMINANT
             elif transforms_cause_parallel_movement(self, transform):
-                return -0.2
+                return vars.EIGHTH_NOTE_PARALLEL
 
             return 0.0
         elif isinstance(transform, self.__class__):
-            return -0.02
+            return vars.EIGHTH_NOTE_SAME
 
         return 0.0
 
@@ -335,7 +337,7 @@ class MajorThirdScalarTransform(EighthNoteTransform):
 
     def __init__(self, position, sequence, key_signatures, chord_progression):
         EighthNoteTransform.__init__(self, position, sequence, key_signatures, chord_progression)
-        self.intrinsic_motion = 0.58
+        self.intrinsic_motion = vars.MAJOR_THIRD_SCALAR_MOTION
         self.intrinsic_musicality = self.__get_musicality()
 
         this_note = sequence[position]
@@ -345,11 +347,12 @@ class MajorThirdScalarTransform(EighthNoteTransform):
     def __get_musicality(self):
         # no previous motion
         if self.position == 0:
-            return 0.08
+            return vars.MAJOR_THIRD_SCALAR_BEAT_ONE
 
         last_beat = self.sequence.beat_at(self.position - RESOLUTION)
 
-        return 0.2 if last_beat.contains_linear_movement() else 0.08
+        return vars.MAJOR_THIRD_SCALAR_CONTINUES_LINEARITY if last_beat.contains_linear_movement() \
+            else vars.MAJOR_THIRD_SCALAR_DEFAULT_MUSICALITY
 
     @staticmethod
     def applicable_at(position, sequence, key_signatures):
@@ -372,7 +375,7 @@ class MinorThirdScalarTransform(EighthNoteTransform):
 
     def __init__(self, position, sequence, key_signatures, chord_progression):
         EighthNoteTransform.__init__(self, position, sequence, key_signatures, chord_progression)
-        self.intrinsic_motion = 0.56
+        self.intrinsic_motion = vars.MINOR_THIRD_SCALAR_MOTION
         self.intrinsic_musicality = self.__get_musicality()
 
         this_pitch = sequence[position].pitch()
@@ -387,11 +390,12 @@ class MinorThirdScalarTransform(EighthNoteTransform):
     def __get_musicality(self):
         # no previous motion
         if self.position == 0:
-            return 0.08
+            return vars.MINOR_THIRD_SCALAR_BEAT_ONE
 
         last_beat = self.sequence.beat_at(self.position - RESOLUTION)
 
-        return 0.2 if last_beat.contains_linear_movement() else 0.08
+        return vars.MINOR_THIRD_SCALAR_CONTINUES_LINEARITY if last_beat.contains_linear_movement() \
+            else vars.MINOR_THIRD_SCALAR_DEFAULT_MUSICALITY
 
     @staticmethod
     def applicable_at(position, sequence, key_signatures):
@@ -420,7 +424,7 @@ class ArpeggialTransform(EighthNoteTransform):
 
     def __init__(self, position, sequence, key_signatures, chord_progression):
         EighthNoteTransform.__init__(self, position, sequence, key_signatures, chord_progression)
-        self.intrinsic_motion = 0.62
+        self.intrinsic_motion = vars.ARPEGGIAL_MOTION
         self.intrinsic_musicality = self.__get_musicality()
 
         this_note = sequence[position]
@@ -441,7 +445,8 @@ class ArpeggialTransform(EighthNoteTransform):
         this_chord = self.chord_progression[self.position]
         next_chord = self.chord_progression[self.position + RESOLUTION]
 
-        return 0.08 if this_chord.root.midi_value % 12 == next_chord.root.midi_value % 12 else 0.14
+        return vars.ARPEGGIAL_SAME_CHORD if chords.same(this_chord, next_chord) \
+            else vars.ARPEGGIAL_DEFAULT_MUSICALITY
 
     @staticmethod
     def applicable_at(position, sequence, chord_progression):
@@ -474,7 +479,7 @@ class HalfStepNeighborTransform(EighthNoteTransform):
 
     def __init__(self, position, sequence, key_signatures, chord_progression):
         EighthNoteTransform.__init__(self, position, sequence, key_signatures, chord_progression)
-        self.intrinsic_motion = 0.53
+        self.intrinsic_motion = vars.HALF_NEIGHBOR_MOTION
         self.intrinsic_musicality = self.__get_musicality()
 
         this_pitch = sequence[position].pitch()
@@ -486,7 +491,8 @@ class HalfStepNeighborTransform(EighthNoteTransform):
         this_chord = self.chord_progression[self.position]
         next_chord = self.chord_progression[self.position + RESOLUTION]
 
-        return 0.05 if this_chord.root.midi_value % 12 == next_chord.root.midi_value % 12 else 0.8
+        return vars.HALF_NEIGHBOR_SAME_CHORD if chords.same(this_chord, next_chord) \
+            else vars.HALF_NEIGHBOR_DEFAULT_MUSICALITY
 
     @staticmethod
     def applicable_at(position, sequence, key_signatures):
@@ -509,7 +515,7 @@ class WholeStepNeighborTransform(EighthNoteTransform):
 
     def __init__(self, position, sequence, key_signatures, chord_progression):
         EighthNoteTransform.__init__(self, position, sequence, key_signatures, chord_progression)
-        self.intrinsic_motion = 0.54
+        self.intrinsic_motion = vars.WHOLE_NEIGHBOR_MOTION
         self.intrinsic_musicality = self.__get_musicality()
 
         this_pitch = sequence[position].pitch()
@@ -521,7 +527,8 @@ class WholeStepNeighborTransform(EighthNoteTransform):
         this_chord = self.chord_progression[self.position]
         next_chord = self.chord_progression[self.position + RESOLUTION]
 
-        return 0.05 if this_chord.root.midi_value % 12 == next_chord.root.midi_value % 12 else 0.8
+        return vars.WHOLE_NEIGHBOR_SAME_CHORD if chords.same(this_chord, next_chord) \
+            else vars.WHOLE_NEIGHBOR_DEFAULT_MUSICALITY
 
     @staticmethod
     def applicable_at(position, sequence, key_signatures):
@@ -544,7 +551,7 @@ class ApproachTransform(EighthNoteTransform):
 
     def __init__(self, position, sequence, key_signatures, chord_progression):
         EighthNoteTransform.__init__(self, position, sequence, key_signatures, chord_progression)
-        self.intrinsic_motion = 0.60
+        self.intrinsic_motion = vars.APPROACH_MOTION
         self.intrinsic_musicality = self.__get_musicality()
 
         next_pitch = sequence[position + RESOLUTION].pitch()
@@ -556,11 +563,11 @@ class ApproachTransform(EighthNoteTransform):
         next_pitch = self.sequence[self.position + RESOLUTION].pitch()
         next_chord = self.chord_progression[self.position + RESOLUTION]
         next_key = self.key_signatures[self.position + RESOLUTION]
-
-        if next_pitch % 12 == next_chord.root.midi_value % 12:
-            return 0.2 if next_chord.root.midi_value % 12 == next_key.root.midi_value % 12 else 0.12
+        if notes.same_species(next_pitch, next_chord.root):
+            return vars.APPROACH_KEY_CHANGE if notes.same_species(next_chord.root, next_key.root) \
+                else vars.APPROACH_NEW_CHORD_ROOT
         else:
-            return 0.07
+            return vars.APPROACH_DEFAULT_MUSICALITY
 
     @staticmethod
     def applicable_at(position, sequence, chord_progression):

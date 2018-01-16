@@ -2,6 +2,7 @@ import notes
 import parts
 import motion
 import transforms
+import vars
 from constants import *
 
 
@@ -77,7 +78,7 @@ class NotePicker:
 
 def get_motion_score(candidate, position, alto, tenor, bass):
     if position == 0:
-        return 0
+        return 0.0
 
     last_alto = alto[position - RESOLUTION].pitch()
     last_tenor = tenor[position - RESOLUTION].pitch()
@@ -86,11 +87,11 @@ def get_motion_score(candidate, position, alto, tenor, bass):
     score = 0.0
 
     if transforms.notes_cause_parallel_movement(last_alto, last_tenor, candidate[2], candidate[1]):
-        score += -0.20
+        score += vars.PARALLEL_MOVEMENT
     if transforms.notes_cause_parallel_movement(last_tenor, last_bass, candidate[1], candidate[0]):
-        score += -0.20
+        score += vars.PARALLEL_MOVEMENT
     if transforms.notes_cause_parallel_movement(last_bass, last_alto, candidate[0], candidate[2]):
-        score += -0.20
+        score += vars.PARALLEL_MOVEMENT
 
     return score
 
@@ -138,10 +139,6 @@ def get_alto_score(candidate, position, sequence, chord_progression):
     return score
 
 
-def get_shape_score(candidate):
-    return 0
-
-
 def get_harmony_score(candidate, chord):
     base_position_chord = [notes.OCTAVES[n.species()][0] for n in chord.all()]
     base_position_candidate = [pitch % 12 for pitch in candidate]
@@ -153,7 +150,7 @@ def get_harmony_score(candidate, chord):
             count += 1
             added.append(pitch)
 
-    return count * 0.05
+    return count * vars.HARMONY
 
 
 def root_tendency_score(candidate, position, sequence, chord_progression):
@@ -162,7 +159,7 @@ def root_tendency_score(candidate, position, sequence, chord_progression):
 
     # first bass note should definitely be the root
     if position == 0 and notes.species(candidate) == this_chord.root.species():
-        return 0.10
+        return vars.FIRST_BEAT_BASS_ROOT
 
     last_chord = chord_progression[position - RESOLUTION]
 
@@ -170,16 +167,16 @@ def root_tendency_score(candidate, position, sequence, chord_progression):
     measure = sequence.parent_measure(position)
 
     if position == measure.sample_position() or (measure.sample_position() + position) == measure.subdivision_index():
-        score += 0.05
+        score += vars.BIG_BEAT_BASS_ROOT
 
     # Chord is the same as the last chord, and this is root note. Less important as root was likely
     # already established
     if notes.same_species(last_chord.root, this_chord.root) and notes.same_species(candidate, this_chord.root):
-        score += 0.03
+        score += vars.BASS_ROOT_SAME_CHORD
 
     # new chord, we definitely want to hear the root
     if not notes.same_species(last_chord.root, this_chord.root) and notes.same_species(candidate, this_chord.root):
-        score += 0.20
+        score += vars.BASS_ROOT_NEW_CHORD
 
     return score
 
@@ -188,7 +185,7 @@ def threshold_encroachment_score(val, threshold, soft_limit):
     score = 0.0
 
     if soft_limit < val <= threshold or threshold <= val < soft_limit:
-        score -= (2 ** abs(soft_limit - val)) * 0.01
+        score += (2 ** abs(soft_limit - val)) * vars.THRESHOLD_ENCROACHMENT
 
     return score
 
@@ -197,7 +194,7 @@ def preferred_register_score(val, threshold, soft_limit):
     score = 0.0
 
     if soft_limit < val <= threshold or threshold <= val < soft_limit:
-        score -= abs(soft_limit - val) * 0.01
+        score += abs(soft_limit - val) * vars.PREFERRED_REGISTER
 
     return score
 
@@ -210,12 +207,12 @@ def motion_tendency_score(candidate, position, sequence):
 
     last_pitch = sequence[position - RESOLUTION].pitch()
 
-    if is_motion(candidate, last_pitch) and sequence.motion_tendency > 0.5:
+    if is_motion(candidate, last_pitch):
         score += sequence.motion_tendency - 0.5
-    elif not is_motion(candidate, last_pitch) and sequence.motion_tendency < 0.5:
+    else:
         score += 0.5 - sequence.motion_tendency
 
-    return score / 2
+    return score / vars.MOTION_TENDENCY_DIVISOR
 
 
 def linear_motion_score(candidate, position, sequence):
@@ -226,7 +223,7 @@ def linear_motion_score(candidate, position, sequence):
     last_pitch = sequence[position - RESOLUTION].pitch()
 
     if is_linear_motion(candidate, last_pitch):
-        score += 0.20
+        score += vars.LINEAR_MOTION
 
     return score
 

@@ -349,6 +349,10 @@ def parse(chord):
     return CHORDS.get(parsed, None)
 
 
+def same(chord1, chord2):
+    return chord1.root.midi_value % 12 == chord2.root.midi_value % 12
+
+
 CHORDS = {
     'C': MajorChord(notes.Note(notes.C)),
     'C-': MinorChord(notes.Note(notes.C)),
