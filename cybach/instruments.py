@@ -14,7 +14,7 @@ class Instrument:
         return 'Max low pitch: %d // Max high pitch: %d' % (self.max_low_pitch, self.max_high_pitch)
 
     def lowest_comfy(self, note):
-        text = note.as_text_without_octave()
+        text = note.species()
         octaves = notes.OCTAVES[text]
 
         for pitch in octaves:
@@ -22,7 +22,7 @@ class Instrument:
                 return pitch
 
     def lowest_max(self, note):
-        text = note.as_text_without_octave()
+        text = note.species()
         octaves = notes.OCTAVES[text]
 
         for pitch in octaves:
@@ -30,7 +30,7 @@ class Instrument:
                 return pitch
 
     def highest_comfy(self, note):
-        text = note.as_text_without_octave()
+        text = note.species()
         octaves = notes.OCTAVES[text]
 
         last_pitch = octaves[0]
@@ -40,7 +40,7 @@ class Instrument:
             last_pitch = pitch
 
     def highest_max(self, note):
-        text = note.as_text_without_octave()
+        text = note.species()
         octaves = notes.OCTAVES[text]
 
         last_pitch = octaves[0]

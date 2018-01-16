@@ -23,13 +23,12 @@ class NotePicker:
         return self.bass[index]
 
     def pick_alto(self, index):
-        soprano_threshold = self.soprano[index].note.midi_value - 2
+        soprano_threshold = self.soprano[index].note.midi() - 2
 
         unused = self.__unused_notes(index)
         all_available_octaves = self.alto.instrument.all_available_octaves(unused)
         available = [x for x in all_available_octaves if x < soprano_threshold]
         available.sort(reverse=True)
-        print available
 
         if index >= RESOLUTION:
             last_beat = self.__used_notes(index - RESOLUTION)
@@ -53,7 +52,7 @@ class NotePicker:
         if not self.tenor[index].note.is_empty():
             return self.tenor[index]
 
-        bass_threshold = self.bass[index].note.midi_value + 3
+        bass_threshold = self.bass[index].note.midi() + 3
 
         unused = self.__unused_notes(index)
         if not unused:
@@ -83,7 +82,7 @@ class NotePicker:
         else:
             # now we have all of the notes that wouldn't cause parallel motion, are within the available range
             # of the instrument, and above bass threshold
-            mean_bass_alto = (self.bass[index].note.midi_value + self.alto[index].note.midi_value) / 2
+            mean_bass_alto = (self.bass[index].note.midi() + self.alto[index].note.midi()) / 2
             midi_val = min(available_without_parallel_motion, key=lambda note: abs(note - mean_bass_alto))
             return Sample(midi_val, Sample.TYPE_START)
 
@@ -99,7 +98,7 @@ class NotePicker:
         for chord_note in chord.all():
             contains = False
             for used_note in used_notes:
-                if chord_note.as_text_without_octave() == used_note.as_text_without_octave():
+                if chord_note.species() == used_note.species():
                     contains = True
             if not contains:
                 unused_notes.append(chord_note)
@@ -114,12 +113,12 @@ def contains_parallel_movement(first_set, second_set):
         for j in range(0, len(first_set)):
             second = first_set[j]
 
-            if first.midi_value == second.midi_value:
+            if first.midi() == second.midi():
                 continue
 
-            if notes.is_perfect_interval(first.midi_value, second.midi_value):
-                first_interval = abs(first.midi_value - second.midi_value)
-                second_interval = abs(second_set[i].midi_value - second_set[j].midi_value)
+            if notes.is_perfect_interval(first.midi(), second.midi()):
+                first_interval = abs(first.midi() - second.midi())
+                second_interval = abs(second_set[i].midi() - second_set[j].midi())
                 if first_interval != 0 and first_interval == second_interval:
                     return True
 

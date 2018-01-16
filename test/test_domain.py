@@ -11,9 +11,9 @@ from cybach.pat_util import normalize_resolution
 
 
 class TestDomain(TestCase):
-    def test_Note_contains_linear_motion(self):
+    def test__Note_contains_linear_motion(self):
         pattern = normalize_resolution(read_pattern('test/midi/linear_motion.mid'))
-        sequence = domain.Sequence(track=pattern[0])
+        sequence = domain.Sequence(pattern=pattern[0])
 
         has_linear_motion = sequence.beat_at(RESOLUTION * 2)
         has_linear_and_non_linear = sequence.beat_at(RESOLUTION)
@@ -22,6 +22,17 @@ class TestDomain(TestCase):
         self.assertTrue(has_linear_motion.contains_linear_movement())
         self.assertFalse(has_linear_and_non_linear.contains_linear_movement())
         self.assertFalse(has_no_motion.contains_linear_movement())
+
+    def test__Beat_contains_motion(self):
+        pattern = normalize_resolution(read_pattern('test/midi/linear_motion.mid'))
+        sequence = domain.Sequence(pattern=pattern[0])
+
+        self.assertFalse(sequence.beat_at(0).contains_motion())
+        self.assertTrue(sequence.beat_at(24).contains_motion())
+
+    def test__motion_preferences(self):
+        
+
 
 def read_pattern(file_name):
     try:

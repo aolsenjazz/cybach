@@ -24,11 +24,9 @@ class TestChords(TestCase):
         chord = chords.MajorChord(MIDI_VALUES['C1'])
         above = chord.note_above(MIDI_VALUES['E1'])
         above_with_note_object = chord.note_above(notes.Note(MIDI_VALUES['E1']))
-        above_with_note_text = chord.note_above(notes.Note(MIDI_VALUES['E1']).as_text_with_octave())
 
         self.assertEqual(above, MIDI_VALUES['G1'])
         self.assertEqual(above_with_note_object, MIDI_VALUES['G1'])
-        self.assertEqual(above_with_note_text, MIDI_VALUES['G1'])
 
     def test_MajorChord_indicates_dominant(self):
         chord = chords.parse('C')

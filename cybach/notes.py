@@ -49,6 +49,32 @@ OCTAVES = {
 }
 
 
+def species(value):
+    parsed_value = None
+
+    if isinstance(value, Note):
+        parsed_value = value.midi()
+    elif isinstance(value, int):
+        parsed_value = value
+    elif isinstance(value, str):
+        if TEXT_WITH_OCTAVE.match(value):
+            return value[0:len(value) - 1]
+        elif TEXT_WITHOUT_OCTAVE.match(value):
+            return value
+    else:
+        raise TypeError('must submit either int, note, or str')
+
+    for key in MIDI_VALUES:
+        remainder = parsed_value % 12
+
+        if MIDI_VALUES[key] % 12 == remainder:
+            return key[0:len(key) - 2] if '10' in key else key[0:len(key) - 1]
+
+
+def same_species(value1, value2):
+    return species(value1) == species(value2)
+
+
 def is_perfect_fifth(first, second):
     return abs(second - first) == 7
 
@@ -67,13 +93,13 @@ def is_perfect_interval(first, second):
 
 def ionian(pitch):
     notes = \
-        Note(midi_value=pitch).as_text_without_octave(), \
-        Note(midi_value=pitch + 2).as_text_without_octave(), \
-        Note(midi_value=pitch + 4).as_text_without_octave(), \
-        Note(midi_value=pitch + 5).as_text_without_octave(), \
-        Note(midi_value=pitch + 7).as_text_without_octave(), \
-        Note(midi_value=pitch + 9).as_text_without_octave(), \
-        Note(midi_value=pitch + 11).as_text_without_octave()
+        species(pitch), \
+        species(pitch + 2), \
+        species(pitch + 4), \
+        species(pitch + 5), \
+        species(pitch + 7), \
+        species(pitch + 9), \
+        species(pitch + 11)
 
     all_pitches = list(itertools.chain.from_iterable([OCTAVES[note] for note in notes]))
     all_pitches.sort()
@@ -83,13 +109,13 @@ def ionian(pitch):
 
 def dorian(pitch):
     notes = \
-        Note(midi_value=pitch).as_text_without_octave(), \
-        Note(midi_value=pitch + 2).as_text_without_octave(), \
-        Note(midi_value=pitch + 3).as_text_without_octave(), \
-        Note(midi_value=pitch + 5).as_text_without_octave(), \
-        Note(midi_value=pitch + 7).as_text_without_octave(), \
-        Note(midi_value=pitch + 9).as_text_without_octave(), \
-        Note(midi_value=pitch + 10).as_text_without_octave()
+        species(pitch), \
+        species(pitch + 2), \
+        species(pitch + 3), \
+        species(pitch + 5), \
+        species(pitch + 7), \
+        species(pitch + 9), \
+        species(pitch + 10)
 
     all_pitches = list(itertools.chain.from_iterable([OCTAVES[note] for note in notes]))
     all_pitches.sort()
@@ -99,13 +125,13 @@ def dorian(pitch):
 
 def phrygian(pitch):
     notes = \
-        Note(midi_value=pitch).as_text_without_octave(), \
-        Note(midi_value=pitch + 1).as_text_without_octave(), \
-        Note(midi_value=pitch + 3).as_text_without_octave(), \
-        Note(midi_value=pitch + 5).as_text_without_octave(), \
-        Note(midi_value=pitch + 7).as_text_without_octave(), \
-        Note(midi_value=pitch + 8).as_text_without_octave(), \
-        Note(midi_value=pitch + 10).as_text_without_octave()
+        species(pitch), \
+        species(pitch + 1), \
+        species(pitch + 3), \
+        species(pitch + 5), \
+        species(pitch + 7), \
+        species(pitch + 8), \
+        species(pitch + 10)
 
     all_pitches = list(itertools.chain.from_iterable([OCTAVES[note] for note in notes]))
     all_pitches.sort()
@@ -115,13 +141,13 @@ def phrygian(pitch):
 
 def lydian(pitch):
     notes = \
-        Note(midi_value=pitch).as_text_without_octave(), \
-        Note(midi_value=pitch + 2).as_text_without_octave(), \
-        Note(midi_value=pitch + 4).as_text_without_octave(), \
-        Note(midi_value=pitch + 6).as_text_without_octave(), \
-        Note(midi_value=pitch + 7).as_text_without_octave(), \
-        Note(midi_value=pitch + 9).as_text_without_octave(), \
-        Note(midi_value=pitch + 11).as_text_without_octave()
+        species(pitch), \
+        species(pitch + 2), \
+        species(pitch + 4), \
+        species(pitch + 6), \
+        species(pitch + 7), \
+        species(pitch + 9), \
+        species(pitch + 11)
 
     all_pitches = list(itertools.chain.from_iterable([OCTAVES[note] for note in notes]))
     all_pitches.sort()
@@ -131,13 +157,13 @@ def lydian(pitch):
 
 def mixolydian(pitch):
     notes = \
-        Note(midi_value=pitch).as_text_without_octave(), \
-        Note(midi_value=pitch + 2).as_text_without_octave(), \
-        Note(midi_value=pitch + 4).as_text_without_octave(), \
-        Note(midi_value=pitch + 5).as_text_without_octave(), \
-        Note(midi_value=pitch + 7).as_text_without_octave(), \
-        Note(midi_value=pitch + 9).as_text_without_octave(), \
-        Note(midi_value=pitch + 10).as_text_without_octave()
+        species(pitch), \
+        species(pitch + 2), \
+        species(pitch + 4), \
+        species(pitch + 5), \
+        species(pitch + 7), \
+        species(pitch + 9), \
+        species(pitch + 10)
 
     all_pitches = list(itertools.chain.from_iterable([OCTAVES[note] for note in notes]))
     all_pitches.sort()
@@ -147,13 +173,13 @@ def mixolydian(pitch):
 
 def aeolian(pitch):
     notes = \
-        Note(midi_value=pitch).as_text_without_octave(), \
-        Note(midi_value=pitch + 2).as_text_without_octave(), \
-        Note(midi_value=pitch + 3).as_text_without_octave(), \
-        Note(midi_value=pitch + 5).as_text_without_octave(), \
-        Note(midi_value=pitch + 7).as_text_without_octave(), \
-        Note(midi_value=pitch + 8).as_text_without_octave(), \
-        Note(midi_value=pitch + 10).as_text_without_octave()
+        species(pitch), \
+        species(pitch + 2), \
+        species(pitch + 3), \
+        species(pitch + 5), \
+        species(pitch + 7), \
+        species(pitch + 8), \
+        species(pitch + 10)
 
     all_pitches = list(itertools.chain.from_iterable([OCTAVES[note] for note in notes]))
     all_pitches.sort()
@@ -163,13 +189,13 @@ def aeolian(pitch):
 
 def locrian(pitch):
     notes = \
-        Note(midi_value=pitch).as_text_without_octave(), \
-        Note(midi_value=pitch + 1).as_text_without_octave(), \
-        Note(midi_value=pitch + 3).as_text_without_octave(), \
-        Note(midi_value=pitch + 5).as_text_without_octave(), \
-        Note(midi_value=pitch + 6).as_text_without_octave(), \
-        Note(midi_value=pitch + 8).as_text_without_octave(), \
-        Note(midi_value=pitch + 10).as_text_without_octave()
+        species(pitch), \
+        species(pitch + 1), \
+        species(pitch + 3), \
+        species(pitch + 5), \
+        species(pitch + 6), \
+        species(pitch + 8), \
+        species(pitch + 10)
 
     all_pitches = list(itertools.chain.from_iterable([OCTAVES[note] for note in notes]))
     all_pitches.sort()
@@ -179,15 +205,15 @@ def locrian(pitch):
 
 def half_whole(pitch):
     notes = \
-        Note(midi_value=pitch).as_text_without_octave(), \
-        Note(midi_value=pitch + 1).as_text_without_octave(), \
-        Note(midi_value=pitch + 3).as_text_without_octave(), \
-        Note(midi_value=pitch + 4).as_text_without_octave(), \
-        Note(midi_value=pitch + 6).as_text_without_octave(), \
-        Note(midi_value=pitch + 7).as_text_without_octave(), \
-        Note(midi_value=pitch + 8).as_text_without_octave(), \
-        Note(midi_value=pitch + 9).as_text_without_octave(), \
-        Note(midi_value=pitch + 11).as_text_without_octave()
+        species(pitch), \
+        species(pitch + 1), \
+        species(pitch + 3), \
+        species(pitch + 4), \
+        species(pitch + 6), \
+        species(pitch + 7), \
+        species(pitch + 8), \
+        species(pitch + 9), \
+        species(pitch + 11)
 
     all_pitches = list(itertools.chain.from_iterable([OCTAVES[note] for note in notes]))
     all_pitches.sort()
@@ -197,14 +223,14 @@ def half_whole(pitch):
 
 def whole_half(pitch):
     notes = \
-        Note(midi_value=pitch).as_text_without_octave(), \
-        Note(midi_value=pitch + 2).as_text_without_octave(), \
-        Note(midi_value=pitch + 3).as_text_without_octave(), \
-        Note(midi_value=pitch + 5).as_text_without_octave(), \
-        Note(midi_value=pitch + 6).as_text_without_octave(), \
-        Note(midi_value=pitch + 8).as_text_without_octave(), \
-        Note(midi_value=pitch + 9).as_text_without_octave(), \
-        Note(midi_value=pitch + 11).as_text_without_octave()
+        species(pitch), \
+        species(pitch + 2), \
+        species(pitch + 3), \
+        species(pitch + 5), \
+        species(pitch + 6), \
+        species(pitch + 8), \
+        species(pitch + 9), \
+        species(pitch + 11)
 
     all_pitches = list(itertools.chain.from_iterable([OCTAVES[note] for note in notes]))
     all_pitches.sort()
@@ -214,32 +240,23 @@ def whole_half(pitch):
 
 class Note:
 
-    def __init__(self, midi_value=None, text_value=None):
-        if midi_value is not None:
-            self.midi_value = midi_value
-        if text_value is not None:
-            if TEXT_WITH_OCTAVE.match(text_value):
-                self.midi_value = MIDI_VALUES[text_value]
-            elif TEXT_WITHOUT_OCTAVE.match(text_value):
-                self.midi_value = MIDI_VALUES[text_value + '0']
+    def __init__(self, value):
+        if isinstance(value, int):
+            self.midi_value = value
+        elif isinstance(value, str):
+            if TEXT_WITH_OCTAVE.match(value):
+                self.midi_value = MIDI_VALUES[value]
+            elif TEXT_WITHOUT_OCTAVE.match(value):
+                self.midi_value = MIDI_VALUES[value + '0']
+        else:
+            raise TypeError('submit a valid int or string')
+            
 
-
-    def as_midi_value(self):
+    def midi(self):
         return self.midi_value
 
-    def as_text_with_octave(self):
-        for key in MIDI_VALUES:
-            if MIDI_VALUES[key] == self.midi_value:
-                return key
-        return None
-
-    def as_text_without_octave(self):
-        for key in MIDI_VALUES:
-
-            if MIDI_VALUES[key] == self.midi_value:
-                return key[0:-1]
-
-        return None
+    def species(self):
+        return species(self.midi())
 
     def is_empty(self):
         return self.midi_value == -1

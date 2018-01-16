@@ -32,7 +32,7 @@ class JoinTransform(MotionTransform):
         self.scale = self.SCALE_MACRO
 
     def synergy(self, transform):
-        return -0.02 if instance(transform, self.__class__) else 0.0
+        return -0.02 if isinstance(transform, self.__class__) else 0.0
 
     def apply(self):
         raise NotImplementedError
@@ -278,9 +278,10 @@ class NoneTransform(MotionTransform):
         self.sequence = sequence
         self.intrinsic_musicality = 0.0
         self.intrinsic_motion = 0.5
+        self.position = 0
 
     def synergy(self, transform):
-        return synergy.of(self, transform)
+        return 0.0
 
     def apply(self):
         return self.sequence.samples
@@ -295,9 +296,20 @@ class EighthNoteTransform(MotionTransform):
         self.sequence = sequence
         self.key_signatures = key_signatures
         self.chord_progression = chord_progression
+        self.intermediate_pitch = -1
 
     def apply(self):
-        raise NotImplementedError
+        half_way = self.position + (RESOLUTION / 2)
+        for i in range(half_way, self.position + RESOLUTION):
+            if i == half_way:
+                self.sequence[i - 1] = domain.Sample(self.sequence[i - 1].pitch(), domain.Sample.TYPE_END)
+                self.sequence[i] = domain.Sample(self.intermediate_pitch, domain.Sample.TYPE_START)
+            elif i == self.position + RESOLUTION - 1:
+                self.sequence[i] = domain.Sample(self.intermediate_pitch, domain.Sample.TYPE_END)
+            else:
+                self.sequence[i] = domain.Sample(self.intermediate_pitch, domain.Sample.TYPE_SUSTAIN)
+
+        return self.sequence.samples
 
     def synergy(self, transform):
         if isinstance(transform, EighthNoteTransform) and not isinstance(transform, self.__class__):
@@ -309,12 +321,14 @@ class EighthNoteTransform(MotionTransform):
                 return 0.1
             elif next_chord.indicates_subdominant(self.intermediate_pitch, transform.intermediate_pitch):
                 return 0.05
+            elif transforms_cause_parallel_movement(self, transform):
+                return -0.2
 
             return 0.0
         elif isinstance(transform, self.__class__):
             return -0.02
-        elif isinstance(transform, JoinTransform):
-            return 0.00
+
+        return 0.0
 
 
 class MajorThirdScalarTransform(EighthNoteTransform):
@@ -327,9 +341,6 @@ class MajorThirdScalarTransform(EighthNoteTransform):
         this_note = sequence[position]
         next_note = sequence[position + RESOLUTION]
         self.intermediate_pitch = (this_note.pitch() + next_note.pitch()) / 2
-
-    def apply(self):
-        pass
 
     def __get_musicality(self):
         # no previous motion
@@ -372,9 +383,6 @@ class MinorThirdScalarTransform(EighthNoteTransform):
         for note in intermediary_notes:
             if note in this_signature.scale() and min(this_pitch, next_pitch) < note < max(this_pitch, next_pitch):
                 self.intermediate_pitch = note
-
-    def apply(self):
-        pass
 
     def __get_musicality(self):
         # no previous motion
@@ -429,9 +437,6 @@ class ArpeggialTransform(EighthNoteTransform):
                 self.intermediate_pitch = i
                 break
 
-    def apply(self):
-        pass
-
     def __get_musicality(self):
         this_chord = self.chord_progression[self.position]
         next_chord = self.chord_progression[self.position + RESOLUTION]
@@ -477,9 +482,6 @@ class HalfStepNeighborTransform(EighthNoteTransform):
 
         self.intermediate_pitch = this_pitch + 1 if this_pitch + 1 in this_sig.scale() else this_pitch - 1
 
-    def apply(self):
-        pass
-
     def __get_musicality(self):
         this_chord = self.chord_progression[self.position]
         next_chord = self.chord_progression[self.position + RESOLUTION]
@@ -514,9 +516,6 @@ class WholeStepNeighborTransform(EighthNoteTransform):
         this_sig = key_signatures[position]
 
         self.intermediate_pitch = this_pitch + 2 if this_pitch + 2 in this_sig.scale() else this_pitch - 2
-
-    def apply(self):
-        pass
 
     def __get_musicality(self):
         this_chord = self.chord_progression[self.position]
@@ -553,9 +552,6 @@ class ApproachTransform(EighthNoteTransform):
 
         self.intermediate_pitch = next_pitch + 1 if next_pitch + 1 in this_chord else next_pitch - 1
 
-    def apply(self):
-        pass
-
     def __get_musicality(self):
         next_pitch = self.sequence[self.position + RESOLUTION].pitch()
         next_chord = self.chord_progression[self.position + RESOLUTION]
@@ -579,7 +575,8 @@ class ApproachTransform(EighthNoteTransform):
         this_chord = chord_progression[position]
 
         return (next_note.pitch() - 1 in this_chord or next_note.pitch() + 1 in this_chord) \
-            and (this_note.pitch() < next_note.pitch() - 2 or this_note.pitch() > next_note.pitch() + 2)
+            and (this_note.pitch() < next_note.pitch() - 2 or this_note.pitch() > next_note.pitch() + 2) \
+            and next_note.pitch() != -1
 
 
 def unique_chord_count(position, beats, chord_progression):
@@ -595,8 +592,30 @@ def apply_join(position, beats, sequence):
         else:
             sequence[i].type = domain.Sample.TYPE_SUSTAIN
 
-
     return sequence.samples
+
 
 def dissonant(pitch1, pitch2):
     return abs(pitch1 - pitch2) % 12 == 1
+
+
+def transforms_cause_parallel_movement(transform1, transform2):
+    if not isinstance(transform1, EighthNoteTransform) or not isinstance(transform2, EighthNoteTransform):
+        return False
+
+    f1 = transform1.sequence[transform1.position].pitch()
+    f2 = transform2.sequence[transform2.position].pitch()
+
+    i1 = transform1.intermediate_pitch
+    i2 = transform2.intermediate_pitch
+
+    return notes_cause_parallel_movement(f1, f2, i1, i2)
+
+
+def notes_cause_parallel_movement(part1_first, part2_first, part1_second, part2_second):
+    first_difference = abs(part1_first - part2_first)
+    second_difference = abs(part1_second - part2_second)
+
+    return first_difference == second_difference \
+            and (first_difference == 0 or first_difference == 5 or first_difference == 7 or first_difference == 12)
+

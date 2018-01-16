@@ -145,3 +145,16 @@ class TestNotes(TestCase):
         self.assertTrue(notes.OCTAVES['F#'][0] in all_pitches)
         self.assertTrue(notes.OCTAVES['G#'][0] in all_pitches)
         self.assertTrue(notes.OCTAVES['A#'][0] in all_pitches)
+
+    def test_species(self):
+        c = 24
+        note_c = notes.Note('C')
+        species_c = 'C'
+        octave_c = 'C2'
+
+        correct = 'C'
+
+        self.assertEqual(notes.species(c), correct)
+        self.assertEqual(notes.species(note_c), correct)
+        self.assertEqual(notes.species(species_c), correct)
+        self.assertEqual(notes.species(octave_c), correct)

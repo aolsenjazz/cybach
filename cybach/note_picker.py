@@ -1,7 +1,8 @@
 import notes
 import parts
-from constants import *
 import motion
+import transforms
+from constants import *
 
 
 class NotePicker:
@@ -52,7 +53,7 @@ class NotePicker:
         return self.chord_progression[self.position]
 
     def compute_winner(self, candidates):
-        high_score = -1
+        high_score = -9999
         current_winner = None
 
         for candidate in candidates:
@@ -63,14 +64,35 @@ class NotePicker:
             alto_score = get_alto_score(candidate[2], self.position, self.alto, self.chord_progression)
             shape_score = get_shape_score(candidate)
             harmony_score = get_harmony_score(candidate, self.current_chord())
+            motion_score = get_motion_score(candidate, self.position, self.alto, self.tenor, self.bass)
 
-            score = sum([bass_score, tenor_score, alto_score, shape_score, harmony_score])
+            score = sum([bass_score, tenor_score, alto_score, shape_score, harmony_score, motion_score])
 
             if score > high_score:
                 high_score = score
                 current_winner = candidate
 
         return current_winner
+
+
+def get_motion_score(candidate, position, alto, tenor, bass):
+    if position == 0:
+        return 0
+
+    last_alto = alto[position - RESOLUTION].pitch()
+    last_tenor = tenor[position - RESOLUTION].pitch()
+    last_bass = bass[position - RESOLUTION].pitch()
+
+    score = 0.0
+
+    if transforms.notes_cause_parallel_movement(last_alto, last_tenor, candidate[2], candidate[1]):
+        score += -0.20
+    if transforms.notes_cause_parallel_movement(last_tenor, last_bass, candidate[1], candidate[0]):
+        score += -0.20
+    if transforms.notes_cause_parallel_movement(last_bass, last_alto, candidate[0], candidate[2]):
+        score += -0.20
+
+    return score
 
 
 def get_bass_score(candidate, position, sequence, chord_progression):
@@ -83,7 +105,7 @@ def get_bass_score(candidate, position, sequence, chord_progression):
     score += preferred_register_score(candidate, high_thresh, high_thresh - 7)
     score += motion_tendency_score(candidate, position, sequence)
     score += linear_motion_score(candidate, position, sequence)
-    score += root_tendency_score(candidate, position, chord_progression)
+    score += root_tendency_score(candidate, position, sequence, chord_progression)
 
     return score
 
@@ -121,7 +143,7 @@ def get_shape_score(candidate):
 
 
 def get_harmony_score(candidate, chord):
-    base_position_chord = [notes.OCTAVES[n.as_text_without_octave()][0] for n in chord.all()]
+    base_position_chord = [notes.OCTAVES[n.species()][0] for n in chord.all()]
     base_position_candidate = [pitch % 12 for pitch in candidate]
     added = []
     count = 0
@@ -134,19 +156,32 @@ def get_harmony_score(candidate, chord):
     return count * 0.05
 
 
-def root_tendency_score(candidate, position, chord_progression):
+def root_tendency_score(candidate, position, sequence, chord_progression):
     this_chord = chord_progression[position]
-    this_note_text = notes.Note(midi_value=candidate).as_text_without_octave()
+    score = 0.0
 
-    if position == 0:
-        return 0.10 if this_note_text == this_chord.root.as_text_without_octave() else 0.0
+    # first bass note should definitely be the root
+    if position == 0 and notes.species(candidate) == this_chord.root.species():
+        return 0.10
 
     last_chord = chord_progression[position - RESOLUTION]
 
-    if last_chord.root.as_text_without_octave() == this_chord.root.as_text_without_octave():
-        return 0.03 if this_note_text == this_chord.root.as_text_without_octave() else 0.0
-    else:
-        return 0.10 if this_note_text == this_chord.root.as_text_without_octave() else 0.0
+    # if location is a "big beat" (1 or 3 in 4/4, 1 or 4 in 6/8), root is more valuable
+    measure = sequence.parent_measure(position)
+
+    if position == measure.sample_position() or (measure.sample_position() + position) == measure.subdivision_index():
+        score += 0.05
+
+    # Chord is the same as the last chord, and this is root note. Less important as root was likely
+    # already established
+    if notes.same_species(last_chord.root, this_chord.root) and notes.same_species(candidate, this_chord.root):
+        score += 0.03
+
+    # new chord, we definitely want to hear the root
+    if not notes.same_species(last_chord.root, this_chord.root) and notes.same_species(candidate, this_chord.root):
+        score += 0.20
+
+    return score
 
 
 def threshold_encroachment_score(val, threshold, soft_limit):

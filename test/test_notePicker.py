@@ -10,43 +10,6 @@ from cybach.constants import RESOLUTION
 
 
 class TestNotePicker(TestCase):
-    # deprecated
-    # def test___contains_parallel_movement(self):
-    #     c_major = notes.Note(12), notes.Note(19), notes.Note(24), notes.Note(28)
-    #     non_parallel = notes.Note(11), notes.Note(19), notes.Note(26), notes.Note(31)
-    #     perfect_fifth_movement = notes.Note(5), notes.Note(12), notes.Note(24), notes.Note(29)
-    #     perfect_octave_movement = notes.Note(11), notes.Note(19), notes.Note(23), notes.Note(26)
-    #     perfect_fourth_movement = notes.Note(12), notes.Note(24), notes.Note(29), notes.Note(33)
-    #
-    #     self.assertTrue(note_picker.contains_parallel_movement(c_major, perfect_fifth_movement))
-    #     self.assertTrue(note_picker.contains_parallel_movement(c_major, perfect_octave_movement))
-    #     self.assertTrue(note_picker.contains_parallel_movement(c_major, perfect_fourth_movement))
-    #     self.assertFalse(note_picker.contains_parallel_movement(c_major, non_parallel))
-
-    # deprecated
-    # def test___first_at_or_below(self):
-    #     threshold = 36
-    #     note = notes.Note(midi_value=7)
-    #     first_at_or_below = 31
-    #
-    #     self.assertEqual(first_at_or_below, note_picker.first_at_or_below(note, threshold))
-
-    # deprecated
-    # def test___all_available_pitches(self):
-    #     pitches = notes.Note(text_value='A'), notes.Note(text_value='C')
-    #     low_threshold = 10
-    #     high_threshold = 30
-    #
-    #     c1 = notes.MIDI_VALUES['C1']
-    #     a1 = notes.MIDI_VALUES['A1']
-    #     c2 = notes.MIDI_VALUES['C2']
-    #
-    #     available_pitches = note_picker.all_available_pitches(pitches, low_threshold, high_threshold)
-    #
-    #     self.assertTrue(c1 in available_pitches)
-    #     self.assertTrue(a1 in available_pitches)
-    #     self.assertTrue(c2 in available_pitches)
-    #     self.assertEqual(len(available_pitches), 3)
 
     def test__threshold_encroachment_score(self):
         min_thresh = 10
@@ -79,9 +42,9 @@ class TestNotePicker(TestCase):
     def test__motion_tendency_score(self):
         pattern = normalize_resolution(read_pattern('test/midi/quarter_arpeg.mid'))
 
-        zero_tendency = domain.Sequence(track=pattern[0], part=parts.BASS, motion_tendency=0.0)
-        no_tendency = domain.Sequence(track=pattern[0], part=parts.BASS, motion_tendency=0.5)
-        max_tendency = domain.Sequence(track=pattern[0], part=parts.BASS, motion_tendency=1.0)
+        zero_tendency = domain.Sequence(pattern=pattern[0], part=parts.BASS, motion_tendency=0.0)
+        no_tendency = domain.Sequence(pattern=pattern[0], part=parts.BASS, motion_tendency=0.5)
+        max_tendency = domain.Sequence(pattern=pattern[0], part=parts.BASS, motion_tendency=1.0)
 
         beat_0_pitch = 59
         beat_2_pitch = 62
@@ -100,7 +63,7 @@ class TestNotePicker(TestCase):
 
     def test__linear_motion_score(self):
         pattern = normalize_resolution(read_pattern('test/midi/quarter_arpeg.mid'))
-        sequence = domain.Sequence(track=pattern[0], part=parts.BASS, motion_tendency=0.0)
+        sequence = domain.Sequence(pattern=pattern[0], part=parts.BASS, motion_tendency=0.0)
 
         beat_0_pitch = 59
         motion_pitch = 61
@@ -118,15 +81,35 @@ class TestNotePicker(TestCase):
         g = 55
         e = 64
 
+        # sequence isn't very relevant here, just establishes time sig really
+        pattern = normalize_resolution(read_pattern('test/midi/quarter_arpeg.mid'))
+        sequence = domain.Sequence(pattern=pattern[0], part=parts.BASS, motion_tendency=0.0)
+
         chord_progression = chords.ChordProgression()
         chord_progression[0] = chords.parse('G')
-        chord_progression[1 * RESOLUTION] = chords.parse('G')
         chord_progression[2 * RESOLUTION] = chords.parse('E-')
-        chord_progression[3 * RESOLUTION] = chords.parse('E-')
 
-        self.assertEqual(note_picker.root_tendency_score(g, 0, chord_progression), 0.10)
-        self.assertEqual(note_picker.root_tendency_score(g, 1 * RESOLUTION, chord_progression), 0.03)
-        self.assertEqual(note_picker.root_tendency_score(e, 2 * RESOLUTION, chord_progression), 0.10)
+        self.assertEqual(note_picker.root_tendency_score(g, 0, sequence, chord_progression), 0.10)
+        self.assertEqual(note_picker.root_tendency_score(g, 1 * RESOLUTION, sequence, chord_progression), 0.03)
+        self.assertAlmostEqual(note_picker.root_tendency_score(e, 2 * RESOLUTION, sequence, chord_progression), 0.25)
+
+    def test__get_motion_score(self):
+        pattern = normalize_resolution(read_pattern('test/midi/parallel1.mid'))
+        alto = domain.Sequence(pattern=pattern[0], part=parts.BASS, motion_tendency=0.0)
+
+        pattern = normalize_resolution(read_pattern('test/midi/parallel2.mid'))
+        tenor = domain.Sequence(pattern=pattern[0], part=parts.BASS, motion_tendency=0.0)
+
+        pattern = normalize_resolution(read_pattern('test/midi/quarter_arpeg.mid'))
+        bass = domain.Sequence(pattern=pattern[0], part=parts.BASS, motion_tendency=0.0)
+
+        irrelevant_pitch = 11
+
+        # [0] = bass, [1] = tenor, [2] = alto
+        candidate = [irrelevant_pitch, notes.MIDI_VALUES['A5'], notes.MIDI_VALUES['D5']]
+
+        self.assertEqual(note_picker.get_motion_score(candidate, 0, alto, tenor, bass), 0.0)
+        self.assertEqual(note_picker.get_motion_score(candidate, RESOLUTION, alto, tenor, bass), -0.20)
 
 
 def read_pattern(file_name):

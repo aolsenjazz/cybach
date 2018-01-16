@@ -18,7 +18,7 @@ class NotePicker:
     def pick_bass(self, index):
         if self.bass[index].is_empty():
             chord = self.chord_progression[index]
-            return Note(midi_value=first_at_or_below(chord.root, parts.BASS.middle))
+            return Note(first_at_or_below(chord.root, parts.BASS.middle))
 
         return self.bass[index].note
 
@@ -41,16 +41,16 @@ class NotePicker:
                     self.alto[index] = Sample(-1, None)
                 else:
                     self.alto[index] = Sample(-1, None)
-                    return Note(midi_value=pitch)
+                    return Note(pitch)
 
         if not available:
             # handle me better
             return self.alto[index].note
         else:
-            return Note(midi_value=available[0])
+            return Note(available[0])
 
     def pick_tenor(self, index):
-        bass_threshold = self.bass[index].note.midi_value + 3
+        bass_threshold = self.bass[index].note.midi() + 3
 
         unused = self.__unused_notes(index)
         if not unused:
@@ -82,11 +82,11 @@ class NotePicker:
         else:
             # now we have all of the notes that wouldn't cause parallel motion, are within the available range
             # of the instrument, and above bass threshold
-            mean_bass_alto = (self.bass[index].note.midi_value + self.alto[index].note.midi_value) / 2
+            mean_bass_alto = (self.bass[index].note.midi() + self.alto[index].note.midi()) / 2
             # print mean_bass_alto
             midi_val = min(available_without_parallel_motion, key=lambda note: abs(note - mean_bass_alto))
 
-            return Note(midi_value=midi_val)
+            return Note(midi_val)
 
     def __used_notes(self, index):
         return [self.soprano[index].note, self.alto[index].note, self.tenor[index].note, self.bass[index].note]
@@ -100,7 +100,7 @@ class NotePicker:
         for chord_note in chord.all():
             contains = False
             for used_note in used_notes:
-                if chord_note.as_text_without_octave() == used_note.as_text_without_octave():
+                if chord_note.species() == used_note.species():
                     contains = True
             if not contains:
                 unused_notes.append(chord_note)
@@ -111,8 +111,8 @@ class NotePicker:
         for i in reversed(range(0, position + 1)):
             sample = self.soprano[i]
 
-            if sample.note.midi_value > -1:
-                return sample.note.midi_value
+            if sample.note.midi() > -1:
+                return sample.note.midi()
 
         return 1000
 
@@ -124,20 +124,20 @@ def contains_parallel_movement(first_set, second_set):
         for j in range(0, len(first_set)):
             second = first_set[j]
 
-            if first.midi_value == second.midi_value:
+            if first.midi() == second.midi():
                 continue
 
-            if notes.is_perfect_interval(first.midi_value, second.midi_value):
-                first_interval = abs(first.midi_value - second.midi_value)
-                second_interval = abs(second_set[i].midi_value - second_set[j].midi_value)
-                if first_interval == second_interval and first.midi_value - second_set[i].midi_value != 0:
+            if notes.is_perfect_interval(first.midi(), second.midi()):
+                first_interval = abs(first.midi() - second.midi())
+                second_interval = abs(second_set[i].midi() - second_set[j].midi())
+                if first_interval == second_interval and first.midi() - second_set[i].midi() != 0:
                     return True
 
     return False
 
 
 def first_at_or_below(note, threshold):
-    text = note.as_text_without_octave()
+    text = note.species()
     octaves = notes.OCTAVES[text]
 
     last_pitch = octaves[0]
@@ -151,7 +151,7 @@ def all_available_pitches(note_list, low_threshold, high_threshold):
     available = []
 
     for note in note_list:
-        octaves = notes.OCTAVES[note.as_text_without_octave()]
+        octaves = notes.OCTAVES[note.species()]
         for octave in octaves:
             if low_threshold <= octave <= high_threshold:
                 available.append(octave)

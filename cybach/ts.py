@@ -1,7 +1,7 @@
 import collections
 
 
-class TimeSignature(collections.MutableMapping):
+class TimeSignatures(collections.MutableMapping):
     def __init__(self, *args, **kwargs):
         self.store = dict()
         self.update(dict(*args, **kwargs))

@@ -16,9 +16,9 @@ class Chord:
         if isinstance(root, notes.Note):
             note = root
         elif isinstance(root, int):
-            note = notes.Note(midi_value=root)
+            note = notes.Note(root)
         elif isinstance(root, str):
-            note = notes.Note(text_value=root)
+            note = notes.Note(root)
 
         self.root = note
 
@@ -31,13 +31,13 @@ class Chord:
         if isinstance(note, notes.Note):
             parsed = note
         elif isinstance(note, int):
-            parsed = notes.Note(midi_value=note)
+            parsed = notes.Note(note)
 
-        if parsed.as_text_without_octave() == self.root.as_text_without_octave():
+        if parsed.species() == self.root.species():
             return True
-        if parsed.as_text_without_octave() == self.third.as_text_without_octave():
+        if parsed.species() == self.third.species():
             return True
-        if parsed.as_text_without_octave() == self.fifth.as_text_without_octave():
+        if parsed.species() == self.fifth.species():
             return True
         return False
 
@@ -49,11 +49,11 @@ class Chord:
         :return:
         """
         if isinstance(note, notes.Note):
-            return self.__note_above(note.midi_value)
+            return self.__note_above(note.midi())
         elif isinstance(note, int):
-            return self.__note_above(notes.Note(midi_value=note).midi_value)
+            return self.__note_above(note)
         elif isinstance(note, str):
-            return self.__note_above(notes.Note(text_value=note).midi_value)
+            return self.__note_above(notes.Note(note).midi())
 
     def __note_above(self, pitch):
         """
@@ -96,13 +96,13 @@ class MajorChord(Chord):
 
     def __init__(self, root_note):
         Chord.__init__(self, root_note)
-        self.third = notes.Note(self.root.as_midi_value() + 4)
-        self.fifth = notes.Note(self.root.as_midi_value() + 7)
+        self.third = notes.Note(self.root.midi() + 4)
+        self.fifth = notes.Note(self.root.midi() + 7)
 
     def _Chord__all_octaves(self):
-        all_roots = notes.OCTAVES[self.root.as_text_without_octave()]
-        all_thirds = notes.OCTAVES[self.third.as_text_without_octave()]
-        all_fifths = notes.OCTAVES[self.fifth.as_text_without_octave()]
+        all_roots = notes.OCTAVES[self.root.species()]
+        all_thirds = notes.OCTAVES[self.third.species()]
+        all_fifths = notes.OCTAVES[self.fifth.species()]
 
         all = []
         all.extend(all_roots)
@@ -119,10 +119,10 @@ class MajorChord(Chord):
         return self.root, self.third, self.fifth
 
     def scale(self):
-        return notes.ionian(self.root.midi_value)
+        return notes.ionian(self.root.midi())
 
     def indicates_dominant(self, *pitches):
-        root_pitch = self.root.midi_value
+        root_pitch = self.root.midi()
 
         black_list = (root_pitch % 12, (root_pitch + 6) % 12, (root_pitch + 10) % 12)
         major_indicators = (root_pitch + 11) % 12, (root_pitch + 7) % 12
@@ -133,7 +133,7 @@ class MajorChord(Chord):
             and len([p for p in pitches if (p % 12) in minor_indicators]) >= 1
 
     def indicates_subdominant(self, *pitches):
-        root_pitch = self.root.midi_value
+        root_pitch = self.root.midi()
 
         black_list = ((root_pitch + 4) % 12, (root_pitch + 11) % 12)
         indicators = ((root_pitch + 2) % 12, (root_pitch + 5) % 12, (root_pitch + 9) % 12)
@@ -146,13 +146,13 @@ class MinorChord(Chord):
 
     def __init__(self, root_note):
         Chord.__init__(self, root_note)
-        self.third = notes.Note(self.root.as_midi_value() + 3)
-        self.fifth = notes.Note(self.root.as_midi_value() + 7)
+        self.third = notes.Note(self.root.midi() + 3)
+        self.fifth = notes.Note(self.root.midi() + 7)
 
     def _Chord__all_octaves(self):
-        all_roots = notes.OCTAVES[self.root.as_text_without_octave()]
-        all_thirds = notes.OCTAVES[self.third.as_text_without_octave()]
-        all_fifths = notes.OCTAVES[self.fifth.as_text_without_octave()]
+        all_roots = notes.OCTAVES[self.root.species()]
+        all_thirds = notes.OCTAVES[self.third.species()]
+        all_fifths = notes.OCTAVES[self.fifth.species()]
 
         all = []
         all.extend(all_roots)
@@ -169,10 +169,10 @@ class MinorChord(Chord):
         return str(self.root) + ', ' + str(self.third) + ', ' + str(self.fifth)
 
     def scale(self):
-        return notes.aeolian(self.root.midi_value)
+        return notes.aeolian(self.root.midi())
 
     def indicates_dominant(self, *pitches):
-        root_pitch = self.root.midi_value
+        root_pitch = self.root.midi()
 
         black_list = (root_pitch % 12, (root_pitch + 10) % 12)
         major_indicators = ((root_pitch + 11) % 12,)
@@ -183,7 +183,7 @@ class MinorChord(Chord):
             and len([p for p in pitches if (p % 12) in minor_indicators]) >= 1
 
     def indicates_subdominant(self, *pitches):
-        root_pitch = self.root.midi_value
+        root_pitch = self.root.midi()
 
         black_list = ((root_pitch + 10) % 12, (root_pitch + 11) % 12)
         indicators = ((root_pitch + 2) % 12, (root_pitch + 5) % 12, (root_pitch + 8) % 12)
@@ -196,9 +196,9 @@ class SevenChord(MajorChord):
 
     def __init__(self, root_note):
         Chord.__init__(self, root_note)
-        self.third = notes.Note(self.root.as_midi_value() + 4)
-        self.fifth = notes.Note(self.root.as_midi_value() + 7)
-        self.seventh = notes.Note(self.root.as_midi_value() + 10)
+        self.third = notes.Note(self.root.midi() + 4)
+        self.fifth = notes.Note(self.root.midi() + 7)
+        self.seventh = notes.Note(self.root.midi() + 10)
 
     def __contains__(self, note):
         parsed = None
@@ -206,9 +206,9 @@ class SevenChord(MajorChord):
         if isinstance(note, notes.Note):
             parsed = note
         elif isinstance(note, int):
-            parsed = notes.Note(midi_value=note)
+            parsed = notes.Note(note)
 
-        if parsed.as_text_without_octave() == self.seventh.as_text_without_octave():
+        if parsed.species() == self.seventh.species():
             return True
         return Chord.__contains__(self, parsed)
 
@@ -217,18 +217,18 @@ class SevenChord(MajorChord):
 
     def __note_above(self, pitch):
         if pitch == self.fifth:
-            return self.seventh.as_text_without_octave
+            return self.seventh.species
 
-        if pitch == self.seventh.as_text_without_octave:
+        if pitch == self.seventh.species:
             return self.root
 
         return Chord.__note_above(self, pitch)
 
     def _Chord__all_octaves(self):
-        all_roots = notes.OCTAVES[self.root.as_text_without_octave()]
-        all_thirds = notes.OCTAVES[self.third.as_text_without_octave()]
-        all_fifths = notes.OCTAVES[self.fifth.as_text_without_octave()]
-        all_sevenths = notes.OCTAVES[self.seventh.as_text_without_octave()]
+        all_roots = notes.OCTAVES[self.root.species()]
+        all_thirds = notes.OCTAVES[self.third.species()]
+        all_fifths = notes.OCTAVES[self.fifth.species()]
+        all_sevenths = notes.OCTAVES[self.seventh.species()]
 
         all = []
         all.extend(all_roots)
@@ -242,16 +242,16 @@ class SevenChord(MajorChord):
         return str(self.root) + ', ' + str(self.third) + ', ' + str(self.fifth) + ', ' + str(self.seventh)
 
     def scale(self):
-        return notes.mixolydian(self.root.midi_value)
+        return notes.mixolydian(self.root.midi())
 
 
 class DiminishedChord(MinorChord):
 
     def __init__(self, root_note):
         Chord.__init__(self, root_note)
-        self.third = notes.Note(self.root.as_midi_value() + 3)
-        self.fifth = notes.Note(self.root.as_midi_value() + 6)
-        self.seventh = notes.Note(self.root.as_midi_value() + 9)
+        self.third = notes.Note(self.root.midi() + 3)
+        self.fifth = notes.Note(self.root.midi() + 6)
+        self.seventh = notes.Note(self.root.midi() + 9)
 
     def __contains__(self, note):
         parsed = None
@@ -259,9 +259,9 @@ class DiminishedChord(MinorChord):
         if isinstance(note, notes.Note):
             parsed = note
         elif isinstance(note, int):
-            parsed = notes.Note(midi_value=note)
+            parsed = notes.Note(note)
 
-        if parsed.as_text_without_octave() == self.seventh.as_text_without_octave():
+        if parsed.species() == self.seventh.species():
             return True
         return Chord.__contains__(self, parsed)
 
@@ -270,18 +270,18 @@ class DiminishedChord(MinorChord):
 
     def __note_above(self, pitch):
         if pitch == self.fifth:
-            return self.seventh.as_text_without_octave
+            return self.seventh.species
 
-        if pitch == self.seventh.as_text_without_octave:
+        if pitch == self.seventh.species:
             return self.root
 
         return Chord.__note_above(self, pitch)
 
     def _Chord__all_octaves(self):
-        all_roots = notes.OCTAVES[self.root.as_text_without_octave()]
-        all_thirds = notes.OCTAVES[self.third.as_text_without_octave()]
-        all_fifths = notes.OCTAVES[self.fifth.as_text_without_octave()]
-        all_sevenths = notes.OCTAVES[self.seventh.as_text_without_octave()]
+        all_roots = notes.OCTAVES[self.root.species()]
+        all_thirds = notes.OCTAVES[self.third.species()]
+        all_fifths = notes.OCTAVES[self.fifth.species()]
+        all_sevenths = notes.OCTAVES[self.seventh.species()]
 
         all = []
         all.extend(all_roots)
@@ -296,7 +296,7 @@ class DiminishedChord(MinorChord):
         return str(self.root) + ', ' + str(self.third) + ', ' + str(self.fifth) + ', ' + str(self.seventh)
 
     def scale(self):
-        return notes.half_whole(self.root.midi_value)
+        return notes.half_whole(self.root.midi())
 
     def indicates_subdominant(self, *pitches):
         return False
@@ -335,10 +335,11 @@ class ChordProgression(collections.MutableMapping):
 
     def __repr__(self):
         string = ''
+
         for key in self.store:
-            string += '\n' + str(key) + ': ' + (self.store[key].root.as_text_without_octave()) + \
-                self.store[key].third.as_text_without_octave() + \
-                self.store[key].fifth.as_text_without_octave()
+            string += '\n' + str(key) + ': ' + (self.store[key].root.species()) + \
+                      self.store[key].third.species() + \
+                      self.store[key].fifth.species()
 
         return string
 
@@ -349,52 +350,72 @@ def parse(chord):
 
 
 CHORDS = {
-    'C': MajorChord(notes.Note(text_value=notes.C)),
-    'C-': MinorChord(notes.Note(text_value=notes.C)),
-    'C7': SevenChord(notes.Note(text_value=notes.C)),
-    'Cdim': DiminishedChord(notes.Note(text_value=notes.C)),
-    'C#': MajorChord(notes.Note(text_value=notes.C_SHARP)),
-    'C#-': MinorChord(notes.Note(text_value=notes.C_SHARP)),
-    'C#7': SevenChord(notes.Note(text_value=notes.C_SHARP)),
-    'C#dim': DiminishedChord(notes.Note(text_value=notes.C_SHARP)),
-    'D': MajorChord(notes.Note(text_value=notes.D)),
-    'D-': MinorChord(notes.Note(text_value=notes.D)),
-    'D7': SevenChord(notes.Note(text_value=notes.D)),
-    'Ddim': DiminishedChord(notes.Note(text_value=notes.D)),
-    'D#': MajorChord(notes.Note(text_value=notes.D_SHARP)),
-    'D#-': MinorChord(notes.Note(text_value=notes.D_SHARP)),
-    'D#7': SevenChord(notes.Note(text_value=notes.D_SHARP)),
-    'D#dim': DiminishedChord(notes.Note(text_value=notes.D_SHARP)),
-    'E': MajorChord(notes.Note(text_value=notes.E)),
-    'E-': MinorChord(notes.Note(text_value=notes.E)),
-    'E7': SevenChord(notes.Note(text_value=notes.E)),
-    'Edim': DiminishedChord(notes.Note(text_value=notes.E)),
-    'F': MajorChord(notes.Note(text_value=notes.F)),
-    'F-': MinorChord(notes.Note(text_value=notes.F)),
-    'F7': SevenChord(notes.Note(text_value=notes.F)),
-    'Fdim': DiminishedChord(notes.Note(text_value=notes.F)),
-    'F#': MajorChord(notes.Note(text_value=notes.F_SHARP)),
-    'F#-': MinorChord(notes.Note(text_value=notes.F_SHARP)),
-    'F#7': SevenChord(notes.Note(text_value=notes.F_SHARP)),
-    'F#dim': DiminishedChord(notes.Note(text_value=notes.F_SHARP)),
-    'G': MajorChord(notes.Note(text_value=notes.G)),
-    'G-': MinorChord(notes.Note(text_value=notes.G)),
-    'G7': SevenChord(notes.Note(text_value=notes.G)),
-    'Gdim': DiminishedChord(notes.Note(text_value=notes.G)),
-    'G#': MajorChord(notes.Note(text_value=notes.G_SHARP)),
-    'G#-': MinorChord(notes.Note(text_value=notes.G_SHARP)),
-    'G#7': SevenChord(notes.Note(text_value=notes.G_SHARP)),
-    'G#dim': DiminishedChord(notes.Note(text_value=notes.G_SHARP)),
-    'A': MajorChord(notes.Note(text_value=notes.A)),
-    'A-': MinorChord(notes.Note(text_value=notes.A)),
-    'A7': SevenChord(notes.Note(text_value=notes.A)),
-    'Adim': DiminishedChord(notes.Note(text_value=notes.A)),
-    'A#': MajorChord(notes.Note(text_value=notes.A_SHARP)),
-    'A#-': MinorChord(notes.Note(text_value=notes.A_SHARP)),
-    'A#7': SevenChord(notes.Note(text_value=notes.A_SHARP)),
-    'A#dim': DiminishedChord(notes.Note(text_value=notes.A_SHARP)),
-    'B': MajorChord(notes.Note(text_value=notes.B)),
-    'B-': MinorChord(notes.Note(text_value=notes.B)),
-    'B7': SevenChord(notes.Note(text_value=notes.B)),
-    'Bdim': DiminishedChord(notes.Note(text_value=notes.B)),
+    'C': MajorChord(notes.Note(notes.C)),
+    'C-': MinorChord(notes.Note(notes.C)),
+    'C7': SevenChord(notes.Note(notes.C)),
+    'Cdim': DiminishedChord(notes.Note(notes.C)),
+    'C#': MajorChord(notes.Note(notes.C_SHARP)),
+    'C#-': MinorChord(notes.Note(notes.C_SHARP)),
+    'C#7': SevenChord(notes.Note(notes.C_SHARP)),
+    'C#dim': DiminishedChord(notes.Note(notes.C_SHARP)),
+    'Db': MajorChord(notes.Note(notes.C_SHARP)),
+    'Db-': MinorChord(notes.Note(notes.C_SHARP)),
+    'Db7': SevenChord(notes.Note(notes.C_SHARP)),
+    'Dbdim': DiminishedChord(notes.Note(notes.C_SHARP)),
+    'D': MajorChord(notes.Note(notes.D)),
+    'D-': MinorChord(notes.Note(notes.D)),
+    'D7': SevenChord(notes.Note(notes.D)),
+    'Ddim': DiminishedChord(notes.Note(notes.D)),
+    'D#': MajorChord(notes.Note(notes.D_SHARP)),
+    'D#-': MinorChord(notes.Note(notes.D_SHARP)),
+    'D#7': SevenChord(notes.Note(notes.D_SHARP)),
+    'D#dim': DiminishedChord(notes.Note(notes.D_SHARP)),
+    'Eb': MajorChord(notes.Note(notes.D_SHARP)),
+    'Eb-': MinorChord(notes.Note(notes.D_SHARP)),
+    'Eb7': SevenChord(notes.Note(notes.D_SHARP)),
+    'Ebdim': DiminishedChord(notes.Note(notes.D_SHARP)),
+    'E': MajorChord(notes.Note(notes.E)),
+    'E-': MinorChord(notes.Note(notes.E)),
+    'E7': SevenChord(notes.Note(notes.E)),
+    'Edim': DiminishedChord(notes.Note(notes.E)),
+    'F': MajorChord(notes.Note(notes.F)),
+    'F-': MinorChord(notes.Note(notes.F)),
+    'F7': SevenChord(notes.Note(notes.F)),
+    'Fdim': DiminishedChord(notes.Note(notes.F)),
+    'F#': MajorChord(notes.Note(notes.F_SHARP)),
+    'F#-': MinorChord(notes.Note(notes.F_SHARP)),
+    'F#7': SevenChord(notes.Note(notes.F_SHARP)),
+    'F#dim': DiminishedChord(notes.Note(notes.F_SHARP)),
+    'Gb': MajorChord(notes.Note(notes.F_SHARP)),
+    'Gb-': MinorChord(notes.Note(notes.F_SHARP)),
+    'Gb7': SevenChord(notes.Note(notes.F_SHARP)),
+    'Gbdim': DiminishedChord(notes.Note(notes.F_SHARP)),
+    'G': MajorChord(notes.Note(notes.G)),
+    'G-': MinorChord(notes.Note(notes.G)),
+    'G7': SevenChord(notes.Note(notes.G)),
+    'Gdim': DiminishedChord(notes.Note(notes.G)),
+    'G#': MajorChord(notes.Note(notes.G_SHARP)),
+    'G#-': MinorChord(notes.Note(notes.G_SHARP)),
+    'G#7': SevenChord(notes.Note(notes.G_SHARP)),
+    'G#dim': DiminishedChord(notes.Note(notes.G_SHARP)),
+    'Ab': MajorChord(notes.Note(notes.G_SHARP)),
+    'Ab-': MinorChord(notes.Note(notes.G_SHARP)),
+    'Ab7': SevenChord(notes.Note(notes.G_SHARP)),
+    'Abdim': DiminishedChord(notes.Note(notes.G_SHARP)),
+    'A': MajorChord(notes.Note(notes.A)),
+    'A-': MinorChord(notes.Note(notes.A)),
+    'A7': SevenChord(notes.Note(notes.A)),
+    'Adim': DiminishedChord(notes.Note(notes.A)),
+    'A#': MajorChord(notes.Note(notes.A_SHARP)),
+    'A#-': MinorChord(notes.Note(notes.A_SHARP)),
+    'A#7': SevenChord(notes.Note(notes.A_SHARP)),
+    'A#dim': DiminishedChord(notes.Note(notes.A_SHARP)),
+    'Bb': MajorChord(notes.Note(notes.A_SHARP)),
+    'Bb-': MinorChord(notes.Note(notes.A_SHARP)),
+    'Bb7': SevenChord(notes.Note(notes.A_SHARP)),
+    'Bbdim': DiminishedChord(notes.Note(notes.A_SHARP)),
+    'B': MajorChord(notes.Note(notes.B)),
+    'B-': MinorChord(notes.Note(notes.B)),
+    'B7': SevenChord(notes.Note(notes.B)),
+    'Bdim': DiminishedChord(notes.Note(notes.B)),
 }
