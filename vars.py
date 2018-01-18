@@ -176,7 +176,7 @@ ARPEGGIAL_MOTION = 0.62
 # Chord during transform and immediately after transform are the same
 ARPEGGIAL_SAME_CHORD = 0.08
 # Default musicality
-ARPEGGIAL_DEFAULT_MUSICALITY = 0.14
+ARPEGGIAL_NEW_CHORD = 0.14
 
 # HalfStepNeighborTransform intrinsic motion
 HALF_NEIGHBOR_MOTION = 0.53

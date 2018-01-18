@@ -31,7 +31,7 @@ class TestDomain(TestCase):
         sequence = domain.Sequence(pattern=pattern[0])
 
         self.assertFalse(sequence.beat_at(0).contains_motion())
-        self.assertTrue(sequence.beat_at(24).contains_motion())
+        self.assertTrue(sequence.beat_at(RESOLUTION).contains_motion())
 
     def test__Sequence_note_duration_count(self):
         pattern = normalize_resolution(read_pattern(constants.TEST_MIDI + 'linear_motion.mid'))

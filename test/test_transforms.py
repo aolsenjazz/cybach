@@ -5,6 +5,7 @@ import midi
 import chords, transforms
 import domain
 import ks
+import vars
 import parts
 from notes import MIDI_VALUES
 from constants import RESOLUTION
@@ -206,16 +207,19 @@ class TestMotionTransforms(TestCase):
         scalar_trans = transforms.MajorThirdScalarTransform(0, scalar_sequence, key_sigs, chord_progression)
         same_trans = transforms.MajorThirdScalarTransform(0, scalar_sequence, key_sigs, chord_progression)
         join = transforms.JoinTransform(2, 0, scalar_sequence, chord_progression)
+        join3 = transforms.JoinTransform(3, 0, scalar_sequence, chord_progression)
 
-        self.assertEqual(scalar_trans.synergy(same_trans), -0.02)
+        self.assertEqual(scalar_trans.synergy(same_trans), vars.EIGHTH_NOTE_SAME)
         self.assertEqual(scalar_trans.synergy(join), 0.0)
+        self.assertEqual(join.synergy(join), vars.JOIN_SAME)
+        self.assertEqual(join.synergy(join3), 0.0)
 
         # More important tests that have more logic attached
         dom_neighbor_trans = transforms.HalfStepNeighborTransform(0, neighbor_sequence, key_sigs, chord_progression)
         subdom_neighbor_trans = transforms.HalfStepNeighborTransform(96, neighbor_sequence, key_sigs, chord_progression)
 
-        self.assertEqual(scalar_trans.synergy(dom_neighbor_trans), 0.1)
-        self.assertEqual(scalar_trans.synergy(subdom_neighbor_trans), 0.05)
+        self.assertEqual(scalar_trans.synergy(dom_neighbor_trans), vars.EIGHTH_NOTE_DOMINANT)
+        self.assertEqual(scalar_trans.synergy(subdom_neighbor_trans), vars.EIGHTH_NOTE_SUBDOMINANT)
 
     def test_ApproachTransform_set_musicality(self):
         pattern = normalize_resolution(read_pattern(constants.TEST_MIDI + 'approach.mid'))
@@ -227,15 +231,15 @@ class TestMotionTransforms(TestCase):
         chord_progression = chords.ChordProgression()
         chord_progression[0] = chords.parse('A')
         chord_progression[RESOLUTION] = chords.parse('D')
-        chord_progression[96] = chords.parse('A')
+        chord_progression[RESOLUTION * 4] = chords.parse('A')
 
-        weaker_trans = transforms.ApproachTransform(264, sequence, key_signatures, chord_progression)
+        weaker_trans = transforms.ApproachTransform(11 * RESOLUTION, sequence, key_signatures, chord_progression)
         stronger_trans = transforms.ApproachTransform(0, sequence, key_signatures, chord_progression)
-        strong_trans = transforms.ApproachTransform(96, sequence, key_signatures, chord_progression)
+        strong_trans = transforms.ApproachTransform(4 * RESOLUTION, sequence, key_signatures, chord_progression)
 
-        self.assertEqual(weaker_trans.intrinsic_musicality, 0.07)
-        self.assertEqual(stronger_trans.intrinsic_musicality, 0.12)
-        self.assertEqual(strong_trans.intrinsic_musicality, 0.2)
+        self.assertEqual(weaker_trans.intrinsic_musicality, vars.APPROACH_DEFAULT_MUSICALITY)
+        self.assertEqual(stronger_trans.intrinsic_musicality, vars.APPROACH_NEW_CHORD_ROOT)
+        self.assertEqual(strong_trans.intrinsic_musicality, vars.APPROACH_KEY_CHANGE)
 
     def test_MajorThird_set_musicality(self):
         pattern = normalize_resolution(read_pattern(constants.TEST_MIDI + 'linear_motion.mid'))
@@ -247,8 +251,8 @@ class TestMotionTransforms(TestCase):
         chord_progression = chords.ChordProgression()
         chord_progression[0] = chords.parse('C')
 
-        trans = transforms.MajorThirdScalarTransform(144, sequence, key_signatures, chord_progression)
-        self.assertEqual(trans.intrinsic_musicality, 0.2)
+        trans = transforms.MajorThirdScalarTransform(6 * RESOLUTION, sequence, key_signatures, chord_progression)
+        self.assertEqual(trans.intrinsic_musicality, vars.MAJOR_THIRD_SCALAR_CONTINUES_LINEARITY)
 
     def test_ArpeggialTransform_set_musicality(self):
         pattern = normalize_resolution(read_pattern(constants.TEST_MIDI + 'arpeggial.mid'))
@@ -256,13 +260,13 @@ class TestMotionTransforms(TestCase):
 
         chord_progression = chords.ChordProgression()
         chord_progression[0] = chords.parse('C')
-        chord_progression[120] = chords.parse('A-')
+        chord_progression[5 * RESOLUTION] = chords.parse('A-')
 
         weaker_trans = transforms.ArpeggialTransform(0, sequence, chord_progression, chord_progression)
         stronger_trans = transforms.ArpeggialTransform(96, sequence, chord_progression, chord_progression)
 
-        self.assertEqual(weaker_trans.intrinsic_musicality, 0.08)
-        self.assertEqual(stronger_trans.intrinsic_musicality, 0.14)
+        self.assertEqual(weaker_trans.intrinsic_musicality, vars.ARPEGGIAL_SAME_CHORD)
+        self.assertEqual(stronger_trans.intrinsic_musicality, vars.ARPEGGIAL_NEW_CHORD)
 
     def test_notes_cause_parallel_movement(self):
         part1_first = MIDI_VALUES['C1']

@@ -52,7 +52,7 @@ class JoinTransform(MotionTransform):
         self.intrinsic_musicality = self.set_musicality()
 
     def synergy(self, transform):
-        return vars.JOIN_SAME if isinstance(transform, self.__class__) else 0.0
+        return vars.JOIN_SAME if isinstance(transform, self.__class__) and self.duration == transform.duration else 0.0
 
     def set_musicality(self):
         score = 0.0
@@ -174,9 +174,6 @@ class EighthNoteTransform(MotionTransform):
         return False
 
     def causes_flickering(self):
-        if self.position == 24 and isinstance(self, HalfStepNeighborTransform):
-            test = 3
-
         if self.position < RESOLUTION:
             return False
 
@@ -319,7 +316,7 @@ class ArpeggialTransform(EighthNoteTransform):
         next_chord = self.chord_progression[self.position + RESOLUTION]
 
         score += vars.ARPEGGIAL_SAME_CHORD if chords.same(this_chord, next_chord) \
-            else vars.ARPEGGIAL_DEFAULT_MUSICALITY
+            else vars.ARPEGGIAL_NEW_CHORD
 
         score += vars.FLICKER_PENALTY if self.causes_flickering() else 0.0
 

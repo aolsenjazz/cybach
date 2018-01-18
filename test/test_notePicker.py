@@ -18,8 +18,8 @@ class TestNotePicker(TestCase):
         min_lim = 13
         max_thresh = 20
         max_lim = 17
-        min_return_val = -0.04
-        max_return_val = -0.08
+        min_return_val = (2 ** abs(2)) * vars.THRESHOLD_ENCROACHMENT
+        max_return_val = (2 ** abs(3)) * vars.THRESHOLD_ENCROACHMENT
 
         self.assertEqual(note_picker.threshold_encroachment_score(11, min_thresh, min_lim), min_return_val)
         self.assertEqual(note_picker.threshold_encroachment_score(20, max_thresh, max_lim), max_return_val)
@@ -32,8 +32,8 @@ class TestNotePicker(TestCase):
         min_lim = 13
         max_thresh = 20
         max_lim = 17
-        min_return_val = -0.02
-        max_return_val = -0.03
+        min_return_val = vars.PREFERRED_REGISTER * 2
+        max_return_val = vars.PREFERRED_REGISTER * 3
 
         self.assertEqual(note_picker.preferred_register_score(11, min_thresh, min_lim), min_return_val)
         self.assertEqual(note_picker.preferred_register_score(20, max_thresh, max_lim), max_return_val)
@@ -77,7 +77,7 @@ class TestNotePicker(TestCase):
         self.assertEqual(note_picker.linear_motion_score(beat_0_pitch, RESOLUTION, sequence), 0.0)
 
         # linear motion exists
-        self.assertEqual(note_picker.linear_motion_score(motion_pitch, RESOLUTION, sequence), 0.2)
+        self.assertEqual(note_picker.linear_motion_score(motion_pitch, RESOLUTION, sequence), vars.LINEAR_MOTION)
 
     def test__root_tendency_score(self):
         g = 55
@@ -113,7 +113,7 @@ class TestNotePicker(TestCase):
         candidate = {'bass': irrelevant_pitch, 'tenor': notes.MIDI_VALUES['A5'], 'alto': notes.MIDI_VALUES['D5']}
 
         self.assertEqual(note_picker.get_motion_score(candidate, 0, alto, tenor, bass), 0.0)
-        self.assertEqual(note_picker.get_motion_score(candidate, RESOLUTION, alto, tenor, bass), -0.20)
+        self.assertEqual(note_picker.get_motion_score(candidate, RESOLUTION, alto, tenor, bass), vars.PARALLEL_MOVEMENT)
 
     def test__flicker_avoidance_score(self):
         pattern = normalize_resolution(read_pattern(constants.TEST_MIDI + 'flicker.mid'))
