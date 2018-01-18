@@ -1,12 +1,14 @@
 from unittest import TestCase
-from cybach import note_picker
-from cybach import notes
-from cybach.pat_util import normalize_resolution
-from cybach import domain
-from cybach import chords
+import note_picker
+import notes
+from pat_util import normalize_resolution
+import domain
+import chords
+import vars
+import constants
 import midi
-from cybach import parts
-from cybach.constants import RESOLUTION
+import parts
+from constants import RESOLUTION
 
 
 class TestNotePicker(TestCase):
@@ -40,7 +42,7 @@ class TestNotePicker(TestCase):
         self.assertEqual(note_picker.preferred_register_score(15, max_thresh, max_lim), 0.0)
 
     def test__motion_tendency_score(self):
-        pattern = normalize_resolution(read_pattern('test/midi/quarter_arpeg.mid'))
+        pattern = normalize_resolution(read_pattern(constants.TEST_MIDI + 'quarter_arpeg.mid'))
 
         zero_tendency = domain.Sequence(pattern=pattern[0], part=parts.BASS, configuration={'motion_tendency': 0.0})
         no_tendency = domain.Sequence(pattern=pattern[0], part=parts.BASS, configuration={})
@@ -62,7 +64,7 @@ class TestNotePicker(TestCase):
         self.assertEqual(note_picker.motion_tendency_score(beat_2_pitch, RESOLUTION * 1, max_tendency), 0.25)
 
     def test__linear_motion_score(self):
-        pattern = normalize_resolution(read_pattern('test/midi/quarter_arpeg.mid'))
+        pattern = normalize_resolution(read_pattern(constants.TEST_MIDI + 'quarter_arpeg.mid'))
         sequence = domain.Sequence(pattern=pattern[0], part=parts.BASS, configuration={})
 
         beat_0_pitch = 59
@@ -82,7 +84,7 @@ class TestNotePicker(TestCase):
         e = 64
 
         # sequence isn't very relevant here, just establishes time sig really
-        pattern = normalize_resolution(read_pattern('test/midi/quarter_arpeg.mid'))
+        pattern = normalize_resolution(read_pattern(constants.TEST_MIDI + 'quarter_arpeg.mid'))
         sequence = domain.Sequence(pattern=pattern[0], part=parts.BASS, configuration={})
 
         chord_progression = chords.ChordProgression()
@@ -94,22 +96,34 @@ class TestNotePicker(TestCase):
         self.assertAlmostEqual(note_picker.root_tendency_score(e, 2 * RESOLUTION, sequence, chord_progression), 0.25)
 
     def test__get_motion_score(self):
-        pattern = normalize_resolution(read_pattern('test/midi/parallel1.mid'))
+        pattern = normalize_resolution(read_pattern(constants.TEST_MIDI + 'parallel1.mid'))
         alto = domain.Sequence(pattern=pattern[0], part=parts.BASS, configuration={})
 
-        pattern = normalize_resolution(read_pattern('test/midi/parallel2.mid'))
+        pattern = normalize_resolution(read_pattern(constants.TEST_MIDI + 'parallel2.mid'))
         tenor = domain.Sequence(pattern=pattern[0], part=parts.BASS, configuration={})
 
-        pattern = normalize_resolution(read_pattern('test/midi/quarter_arpeg.mid'))
+        pattern = normalize_resolution(read_pattern(constants.TEST_MIDI + 'quarter_arpeg.mid'))
         bass = domain.Sequence(pattern=pattern[0], part=parts.BASS, configuration={})
 
         irrelevant_pitch = 11
 
         # [0] = bass, [1] = tenor, [2] = alto
-        candidate = [irrelevant_pitch, notes.MIDI_VALUES['A5'], notes.MIDI_VALUES['D5']]
+        candidate = {'bass': irrelevant_pitch, 'tenor': notes.MIDI_VALUES['A5'], 'alto': notes.MIDI_VALUES['D5']}
 
         self.assertEqual(note_picker.get_motion_score(candidate, 0, alto, tenor, bass), 0.0)
         self.assertEqual(note_picker.get_motion_score(candidate, RESOLUTION, alto, tenor, bass), -0.20)
+
+    def test__flicker_avoidance_score(self):
+        pattern = normalize_resolution(read_pattern(constants.TEST_MIDI + 'flicker.mid'))
+        sequence = domain.Sequence(pattern=pattern[0], part=parts.BASS, configuration={})
+
+        c = notes.MIDI_VALUES['C5']
+        e = notes.MIDI_VALUES['E5']
+
+        self.assertEqual(note_picker.flicker_avoidance_score(c, RESOLUTION * 2, sequence),
+                         vars.SAME_PITCH_AS_TWO_BEATS_AGO)
+        self.assertEqual(note_picker.flicker_avoidance_score(e, RESOLUTION * 3, sequence),
+                         vars.TWO_BEATS_REPEATED)
 
 
 def read_pattern(file_name):

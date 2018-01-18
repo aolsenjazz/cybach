@@ -1,6 +1,6 @@
 from unittest import TestCase
-from cybach import notes
-from cybach import chords
+import notes
+import chords
 
 
 class TestNotes(TestCase):

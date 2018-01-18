@@ -1,7 +1,7 @@
 from unittest import TestCase
-from cybach import notes
-from cybach import chords
-from cybach.notes import MIDI_VALUES
+import notes
+import chords
+from notes import MIDI_VALUES
 
 class TestChords(TestCase):
 

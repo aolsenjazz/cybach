@@ -2,53 +2,20 @@ from unittest import TestCase
 
 import midi
 
-from cybach import chords, transforms
-from cybach import domain
-from cybach import ks
-from cybach import parts
-from cybach.notes import MIDI_VALUES
-from cybach.constants import RESOLUTION
-from cybach.pat_util import normalize_resolution
+import chords, transforms
+import domain
+import ks
+import parts
+from notes import MIDI_VALUES
+from constants import RESOLUTION
+import constants
+from pat_util import normalize_resolution
 
 
 class TestMotionTransforms(TestCase):
 
-    def test_TwoBeatJoinTransform_is_applicable(self):
-        pattern = normalize_resolution(read_pattern('test/midi/2beat_join.mid'))
-        sequence = domain.Sequence(pattern=pattern[0])
-
-        self.assertTrue(transforms.TwoBeatJoinTransform.applicable_at(0, sequence))
-        self.assertFalse(transforms.ThreeBeatJoinTransform.applicable_at(0, sequence))
-
-    def test_ThreeBeatJoinTransform_is_applicable(self):
-        pattern = normalize_resolution(read_pattern('test/midi/3beat_join.mid'))
-        sequence = domain.Sequence(pattern=pattern[0])
-
-        self.assertTrue(transforms.ThreeBeatJoinTransform.applicable_at(0, sequence))
-        self.assertFalse(transforms.FourBeatJoinTransform.applicable_at(0, sequence))
-
-    def test_FourBeatJoinTransform_is_applicable(self):
-        pattern = normalize_resolution(read_pattern('test/midi/4beat_join.mid'))
-        sequence = domain.Sequence(pattern=pattern[0])
-
-        self.assertTrue(transforms.FourBeatJoinTransform.applicable_at(0, sequence))
-        self.assertFalse(transforms.FiveBeatJoinTransform.applicable_at(0, sequence))
-
-    def test_FiveBeatJoinTransform_is_applicable(self):
-        pattern = normalize_resolution(read_pattern('test/midi/5beat_join.mid'))
-        sequence = domain.Sequence(pattern=pattern[0])
-
-        self.assertTrue(transforms.FiveBeatJoinTransform.applicable_at(0, sequence))
-        self.assertFalse(transforms.SixBeatJoinTransform.applicable_at(0, sequence))
-
-    def test_SixBeatJoinTransform_is_applicable(self):
-        pattern = normalize_resolution(read_pattern('test/midi/6beat_join.mid'))
-        sequence = domain.Sequence(pattern=pattern[0])
-
-        self.assertTrue(transforms.SixBeatJoinTransform.applicable_at(0, sequence))
-
     def test_ApproachTransform_is_applicable(self):
-        pattern = normalize_resolution(read_pattern('test/midi/approach.mid'))
+        pattern = normalize_resolution(read_pattern(constants.TEST_MIDI + 'approach.mid'))
         sequence = domain.Sequence(pattern=pattern[0], part=parts.BASS)
 
         key_sigs = ks.KeySignatures()
@@ -67,7 +34,7 @@ class TestMotionTransforms(TestCase):
             transforms.ApproachTransform.applicable_at(6 * RESOLUTION, sequence, chord_progression))
 
     def test_HalfStepNeighborTransform_is_applicable(self):
-        pattern = normalize_resolution(read_pattern('test/midi/neighbor.mid'))
+        pattern = normalize_resolution(read_pattern(constants.TEST_MIDI + 'neighbor.mid'))
         sequence = domain.Sequence(pattern=pattern[0], part=parts.BASS)
 
         key_sigs = ks.KeySignatures()
@@ -83,7 +50,7 @@ class TestMotionTransforms(TestCase):
             transforms.HalfStepNeighborTransform.applicable_at(4 * RESOLUTION, sequence, key_sigs))
 
     def test_WholeStepNeighborTransform_is_applicable(self):
-        pattern = normalize_resolution(read_pattern('test/midi/neighbor.mid'))
+        pattern = normalize_resolution(read_pattern(constants.TEST_MIDI + 'neighbor.mid'))
         sequence = domain.Sequence(pattern=pattern[0], part=parts.BASS)
 
         key_sigs = ks.KeySignatures()
@@ -97,7 +64,7 @@ class TestMotionTransforms(TestCase):
             transforms.WholeStepNeighborTransform.applicable_at(2 * RESOLUTION, sequence, key_sigs))
 
     def test_MajorThirdScalarTransform_is_applicable(self):
-        pattern = normalize_resolution(read_pattern('test/midi/maj3_scalar.mid'))
+        pattern = normalize_resolution(read_pattern(constants.TEST_MIDI + 'maj3_scalar.mid'))
         sequence = domain.Sequence(pattern=pattern[0], part=parts.BASS)
 
         key_sigs = ks.KeySignatures()
@@ -107,7 +74,7 @@ class TestMotionTransforms(TestCase):
         self.assertFalse(transforms.MajorThirdScalarTransform.applicable_at(2, sequence, key_sigs))
 
     def test_MinorThirdScalarTransform_is_applicable(self):
-        pattern = normalize_resolution(read_pattern('test/midi/min3_scalar.mid'))
+        pattern = normalize_resolution(read_pattern(constants.TEST_MIDI + 'min3_scalar.mid'))
         sequence = domain.Sequence(pattern=pattern[0], part=parts.BASS)
 
         key_sigs = ks.KeySignatures()
@@ -120,7 +87,7 @@ class TestMotionTransforms(TestCase):
         self.assertFalse(transforms.MinorThirdScalarTransform.applicable_at(2, sequence, key_sigs))
 
     def test_ArpeggialTransform_is_applicable(self):
-        pattern = normalize_resolution(read_pattern('test/midi/arpeggial.mid'))
+        pattern = normalize_resolution(read_pattern(constants.TEST_MIDI + 'arpeggial.mid'))
         sequence = domain.Sequence(pattern=pattern[0], part=parts.ALTO)
 
         key_sigs = ks.KeySignatures()
@@ -135,7 +102,7 @@ class TestMotionTransforms(TestCase):
             transforms.ArpeggialTransform.applicable_at(4 * RESOLUTION, sequence, chord_progression))
 
     def test_MajorThirdScalarTransform_intermediate_pitch(self):
-        pattern = normalize_resolution(read_pattern('test/midi/maj3_scalar.mid'))
+        pattern = normalize_resolution(read_pattern(constants.TEST_MIDI + 'maj3_scalar.mid'))
         sequence = domain.Sequence(pattern=pattern[0], part=parts.BASS)
 
         key_sigs = ks.KeySignatures()
@@ -150,7 +117,7 @@ class TestMotionTransforms(TestCase):
         self.assertEqual(trans.intermediate_pitch, pitch_should_be)
 
     def test_MinorThirdScalarTransform_intermediate_pitch(self):
-        pattern = normalize_resolution(read_pattern('test/midi/min3_scalar.mid'))
+        pattern = normalize_resolution(read_pattern(constants.TEST_MIDI + 'min3_scalar.mid'))
         sequence = domain.Sequence(pattern=pattern[0], part=parts.BASS)
 
         key_sigs = ks.KeySignatures()
@@ -165,7 +132,7 @@ class TestMotionTransforms(TestCase):
         self.assertEqual(trans.intermediate_pitch, pitch_should_be)
 
     def test_ArpeggialTransform_intermediate_pitch(self):
-        pattern = normalize_resolution(read_pattern('test/midi/arpeggial.mid'))
+        pattern = normalize_resolution(read_pattern(constants.TEST_MIDI + 'arpeggial.mid'))
         sequence = domain.Sequence(pattern=pattern[0], part=parts.ALTO)
 
         chord_progression = chords.ChordProgression()
@@ -177,7 +144,7 @@ class TestMotionTransforms(TestCase):
         self.assertEqual(trans.intermediate_pitch, major_third_above)
 
     def test_HalfStepNeighborTransform_intermediate_pitch(self):
-        pattern = normalize_resolution(read_pattern('test/midi/neighbor.mid'))
+        pattern = normalize_resolution(read_pattern(constants.TEST_MIDI + 'neighbor.mid'))
         sequence = domain.Sequence(pattern=pattern[0], part=parts.BASS)
 
         key_sigs = ks.KeySignatures()
@@ -192,7 +159,7 @@ class TestMotionTransforms(TestCase):
         self.assertEqual(trans.intermediate_pitch, half_step_below)
 
     def test_WholeStepNeighborTransform_intermediate_pitch(self):
-        pattern = normalize_resolution(read_pattern('test/midi/neighbor.mid'))
+        pattern = normalize_resolution(read_pattern(constants.TEST_MIDI + 'neighbor.mid'))
         sequence = domain.Sequence(pattern=pattern[0], part=parts.BASS)
 
         key_sigs = ks.KeySignatures()
@@ -207,7 +174,7 @@ class TestMotionTransforms(TestCase):
         self.assertEqual(trans.intermediate_pitch, whole_step_above)
 
     def test_ApproachTransform_intermediate_pitch(self):
-        pattern = normalize_resolution(read_pattern('test/midi/approach.mid'))
+        pattern = normalize_resolution(read_pattern(constants.TEST_MIDI + 'approach.mid'))
         sequence = domain.Sequence(pattern=pattern[0], part=parts.BASS)
 
         key_sigs = ks.KeySignatures()
@@ -223,8 +190,8 @@ class TestMotionTransforms(TestCase):
         self.assertEqual(trans.intermediate_pitch, c_sharp_below)
 
     def test_MajorThirdScalarTransform_synergy(self):
-        scalar_pattern = normalize_resolution(read_pattern('test/midi/maj3_scalar.mid'))
-        neighbor_pattern = normalize_resolution(read_pattern('test/midi/neighbor.mid'))
+        scalar_pattern = normalize_resolution(read_pattern(constants.TEST_MIDI + 'maj3_scalar.mid'))
+        neighbor_pattern = normalize_resolution(read_pattern(constants.TEST_MIDI + 'neighbor.mid'))
 
         scalar_sequence = domain.Sequence(pattern=scalar_pattern[0], part=parts.TENOR)
         neighbor_sequence = domain.Sequence(pattern=neighbor_pattern[0], part=parts.BASS)
@@ -238,7 +205,7 @@ class TestMotionTransforms(TestCase):
         # Small tests, reall should ever change unless we manipulate values
         scalar_trans = transforms.MajorThirdScalarTransform(0, scalar_sequence, key_sigs, chord_progression)
         same_trans = transforms.MajorThirdScalarTransform(0, scalar_sequence, key_sigs, chord_progression)
-        join = transforms.TwoBeatJoinTransform(0, scalar_sequence, key_sigs)
+        join = transforms.JoinTransform(2, 0, scalar_sequence, chord_progression)
 
         self.assertEqual(scalar_trans.synergy(same_trans), -0.02)
         self.assertEqual(scalar_trans.synergy(join), 0.0)
@@ -251,7 +218,7 @@ class TestMotionTransforms(TestCase):
         self.assertEqual(scalar_trans.synergy(subdom_neighbor_trans), 0.05)
 
     def test_ApproachTransform_set_musicality(self):
-        pattern = normalize_resolution(read_pattern('test/midi/approach.mid'))
+        pattern = normalize_resolution(read_pattern(constants.TEST_MIDI + 'approach.mid'))
         sequence = domain.Sequence(pattern=pattern[0], part=parts.BASS)
 
         key_signatures = ks.KeySignatures()
@@ -271,7 +238,7 @@ class TestMotionTransforms(TestCase):
         self.assertEqual(strong_trans.intrinsic_musicality, 0.2)
 
     def test_MajorThird_set_musicality(self):
-        pattern = normalize_resolution(read_pattern('test/midi/linear_motion.mid'))
+        pattern = normalize_resolution(read_pattern(constants.TEST_MIDI + 'linear_motion.mid'))
         sequence = domain.Sequence(pattern=pattern[0])
 
         key_signatures = ks.KeySignatures()
@@ -284,7 +251,7 @@ class TestMotionTransforms(TestCase):
         self.assertEqual(trans.intrinsic_musicality, 0.2)
 
     def test_ArpeggialTransform_set_musicality(self):
-        pattern = normalize_resolution(read_pattern('test/midi/arpeggial.mid'))
+        pattern = normalize_resolution(read_pattern(constants.TEST_MIDI + 'arpeggial.mid'))
         sequence = domain.Sequence(pattern=pattern[0], part=parts.ALTO)
 
         chord_progression = chords.ChordProgression()
@@ -314,6 +281,32 @@ class TestMotionTransforms(TestCase):
                                                                  part1_second, part2_second_fifth))
         self.assertTrue(transforms.notes_cause_parallel_movement(part1_first, part2_first_octave,
                                                                  part1_second, part2_second_octave))
+
+    def test__is_syncopation(self):
+        pattern = normalize_resolution(read_pattern(constants.TEST_MIDI + '2beat_join.mid'))
+        sequence = domain.Sequence(pattern=pattern[0])
+
+        chord_progression = chords.ChordProgression()
+        chord_progression[0] = chords.parse('C')
+
+        syncopation = transforms.JoinTransform(2, RESOLUTION, sequence, chord_progression)
+        nonsyncopated = transforms.JoinTransform(2, 0, sequence, chord_progression)
+
+        self.assertTrue(syncopation.is_syncopation())
+        self.assertFalse(nonsyncopated.is_syncopation())
+
+    def test__JoinTransform_crosses_bar_line(self):
+        pattern = normalize_resolution(read_pattern(constants.TEST_MIDI + '2beat_join.mid'))
+        sequence = domain.Sequence(pattern=pattern[0])
+
+        chord_progression = chords.ChordProgression()
+        chord_progression[0] = chords.parse('C')
+
+        over_bar_line = transforms.JoinTransform(2, RESOLUTION * 3, sequence, chord_progression)
+        inside_bar = transforms.JoinTransform(2, RESOLUTION * 2, sequence, chord_progression)
+
+        self.assertTrue(over_bar_line.crosses_bar_line())
+        self.assertFalse(inside_bar.crosses_bar_line())
 
 
 def read_pattern(file_name):
