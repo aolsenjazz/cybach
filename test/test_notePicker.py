@@ -91,9 +91,11 @@ class TestNotePicker(TestCase):
         chord_progression[0] = chords.parse('G')
         chord_progression[2 * RESOLUTION] = chords.parse('E-')
 
-        self.assertEqual(note_picker.root_tendency_score(g, 0, sequence, chord_progression), 0.10)
-        self.assertEqual(note_picker.root_tendency_score(g, 1 * RESOLUTION, sequence, chord_progression), 0.03)
-        self.assertAlmostEqual(note_picker.root_tendency_score(e, 2 * RESOLUTION, sequence, chord_progression), 0.25)
+        self.assertEqual(note_picker.root_tendency_score(g, 0, sequence, chord_progression), vars.FIRST_BEAT_BASS_ROOT)
+        self.assertEqual(note_picker.root_tendency_score(g, 1 * RESOLUTION, sequence, chord_progression),
+                         vars.BASS_ROOT_SAME_CHORD)
+        self.assertEqual(note_picker.root_tendency_score(e, 2 * RESOLUTION, sequence, chord_progression),
+                               vars.BASS_ROOT_NEW_CHORD + vars.BIG_BEAT_BASS_ROOT)
 
     def test__get_motion_score(self):
         pattern = normalize_resolution(read_pattern(constants.TEST_MIDI + 'parallel1.mid'))

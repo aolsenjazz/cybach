@@ -308,6 +308,29 @@ class TestMotionTransforms(TestCase):
         self.assertTrue(over_bar_line.crosses_bar_line())
         self.assertFalse(inside_bar.crosses_bar_line())
 
+    def test__EighthNoteTransform_causes_flickering(self):
+        pattern = normalize_resolution(read_pattern(constants.TEST_MIDI + 'flicker.mid'))
+        sequence = domain.Sequence(pattern=pattern[0])
+
+        key_signatures = ks.KeySignatures()
+        key_signatures[0] = chords.parse('C')
+
+        chord_progression = chords.ChordProgression()
+        chord_progression[0] = chords.parse('C')
+
+        transform1 = transforms.WholeStepNeighborTransform((1 * RESOLUTION * 4) + (1 * RESOLUTION), sequence,
+                                                           key_signatures, chord_progression)
+
+        transform2 = transforms.HalfStepNeighborTransform((2 * RESOLUTION * 4) + (1 * RESOLUTION), sequence,
+                                                           key_signatures, chord_progression)
+
+        transform3 = transforms.HalfStepNeighborTransform((2 * RESOLUTION * 4) + (1 * RESOLUTION), sequence,
+                                                          key_signatures, chord_progression)
+
+        self.assertTrue(transform1.causes_flickering())
+        self.assertTrue(transform2.causes_flickering())
+        self.assertTrue(transform3.causes_flickering())
+
 
 def read_pattern(file_name):
     try:

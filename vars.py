@@ -27,7 +27,7 @@ BIG_BEAT_BASS_ROOT = 0.05
 BASS_ROOT_SAME_CHORD = 0.03
 
 # When the chord changes, we really want to hear the root in the bass line.
-BASS_ROOT_NEW_CHORD = 0.20
+BASS_ROOT_NEW_CHORD = 0.5
 
 # As a line approaches the extremes of its register, start to decrease score. This variable is modified
 # as it moves closer to register extremes with the following:
@@ -98,6 +98,9 @@ JOIN_SAME = -0.02
 # Motion score is equal to 0.50 - duration * JOIN_MOTION_COEFFICIENT
 JOIN_MOTION_COEFFICIENT = 0.08
 
+# In time signatures whose numerator is evenly divisible by 3, prefer big beats
+JOIN_PREFER_BIG_BEATS = 1.0
+
 # Slightly prefer the first beat of a the measure
 TWO_BEAT_FIRST_BEAT = 0.02
 # Strongly prefer being on weak beats (2 or 4 in 2/4 or 4/4 etc, and 3 and 5 in 6/8 etc)
@@ -147,6 +150,8 @@ EIGHTH_NOTE_SUBDOMINANT = 0.05
 EIGHTH_NOTE_PARALLEL = -0.20
 # Two EighthNoteTransforms being applied at the same time are probably the exact same
 EIGHTH_NOTE_SAME = -0.02
+# While sustain one chord for an extended period of time, notes tend to "flicker" back and forth.
+FLICKER_PENALTY = -0.20
 
 # MajorThirdScalarTransform intrinsic motion
 MAJOR_THIRD_SCALAR_MOTION = 0.58

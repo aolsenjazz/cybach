@@ -10,14 +10,14 @@ from constants import RESOLUTION
 
 class Motionizer:
 
-    def __init__(self, key_sigs, chord_prog):
-        self.key_sigs = key_sigs
-        self.chord_prog = chord_prog
+    def __init__(self, key_signatures, chord_progression):
+        self.key_signatures = key_signatures
+        self.chord_progression = chord_progression
 
         self.position = 0
 
     def compute_next(self, soprano, alto, tenor, bass):
-        candidates = self.__get_candidate_matrix(alto, tenor, bass)
+        candidates = self.__get_candidate_matrix(soprano, alto, tenor, bass)
 
         winner = self.__compute_winner(self.position, soprano, alto, tenor, bass, candidates)
 
@@ -56,7 +56,6 @@ class Motionizer:
 
         return score
 
-
     def __compute_soprano_synergies(self, candidates, soprano, position):
         soprano_pitch = soprano[int(position + RESOLUTION / 2)].pitch()
         scores = []
@@ -71,6 +70,8 @@ class Motionizer:
                 if difference == 1 or difference % 12 == 1:
                     score += vars.VERY_DISSONANT_WITH_SOPRANO
                 elif difference == 2:
+                    score += vars.SLIGHTLY_DISSONANT_WITH_SOPRANO
+                elif difference == 6:
                     score += vars.SLIGHTLY_DISSONANT_WITH_SOPRANO
 
             scores.append(score)
@@ -113,42 +114,20 @@ class Motionizer:
 
         return sum(scores) / len(scores)
 
-    def __get_candidate_matrix(self, alto, tenor, bass):
-        alto_transforms = self.__alto_transformations(self.position, alto)
-        tenor_transforms = self.__tenor_transformations(self.position, tenor)
-        bass_transforms = self.__bass_transformations(self.position, bass)
+    def __get_candidate_matrix(self, soprano, alto, tenor, bass):
+        alto_transforms = self.__all_transformations(self.position, alto, soprano)
+        tenor_transforms = self.__all_transformations(self.position, tenor, soprano)
+        bass_transforms = self.__all_transformations(self.position, bass, soprano)
 
         return candidates(alto_transforms, tenor_transforms, bass_transforms)
 
-    def __bass_transformations(self, position, sequence):
+    def __all_transformations(self, position, sequence, soprano):
         trans = [transforms.NoneTransform(sequence)]
 
         if sequence[position].pitch() != -1:
             trans.extend(self.__join_transforms(position, sequence))
 
-            if constants.EIGHTH_NOTE in sequence.note_duration_count().keys():
-                trans.extend(self.__micro_transforms(position, sequence))
-
-        return trans
-
-    def __alto_transformations(self, position, sequence):
-        trans = [transforms.NoneTransform(sequence)]
-
-        if sequence[position].pitch() != -1:
-            trans.extend(self.__join_transforms(position, sequence))
-
-            if constants.EIGHTH_NOTE in sequence.note_duration_count().keys():
-                trans.extend(self.__micro_transforms(position, sequence))
-
-        return trans
-
-    def __tenor_transformations(self, position, sequence):
-        trans = [transforms.NoneTransform(sequence)]
-
-        if sequence[position].pitch() != -1:
-            trans.extend(self.__join_transforms(position, sequence))
-
-            if constants.EIGHTH_NOTE in sequence.note_duration_count().keys():
+            if constants.EIGHTH_NOTE in soprano.note_duration_count().keys():
                 trans.extend(self.__micro_transforms(position, sequence))
 
         return trans
@@ -156,23 +135,23 @@ class Motionizer:
     def __micro_transforms(self, position, sequence):
         trans = []
 
-        if transforms.MajorThirdScalarTransform.applicable_at(position, sequence, self.key_sigs):
-            trans.append(transforms.MajorThirdScalarTransform(position, sequence, self.key_sigs, self.chord_prog))
+        if transforms.MajorThirdScalarTransform.applicable_at(position, sequence, self.key_signatures):
+            trans.append(transforms.MajorThirdScalarTransform(position, sequence, self.key_signatures, self.chord_progression))
 
-        if transforms.MinorThirdScalarTransform.applicable_at(position, sequence, self.key_sigs):
-            trans.append(transforms.MinorThirdScalarTransform(position, sequence, self.key_sigs, self.chord_prog))
+        if transforms.MinorThirdScalarTransform.applicable_at(position, sequence, self.key_signatures):
+            trans.append(transforms.MinorThirdScalarTransform(position, sequence, self.key_signatures, self.chord_progression))
 
-        if transforms.ArpeggialTransform.applicable_at(position, sequence, self.chord_prog):
-            trans.append(transforms.ArpeggialTransform(position, sequence, self.key_sigs, self.chord_prog))
+        if transforms.ArpeggialTransform.applicable_at(position, sequence, self.chord_progression):
+            trans.append(transforms.ArpeggialTransform(position, sequence, self.key_signatures, self.chord_progression))
 
-        if transforms.HalfStepNeighborTransform.applicable_at(position, sequence, self.key_sigs):
-            trans.append(transforms.HalfStepNeighborTransform(position, sequence, self.key_sigs, self.chord_prog))
+        if transforms.HalfStepNeighborTransform.applicable_at(position, sequence, self.key_signatures):
+            trans.append(transforms.HalfStepNeighborTransform(position, sequence, self.key_signatures, self.chord_progression))
 
-        if transforms.WholeStepNeighborTransform.applicable_at(position, sequence, self.key_sigs):
-            trans.append(transforms.WholeStepNeighborTransform(position, sequence, self.key_sigs, self.chord_prog))
+        if transforms.WholeStepNeighborTransform.applicable_at(position, sequence, self.key_signatures):
+            trans.append(transforms.WholeStepNeighborTransform(position, sequence, self.key_signatures, self.chord_progression))
 
-        if transforms.ApproachTransform.applicable_at(position, sequence, self.chord_prog):
-            trans.append(transforms.ApproachTransform(position, sequence, self.key_sigs, self.chord_prog))
+        if transforms.ApproachTransform.applicable_at(position, sequence, self.chord_progression):
+            trans.append(transforms.ApproachTransform(position, sequence, self.key_signatures, self.chord_progression))
 
         return trans
 
@@ -184,8 +163,8 @@ class Motionizer:
         beats_of_same_note = note_duration_at_position(position, sequence)
 
         if beats_of_same_note >= 2:
-            for i in range(2, beats_of_same_note):
-                trans.append(transforms.JoinTransform(i, position, sequence, self.chord_prog))
+            for i in range(2, beats_of_same_note + 1):
+                trans.append(transforms.JoinTransform(i, position, sequence, self.chord_progression))
 
         return trans
 

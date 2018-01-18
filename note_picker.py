@@ -28,12 +28,11 @@ class NotePicker:
 
     def get_candidate_matrix(self, chord):
         alto_candidates = self.alto.part.available_notes(chord)
-        # alto_candidates.append(-1)  # -1 represents rest
-
         tenor_candidates = self.tenor.part.available_notes(chord)
-        # tenor_candidates.append(-1)  # -1 represents rest
-
         bass_candidates = self.bass.part.available_notes(chord)
+
+        # alto_candidates.append(-1)  # -1 represents rest
+        # tenor_candidates.append(-1)  # -1 represents rest
         # bass_candidates.append(-1)  # -1 represents rest
 
         matrix = motion.candidates(alto_candidates, tenor_candidates, bass_candidates)
@@ -45,7 +44,8 @@ class NotePicker:
         sop_pitch = self.soprano[self.position].pitch()
 
         for g in matrix:
-            if (g['bass'] < g['tenor'] or g['tenor'] == -1) and (g['alto'] < sop_pitch or sop_pitch == -1):
+            if (g['bass'] < g['tenor'] < g['alto'] or g['tenor'] == -1 or g['alto'] == -1) \
+                    and (g['alto'] < sop_pitch or sop_pitch == -1):
                 filtered.append(g)
 
         return filtered

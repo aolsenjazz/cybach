@@ -26,4 +26,4 @@ class Part:
 
 ALTO = Part(54, 72, 'alto')
 TENOR = Part(48, 65, 'tenor')
-BASS = Part(40, 60, 'bass')
+BASS = Part(38, 60, 'bass')

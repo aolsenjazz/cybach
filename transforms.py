@@ -34,6 +34,9 @@ class MotionTransform:
     def crosses_bar_line(self):
         raise NotImplementedError
 
+    def causes_flickering(self):
+        raise NotImplementedError
+
 
 class JoinTransform(MotionTransform):
 
@@ -55,11 +58,15 @@ class JoinTransform(MotionTransform):
         score = 0.0
 
         # The longer a note is, the higher its musicality; longer notes less common within normal configurations
-        duration_score = ((2 ** self.duration) / 2) / 100
+        duration_score = (((2 - (.1 * self.duration) / 2) ** self.duration) / 2) / 100
         score += duration_score
 
         num_unique_chords = unique_chord_count(self.position, self.duration, self.chord_progression)
         score += vars.TWO_BEAT_MULTIPLE_CHORDS * num_unique_chords
+
+        time_signature = self.sequence.time_signatures[self.position]
+        if time_signature.numerator % 3 == 0 and not self.is_syncopation():
+            score += vars.JOIN_PREFER_BIG_BEATS
 
         return score
 
@@ -86,6 +93,9 @@ class JoinTransform(MotionTransform):
 
         return self.sequence.samples
 
+    def causes_flickering(self):
+        return False
+
 
 class NoneTransform(MotionTransform):
 
@@ -109,6 +119,9 @@ class NoneTransform(MotionTransform):
     def crosses_bar_line(self):
         return False
 
+    def causes_flickering(self):
+        return False
+
 
 class EighthNoteTransform(MotionTransform):
 
@@ -117,12 +130,13 @@ class EighthNoteTransform(MotionTransform):
 
         self.position = position
         self.sequence = sequence
+        self.intermediate_pitch = -1
         self.key_signatures = key_signatures
         self.chord_progression = chord_progression
-        self.intermediate_pitch = -1
 
     def apply(self):
-        half_way = self.position + (RESOLUTION / 2)
+        half_way = int(self.position + (RESOLUTION / 2))
+
         for i in range(half_way, self.position + RESOLUTION):
             if i == half_way:
                 self.sequence[i - 1] = domain.Sample(self.sequence[i - 1].pitch(), domain.Sample.TYPE_END)
@@ -159,27 +173,49 @@ class EighthNoteTransform(MotionTransform):
     def crosses_bar_line(self):
         return False
 
+    def causes_flickering(self):
+        if self.position == 24 and isinstance(self, HalfStepNeighborTransform):
+            test = 3
+
+        if self.position < RESOLUTION:
+            return False
+
+        one_whole_note_ago = self.sequence[self.position - RESOLUTION].pitch()
+        one_half_note_ago = self.sequence[int(self.position - (RESOLUTION / 2))].pitch()
+
+        pitch_at_position = self.sequence[self.position].pitch()
+
+        return one_whole_note_ago == pitch_at_position and one_half_note_ago == self.intermediate_pitch \
+            and one_whole_note_ago != one_half_note_ago
+
 
 class MajorThirdScalarTransform(EighthNoteTransform):
 
     def __init__(self, position, sequence, key_signatures, chord_progression):
         EighthNoteTransform.__init__(self, position, sequence, key_signatures, chord_progression)
-        self.intrinsic_motion = vars.MAJOR_THIRD_SCALAR_MOTION
-        self.intrinsic_musicality = self.__get_musicality()
 
         this_note = sequence[position]
         next_note = sequence[position + RESOLUTION]
-        self.intermediate_pitch = (this_note.pitch() + next_note.pitch()) / 2
+        self.intermediate_pitch = int((this_note.pitch() + next_note.pitch()) / 2)
+
+        self.intrinsic_motion = vars.MAJOR_THIRD_SCALAR_MOTION
+        self.intrinsic_musicality = self.__get_musicality()
 
     def __get_musicality(self):
+        score = 0.0
+
         # no previous motion
         if self.position == 0:
             return vars.MAJOR_THIRD_SCALAR_BEAT_ONE
 
         last_beat = self.sequence.beat_at(self.position - RESOLUTION)
 
-        return vars.MAJOR_THIRD_SCALAR_CONTINUES_LINEARITY if last_beat.contains_linear_movement() \
+        score +=  vars.MAJOR_THIRD_SCALAR_CONTINUES_LINEARITY if last_beat.contains_linear_movement() \
             else vars.MAJOR_THIRD_SCALAR_DEFAULT_MUSICALITY
+
+        score += vars.FLICKER_PENALTY if self.causes_flickering() else 0.0
+
+        return score
 
     @staticmethod
     def applicable_at(position, sequence, key_signatures):
@@ -190,7 +226,7 @@ class MajorThirdScalarTransform(EighthNoteTransform):
 
         this_note = sequence[position]
         next_note = sequence[position + RESOLUTION]
-        intermediate_pitch = (this_note.pitch() + next_note.pitch()) / 2
+        intermediate_pitch = int((this_note.pitch() + next_note.pitch()) / 2)
 
         this_signature = key_signatures[position]
 
@@ -202,8 +238,6 @@ class MinorThirdScalarTransform(EighthNoteTransform):
 
     def __init__(self, position, sequence, key_signatures, chord_progression):
         EighthNoteTransform.__init__(self, position, sequence, key_signatures, chord_progression)
-        self.intrinsic_motion = vars.MINOR_THIRD_SCALAR_MOTION
-        self.intrinsic_musicality = self.__get_musicality()
 
         this_pitch = sequence[position].pitch()
         next_pitch = sequence[position + RESOLUTION].pitch()
@@ -214,15 +248,24 @@ class MinorThirdScalarTransform(EighthNoteTransform):
             if note in this_signature.scale() and min(this_pitch, next_pitch) < note < max(this_pitch, next_pitch):
                 self.intermediate_pitch = note
 
+        self.intrinsic_motion = vars.MINOR_THIRD_SCALAR_MOTION
+        self.intrinsic_musicality = self.__get_musicality()
+
     def __get_musicality(self):
+        score = 0.0
+
         # no previous motion
         if self.position == 0:
             return vars.MINOR_THIRD_SCALAR_BEAT_ONE
 
         last_beat = self.sequence.beat_at(self.position - RESOLUTION)
 
-        return vars.MINOR_THIRD_SCALAR_CONTINUES_LINEARITY if last_beat.contains_linear_movement() \
+        score += vars.MINOR_THIRD_SCALAR_CONTINUES_LINEARITY if last_beat.contains_linear_movement() \
             else vars.MINOR_THIRD_SCALAR_DEFAULT_MUSICALITY
+
+        score += vars.FLICKER_PENALTY if self.causes_flickering() else 0.0
+
+        return score
 
     @staticmethod
     def applicable_at(position, sequence, key_signatures):
@@ -251,8 +294,6 @@ class ArpeggialTransform(EighthNoteTransform):
 
     def __init__(self, position, sequence, key_signatures, chord_progression):
         EighthNoteTransform.__init__(self, position, sequence, key_signatures, chord_progression)
-        self.intrinsic_motion = vars.ARPEGGIAL_MOTION
-        self.intrinsic_musicality = self.__get_musicality()
 
         this_note = sequence[position]
         next_note = sequence[position + RESOLUTION]
@@ -263,17 +304,26 @@ class ArpeggialTransform(EighthNoteTransform):
         intermediary_notes = [i for i in range(min(this_note.pitch() + 1, next_note.pitch() + 1),
                                                max(this_note.pitch(), next_note.pitch()))]
 
+        self.intrinsic_motion = vars.ARPEGGIAL_MOTION
+        self.intrinsic_musicality = self.__get_musicality()
+
         for i in intermediary_notes:
             if i in this_chord and i in next_chord:
                 self.intermediate_pitch = i
                 break
 
     def __get_musicality(self):
+        score = 0.0
+
         this_chord = self.chord_progression[self.position]
         next_chord = self.chord_progression[self.position + RESOLUTION]
 
-        return vars.ARPEGGIAL_SAME_CHORD if chords.same(this_chord, next_chord) \
+        score += vars.ARPEGGIAL_SAME_CHORD if chords.same(this_chord, next_chord) \
             else vars.ARPEGGIAL_DEFAULT_MUSICALITY
+
+        score += vars.FLICKER_PENALTY if self.causes_flickering() else 0.0
+
+        return score
 
     @staticmethod
     def applicable_at(position, sequence, chord_progression):
@@ -307,19 +357,25 @@ class HalfStepNeighborTransform(EighthNoteTransform):
     def __init__(self, position, sequence, key_signatures, chord_progression):
         EighthNoteTransform.__init__(self, position, sequence, key_signatures, chord_progression)
         self.intrinsic_motion = vars.HALF_NEIGHBOR_MOTION
-        self.intrinsic_musicality = self.__get_musicality()
 
         this_pitch = sequence[position].pitch()
         this_sig = key_signatures[position]
 
         self.intermediate_pitch = this_pitch + 1 if this_pitch + 1 in this_sig.scale() else this_pitch - 1
+        self.intrinsic_musicality = self.__get_musicality()
 
     def __get_musicality(self):
+        score = 0.0
+
         this_chord = self.chord_progression[self.position]
         next_chord = self.chord_progression[self.position + RESOLUTION]
 
-        return vars.HALF_NEIGHBOR_SAME_CHORD if chords.same(this_chord, next_chord) \
+        score += vars.HALF_NEIGHBOR_SAME_CHORD if chords.same(this_chord, next_chord) \
             else vars.HALF_NEIGHBOR_DEFAULT_MUSICALITY
+
+        score += vars.FLICKER_PENALTY if self.causes_flickering() else 0.0
+
+        return score
 
     @staticmethod
     def applicable_at(position, sequence, key_signatures):
@@ -343,19 +399,26 @@ class WholeStepNeighborTransform(EighthNoteTransform):
     def __init__(self, position, sequence, key_signatures, chord_progression):
         EighthNoteTransform.__init__(self, position, sequence, key_signatures, chord_progression)
         self.intrinsic_motion = vars.WHOLE_NEIGHBOR_MOTION
-        self.intrinsic_musicality = self.__get_musicality()
 
         this_pitch = sequence[position].pitch()
         this_sig = key_signatures[position]
 
         self.intermediate_pitch = this_pitch + 2 if this_pitch + 2 in this_sig.scale() else this_pitch - 2
+        self.intrinsic_musicality = self.__get_musicality()
 
     def __get_musicality(self):
+        score = 0.0
+
         this_chord = self.chord_progression[self.position]
         next_chord = self.chord_progression[self.position + RESOLUTION]
 
-        return vars.WHOLE_NEIGHBOR_SAME_CHORD if chords.same(this_chord, next_chord) \
+        score += vars.WHOLE_NEIGHBOR_SAME_CHORD if chords.same(this_chord, next_chord) \
             else vars.WHOLE_NEIGHBOR_DEFAULT_MUSICALITY
+
+        if self.causes_flickering():
+            score += vars.FLICKER_PENALTY
+
+        return score
 
     @staticmethod
     def applicable_at(position, sequence, key_signatures):
@@ -379,22 +442,29 @@ class ApproachTransform(EighthNoteTransform):
     def __init__(self, position, sequence, key_signatures, chord_progression):
         EighthNoteTransform.__init__(self, position, sequence, key_signatures, chord_progression)
         self.intrinsic_motion = vars.APPROACH_MOTION
-        self.intrinsic_musicality = self.__get_musicality()
 
         next_pitch = sequence[position + RESOLUTION].pitch()
         this_chord = chord_progression[position]
 
         self.intermediate_pitch = next_pitch + 1 if next_pitch + 1 in this_chord else next_pitch - 1
+        self.intrinsic_musicality = self.__get_musicality()
 
     def __get_musicality(self):
+        score = 0.0
+
         next_pitch = self.sequence[self.position + RESOLUTION].pitch()
         next_chord = self.chord_progression[self.position + RESOLUTION]
         next_key = self.key_signatures[self.position + RESOLUTION]
+
         if notes.same_species(next_pitch, next_chord.root):
-            return vars.APPROACH_KEY_CHANGE if notes.same_species(next_chord.root, next_key.root) \
+            score += vars.APPROACH_KEY_CHANGE if notes.same_species(next_chord.root, next_key.root) \
                 else vars.APPROACH_NEW_CHORD_ROOT
         else:
-            return vars.APPROACH_DEFAULT_MUSICALITY
+            score += vars.APPROACH_DEFAULT_MUSICALITY
+
+        score += vars.FLICKER_PENALTY if self.causes_flickering() else 0.0
+
+        return score
 
     @staticmethod
     def applicable_at(position, sequence, chord_progression):

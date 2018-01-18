@@ -16,4 +16,4 @@ class Song:
         self.tenor = Sequence(seed=soprano, part=parts.TENOR, time_signatures=time_signatures,
                               configuration=part_customization.get('tenor', {}))
         self.bass = Sequence(seed=soprano, part=parts.BASS, time_signatures=time_signatures,
-                             configuration=part_customization.get('bass', {'motion_tendency': 0.0}))
+                             configuration=part_customization.get('bass', {'motion_tendency': 0.3}))
