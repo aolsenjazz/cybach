@@ -261,7 +261,7 @@ class Measure(list):
         return self.time_signature.numerator / 2 * config.resolution
 
     def sample_position(self):
-        return config.time_signatures.sample_position(measure=self.measure_index)
+        return int(config.time_signatures.sample_position(measure=self.measure_index))
 
     def beats(self):
         beats = []
@@ -270,35 +270,36 @@ class Measure(list):
 
         j = 0
         while j < len(self.samples):
-            beats.append(Beat(self.samples[j:(j + samples_per_beat)], j / samples_per_beat, self))
+            beats.append(Beat(self.samples[j:(j + samples_per_beat)], int(j / samples_per_beat), self))
 
             j += samples_per_beat
 
         return beats
 
-    def strong_beats(self):
-
+    def phrasing_candidates(self):
         if self.time_signature.numerator <= 4:
-            return self.beats()
+            return {tuple([1 for item in self.beats()]): 1}
         else:
             phrase_combinations = rhythm.phrase_combinations(self.time_signature.numerator)
             combination_map = {}
 
+            if self.time_signature.numerator == 7:
+                block = 1
             for combination in phrase_combinations:
                 combination_map[combination] = 0.0
 
             # Guess the phrase groupings based on the position of chords in the measure
             chord_based_prediction = self.chord_based_phrasing_prediction()
             if combination_map.get(chord_based_prediction, None) is not None:
-                combination_map[chord_based_prediction] = combination_map[chord_based_prediction] + 0.10
+                combination_map[chord_based_prediction] = combination_map[chord_based_prediction] + vars.CHORD_PHRASING
 
             # Based on the rhythms of the melody, rank phrase grouping likeliness
             for combination in combination_map.keys():
                 combination_map[combination] = combination_map[combination] + \
                                                self.phrasing_likelihood(combination)
 
-            winner = util.key_for_highest_value(combination_map)
-            return self.beats_for_phrasing(winner)
+
+            return combination_map
 
     def beats_for_phrasing(self, phrasing):
         position = 0
@@ -328,13 +329,7 @@ class Measure(list):
             beat = self.beats()[position]
             target_duration = value * len(beat)
 
-            t = beat.is_note_start()
-            t1 = beat.is_rest()
-            t2 = beat.is_pitch_change()
-            t3 = beat.sustain_duration()
-
-            if (beat.is_note_start() or beat.is_rest()) \
-                    and beat.is_pitch_change() and beat.sustain_duration() == target_duration:
+            if (beat.is_note_start() or beat.is_rest()) and beat.sustain_duration() == target_duration:
                 likelihood_score += vars.RHYTHM_PHRASING_COEF * value
 
             position += value
@@ -349,20 +344,22 @@ class Measure(list):
         E.g. 2: in a 7/8 measure, if there are chords on 1, 3, and 5 (1-based), will return phrase grouping of (1, 3, 5)
         """
         candidate = []
-
         chords = config.chord_progression.chords_in_measure(self.measure_index)
-        for beat in self.beats():
+        beats = self.beats()
+        beats.sort()
+
+        for beat in beats:
             if beat.is_first_beat() or beat.is_last_beat():
                 continue  # let's assume that 1 is a phrase start, and that the last beat is a phrase end
 
             if chords.get(beat.sample_position(), None) is not None and \
                     chords.get(beat.sample_position() - len(beat), None) is None and \
                     chords.get(beat.sample_position() + len(beat), None) is None:
-                candidate.insert(0, int(beat.beat_index - sum(candidate) + 1))
+                candidate.append(int(beat.beat_index - sum(candidate)))
 
-        remainder = self.time_signature.numerator - sum(candidate) + 1
+        remainder = self.time_signature.numerator - sum(candidate)
         if remainder != 0:
-            candidate.insert(0, int(self.time_signature.numerator - sum(candidate)))
+            candidate.append(remainder)
 
         return tuple(candidate)
 
@@ -480,11 +477,3 @@ class Sample:
 
     def pitch(self):
         return self.note.midi()
-
-
-class Candidate:
-
-    def __init__(self, alto=None, tenor=None, bass=None):
-        self.alto = alto
-        self.tenor = tenor
-        self.bass = bass

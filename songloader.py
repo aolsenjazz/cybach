@@ -3,6 +3,7 @@ import config
 import examples
 import pat_util
 import domain
+import ks
 import constants
 import chords
 import midi
@@ -22,14 +23,15 @@ def __load_file(file_name):
     pattern = __enforce_midi_validity(file_name, pattern)
     sequence = domain.Sequence(pattern[0])
 
-    __set_time_signatures(sequence)
-    __verify_measure_count(sequence, pattern)
-    __set_key_signatures(sequence, pattern)
-    __offer_enter_chords(sequence)
+    time_signatures = __set_time_signatures(sequence)
+    time_signatures = __verify_measure_count(sequence, pattern, time_signatures)
+    key_signatures = __set_key_signatures(sequence, pattern)
+    chord_progression = __offer_enter_chords(sequence)
 
     part_customization = __offer_part_customization()
 
-    return config.Arrangement(file_name, sequence, part_customization)
+    config.initialize(pattern.resolution, sequence, chord_progression, time_signatures,
+                      key_signatures, part_customization)
 
 
 def __set_key_signatures(sequence, pattern):
@@ -37,7 +39,7 @@ def __set_key_signatures(sequence, pattern):
         __report_key_signature_data(pattern)
         __offer_delete_key_signatures(pattern)
 
-    __offer_create_key_signatures(sequence)
+    return __offer_create_key_signatures(sequence)
 
 
 def __set_time_signatures(sequence):
@@ -48,6 +50,8 @@ def __set_time_signatures(sequence):
         __offer_delete_time_signatures()
 
     __offer_create_time_signatures(sequence)
+
+    return time_signatures
 
 
 def __read_midi(file_name):
@@ -74,7 +78,7 @@ def __enforce_midi_validity(file_name, pattern):
     return pattern
 
 
-def __verify_measure_count(sequence, pattern):
+def __verify_measure_count(sequence, pattern, time_signatures):
     measure_count = len(sequence.measures())
 
     correct = raw_input('It looks like the midi has %d measures. Is this correct? y/n ' % measure_count)
@@ -89,7 +93,9 @@ def __verify_measure_count(sequence, pattern):
 
         print 'We need to readjust time signatures now.'
 
-        __set_time_signatures(sequence)
+        return __set_time_signatures(sequence)
+
+    return time_signatures
 
 
 def __correct_midi_time_scale(pattern):
@@ -182,6 +188,8 @@ def __offer_delete_key_signatures(sequence):
 
 
 def __offer_create_key_signatures(sequence):
+    key_signatures = sequence.key_signatures
+
     enter = 'y'
     while enter == 'y':
         enter = raw_input('Would you like to insert a key signature? y/n ')
@@ -190,15 +198,16 @@ def __offer_create_key_signatures(sequence):
             signature = raw_input('Enter key: ')
             measure = int(raw_input('Enter measure number: '))
 
-            global key_signatures
             key_signatures[sequence.measure(measure - 1).sample_position()] = signature
+
+    return key_signatures
 
 
 def __report_key_signature_data(item):
     print 'Midi clip has the following key signature data:'
 
 
-def __offer_create_chords(sequence):
+def __offer_enter_chords(sequence):
     chord_progression = chords.ChordProgression()
 
     enter = 'y'

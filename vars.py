@@ -9,6 +9,9 @@
 # Used to figure out measure phrasing. This is multiplied by the number of notes in the group.
 RHYTHM_PHRASING_COEF = 0.01
 
+# Added to a value determining measure phrasing when the placement of harmony (in time) matching phasing candidates
+CHORD_PHRASING = 0.10
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~ NOTE PICKER VARIABLES ~~~~~~~~~~~~~~~~~~~~~~~~~
 #
 # Note picker variables impact which config.resolution-level notes are selected

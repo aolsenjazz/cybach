@@ -353,7 +353,7 @@ class ChordProgression(collections.MutableMapping):
         measure_end_pos = sample_pos + time_signature.samples_per_measure()
         chords = {}
 
-        for key in [k for k in config.chord_progression.keys() if sample_pos <= k <= measure_end_pos]:
+        for key in [k for k in config.chord_progression.keys() if sample_pos <= k < measure_end_pos]:
             chords[key] = self[key]
 
         return chords

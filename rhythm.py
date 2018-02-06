@@ -9,20 +9,25 @@ import itertools
 
 
 def phrase_combinations(beats_per_bar):
-    max_phrases = int(math.floor(beats_per_bar / 2))
+    if beats_per_bar <= 4:
+        return [tuple([1 for i in range(0, beats_per_bar)])]
+    else:
+        max_phrases = int(math.floor(beats_per_bar / 2))
 
-    potential_combinations = []
+        potential_combinations = []
 
-    for i in range(0, max_phrases):
-        potential_combinations.append([0, 2, 3, 4])
+        for i in range(0, max_phrases):
+            potential_combinations.append([0, 2, 3, 4])
 
-    all_combinations = [i for i in itertools.product(*potential_combinations) if sum(i) == beats_per_bar]
-    parsed = set()
+        all_combinations = [i for i in itertools.product(*potential_combinations) if sum(i) == beats_per_bar]
+        parsed = set()
 
-    for combination in all_combinations:
-        parsed.add(tuple([item for item in combination if item != 0]))
+        for combination in all_combinations:
+            parsed.add(tuple([item for item in combination if item != 0]))
 
-    return parsed
+        return parsed
+
+
 
 
 def is_big_beat(time_signature, beat_base_zero):
@@ -98,6 +103,7 @@ class TimeSignatures(collections.MutableMapping):
             position += active_time_signature.numerator * \
                         (config.resolution / (active_time_signature.denominator / 4))
 
+        active_time_signature = self[position]
         position += beat * (config.resolution / (active_time_signature.denominator / 4))
 
         return int(position)

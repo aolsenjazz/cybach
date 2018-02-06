@@ -8,6 +8,7 @@ import notes
 import ks
 import constants
 import rhythm
+import util
 import config
 import vars
 import parts
@@ -165,6 +166,44 @@ class TestDomain(TestCase):
         first_measure = sequence.measures()[0]
 
         self.assertEqual(phrasing, first_measure.chord_based_phrasing_prediction())
+
+    def test__properly_parse_mixed_meters(self):
+        pattern = read_pattern(constants.TEST_MIDI + 'mixed_meters.mid')
+        sequence = domain.Sequence(pattern=pattern[0])
+
+        set_config(sequence)
+
+        config.time_signatures[0] = rhythm.TimeSignature(numerator=6, denominator=8)
+        config.time_signatures[288] = rhythm.TimeSignature(numerator=7, denominator=8)
+        config.time_signatures[624] = rhythm.TimeSignature(numerator=4, denominator=4)
+        config.time_signatures[1008] = rhythm.TimeSignature(numerator=4, denominator=16)
+        config.time_signatures[1104] = rhythm.TimeSignature(numerator=3, denominator=2)
+
+        number_of_measures = 5
+
+        self.assertEqual(number_of_measures, len(sequence.measures()))
+
+    def test__Measure_phrasing_candidates(self):
+        pattern = read_pattern(constants.TEST_MIDI + 'mixed_meters.mid')
+        sequence = domain.Sequence(pattern=pattern[0])
+
+        set_config(sequence)
+
+        config.time_signatures[0] = rhythm.TimeSignature(numerator=6, denominator=8)
+        config.time_signatures[288] = rhythm.TimeSignature(numerator=7, denominator=8)
+        config.time_signatures[624] = rhythm.TimeSignature(numerator=4, denominator=4)
+        config.time_signatures[1008] = rhythm.TimeSignature(numerator=4, denominator=16)
+        config.time_signatures[1104] = rhythm.TimeSignature(numerator=3, denominator=2)
+
+        config.chord_progression.set().measure(1).beat(3).commit('F')
+
+        measures = sequence.measures()
+        four_four_measure = measures[2]
+        seven_eight_measure = measures[1]
+
+        self.assertEqual({(1, 1, 1, 1): 1}, four_four_measure.phrasing_candidates())
+        candidates = seven_eight_measure.phrasing_candidates()
+        self.assertEqual((3, 4), util.key_for_highest_value(candidates))
 
 
 def set_config(soprano):
