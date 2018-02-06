@@ -3,6 +3,7 @@ import os
 #
 # Constants
 #
+import config
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -10,21 +11,17 @@ TEST_MIDI = ROOT_DIR + '/test/midi/'
 EXAMPLES = ROOT_DIR + '/examples/'
 OUT_DIR = ROOT_DIR + '/out/'
 
-# The midi note resolution. This resolution lets us support up to 24 notes/beat. If a midi track is supplied
-# with a smaller resolution, it gets rejected. Nobody was composing classical music at that resolution.
-RESOLUTION = 24
-
-EIGHTH_NOTE = RESOLUTION / 2
+EIGHTH_NOTE = config.resolution / 2
 DOTTED_EIGHTH_NOTE = int(EIGHTH_NOTE * 1.5)
-SIXTEENTH_NOTE = RESOLUTION / 4
+SIXTEENTH_NOTE = config.resolution / 4
 DOTTED_SIXTEENTH_NOTE = int(SIXTEENTH_NOTE * 1.5)
-THIRTY_SECOND_NOTE = RESOLUTION / 8
+THIRTY_SECOND_NOTE = config.resolution / 8
 DOTTED_THIRTY_SECOND_NOTE = THIRTY_SECOND_NOTE + (THIRTY_SECOND_NOTE / 2)
-EIGHTH_NOTE_TRIPLET = RESOLUTION / 3
-SIXTEENTH_NOTE_TRIPLET = RESOLUTION / 6
-THIRTY_SECOND_NOTE_TRIPLET = RESOLUTION / 12
-QUARTER_NOTE = RESOLUTION
-DOTTED_QUARTER_NOTE = RESOLUTION + (RESOLUTION / 2)
+EIGHTH_NOTE_TRIPLET = config.resolution / 3
+SIXTEENTH_NOTE_TRIPLET = config.resolution / 6
+THIRTY_SECOND_NOTE_TRIPLET = config.resolution / 12
+QUARTER_NOTE = config.resolution
+DOTTED_QUARTER_NOTE = config.resolution + (config.resolution / 2)
 HALF_NOTE = QUARTER_NOTE * 2
 DOTTED_HALF_NOTE = HALF_NOTE + QUARTER_NOTE
 WHOLE_NOTE = QUARTER_NOTE * 4

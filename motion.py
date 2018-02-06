@@ -1,19 +1,16 @@
 from __future__ import division
 
 import transforms
-import ts
+import rhythm
 import constants
 import vars
 import domain
-from constants import RESOLUTION
+import config
 
 
 class Motionizer:
 
-    def __init__(self, key_signatures, chord_progression):
-        self.key_signatures = key_signatures
-        self.chord_progression = chord_progression
-
+    def __init__(self):
         self.position = 0
 
     def compute_next(self, soprano, alto, tenor, bass):
@@ -21,7 +18,7 @@ class Motionizer:
 
         winner = self.__compute_winner(self.position, soprano, alto, tenor, bass, candidates)
 
-        self.position += RESOLUTION
+        self.position += config.resolution
 
         return winner
 
@@ -57,7 +54,7 @@ class Motionizer:
         return score
 
     def __compute_soprano_synergies(self, candidates, soprano, position):
-        soprano_pitch = soprano[int(position + RESOLUTION / 2)].pitch()
+        soprano_pitch = soprano[int(position + config.resolution / 2)].pitch()
         scores = []
 
         for key in candidates.keys():
@@ -135,23 +132,23 @@ class Motionizer:
     def __micro_transforms(self, position, sequence):
         trans = []
 
-        if transforms.MajorThirdScalarTransform.applicable_at(position, sequence, self.key_signatures):
-            trans.append(transforms.MajorThirdScalarTransform(position, sequence, self.key_signatures, self.chord_progression))
+        if transforms.MajorThirdScalarTransform.applicable_at(position, sequence):
+            trans.append(transforms.MajorThirdScalarTransform(position, sequence))
 
-        if transforms.MinorThirdScalarTransform.applicable_at(position, sequence, self.key_signatures):
-            trans.append(transforms.MinorThirdScalarTransform(position, sequence, self.key_signatures, self.chord_progression))
+        if transforms.MinorThirdScalarTransform.applicable_at(position, sequence):
+            trans.append(transforms.MinorThirdScalarTransform(position, sequence))
 
-        if transforms.ArpeggialTransform.applicable_at(position, sequence, self.chord_progression):
-            trans.append(transforms.ArpeggialTransform(position, sequence, self.key_signatures, self.chord_progression))
+        if transforms.ArpeggialTransform.applicable_at(position, sequence):
+            trans.append(transforms.ArpeggialTransform(position, sequence))
 
-        if transforms.HalfStepNeighborTransform.applicable_at(position, sequence, self.key_signatures):
-            trans.append(transforms.HalfStepNeighborTransform(position, sequence, self.key_signatures, self.chord_progression))
+        if transforms.HalfStepNeighborTransform.applicable_at(position, sequence):
+            trans.append(transforms.HalfStepNeighborTransform(position, sequence))
 
-        if transforms.WholeStepNeighborTransform.applicable_at(position, sequence, self.key_signatures):
-            trans.append(transforms.WholeStepNeighborTransform(position, sequence, self.key_signatures, self.chord_progression))
+        if transforms.WholeStepNeighborTransform.applicable_at(position, sequence):
+            trans.append(transforms.WholeStepNeighborTransform(position, sequence))
 
-        if transforms.ApproachTransform.applicable_at(position, sequence, self.chord_progression):
-            trans.append(transforms.ApproachTransform(position, sequence, self.key_signatures, self.chord_progression))
+        if transforms.ApproachTransform.applicable_at(position, sequence):
+            trans.append(transforms.ApproachTransform(position, sequence))
 
         return trans
 
@@ -164,7 +161,7 @@ class Motionizer:
 
         if beats_of_same_note >= 2:
             for i in range(2, beats_of_same_note + 1):
-                trans.append(transforms.JoinTransform(i, position, sequence, self.chord_progression))
+                trans.append(transforms.JoinTransform(i, position, sequence))
 
         return trans
 
@@ -174,9 +171,9 @@ def note_duration_at_position(position, sequence):
 
     pitch = sequence[position].pitch()
     for i in range(position, len(sequence)):
-        if i % RESOLUTION == 0 and sequence[i].pitch() == pitch:
+        if i % config.resolution == 0 and sequence[i].pitch() == pitch:
             duration += 1
-        elif i % RESOLUTION == 0 and sequence[i].pitch() != pitch:
+        elif i % config.resolution == 0 and sequence[i].pitch() != pitch:
             break
 
     return duration

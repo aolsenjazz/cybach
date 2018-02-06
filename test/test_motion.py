@@ -8,15 +8,13 @@ import ks
 import motion
 import parts
 from notes import MIDI_VALUES
-from constants import RESOLUTION
 import constants
-from pat_util import normalize_resolution
 
 
 class TestMotion(TestCase):
 
     def test__note_duration_at_position(self):
-        pattern = normalize_resolution(read_pattern(constants.TEST_MIDI + '2beat_join.mid'))
+        pattern = read_pattern(constants.TEST_MIDI + '2beat_join.mid')
         sequence = domain.Sequence(pattern=pattern[0])
 
         self.assertEqual(motion.note_duration_at_position(0, sequence), 2)

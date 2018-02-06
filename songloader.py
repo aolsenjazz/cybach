@@ -1,5 +1,5 @@
 import re
-import song
+import config
 import examples
 import pat_util
 import domain
@@ -7,50 +7,47 @@ import constants
 import chords
 import midi
 
-
 midi_regex = re.compile('.+\.(midi|mid)')
 
 
 def load(example_or_file):
     if re.match(midi_regex, example_or_file):
-        return __load_file(example_or_file)
+        __load_file(example_or_file)
     else:
-        return __load_example(example_or_file)
+        examples.load(example_or_file)
 
 
-# TODO: this is kind of a mess and needs so fucking much testing
 def __load_file(file_name):
     pattern = __read_midi(file_name)
     pattern = __enforce_midi_validity(file_name, pattern)
     sequence = domain.Sequence(pattern[0])
 
-    time_signatures = sequence.time_signatures
+    __set_time_signatures(sequence)
+    __verify_measure_count(sequence, pattern)
+    __set_key_signatures(sequence, pattern)
+    __offer_enter_chords(sequence)
 
-    if time_signatures:
-        __report_time_signature_data(time_signatures)
-        time_signatures = __offer_delete_time_signatures(time_signatures)
+    part_customization = __offer_part_customization()
 
-    time_signatures = __offer_create_time_signatures(time_signatures, sequence)
+    return config.Arrangement(file_name, sequence, part_customization)
 
-    if not __verify_measure_count(sequence):
-        pattern = __correct_midi_time_scale(pattern, time_signatures)
-        sequence = domain.Sequence(pattern[0])
 
+def __set_key_signatures(sequence, pattern):
     if pat_util.contains_key_signature_data(pattern):
         __report_key_signature_data(pattern)
         __offer_delete_key_signatures(pattern)
 
-    __offer_create_key_signatures(pattern)
-
-    chord_progression = __offer_enter_chords(sequence)
-    part_customization = __offer_part_customization()
-
-    return song.Song(file_name, sequence, sequence.time_signatures, sequence.key_signatures,
-                     chord_progression, part_customization)
+    __offer_create_key_signatures(sequence)
 
 
-def __load_example(file_name):
-    return examples.ALL[file_name]
+def __set_time_signatures(sequence):
+    time_signatures = sequence.time_signatures
+
+    if time_signatures:
+        __report_time_signature_data()
+        __offer_delete_time_signatures()
+
+    __offer_create_time_signatures(sequence)
 
 
 def __read_midi(file_name):
@@ -66,8 +63,6 @@ def __enforce_midi_validity(file_name, pattern):
         print 'CyBach doesn\'t support multitrack midi files'
         exit(2)
 
-    pattern = pat_util.normalize_resolution(pattern)
-
     if not pat_util.is_quantized(pattern):
         print 'Midi file is not quantized. Cybach only operates on quantized midi'
         exit(2)
@@ -79,17 +74,25 @@ def __enforce_midi_validity(file_name, pattern):
     return pattern
 
 
-def __verify_measure_count(sequence):
+def __verify_measure_count(sequence, pattern):
     measure_count = len(sequence.measures())
 
     correct = raw_input('It looks like the midi has %d measures. Is this correct? y/n ' % measure_count)
     while not (correct == 'y' or correct == 'n'):
         correct = raw_input('It looks like the midi has %d measures. Is this correct? y/n ' % measure_count)
 
-    return False if correct == 'n' else True
+    correct = False if correct == 'n' else True
+
+    if not correct:
+        pattern = __correct_midi_time_scale(pattern)
+        sequence = domain.Sequence(pattern[0])
+
+        print 'We need to readjust time signatures now.'
+
+        __set_time_signatures(sequence)
 
 
-def __correct_midi_time_scale(pattern, time_signatures):
+def __correct_midi_time_scale(pattern):
     """
     It's very possible that the midi clip submitted is scaled incorrectly. E.g. a midi clip made + exported
     from Ableton used the triplet grid, and the user assumed that because of this, one beat, would be equal to
@@ -129,15 +132,14 @@ def __correct_midi_time_scale(pattern, time_signatures):
     return pattern
 
 
-def __report_time_signature_data(time_signatures):
+def __report_time_signature_data():
     print 'Midi clip has the following time signature data:'
     for key in time_signatures:
         print time_signatures[key].numerator, '/', time_signatures[key].denominator, \
-            ' at beat ', key / constants.RESOLUTION
+            ' at beat ', key / config.resolution
 
 
-def __offer_delete_time_signatures(time_signatures):
-    copy = time_signatures
+def __offer_delete_time_signatures():
     time_sigs_to_delete = []
 
     for key in copy:
@@ -148,14 +150,10 @@ def __offer_delete_time_signatures(time_signatures):
         if delete == 'y':
             time_sigs_to_delete.append(key)
     for sig in time_sigs_to_delete:
-        del copy[sig]
-
-    return copy
+        del time_signatures[sig]
 
 
-def __offer_create_time_signatures(time_signatures, sequence):
-    copy = time_signatures
-
+def __offer_create_time_signatures(sequence):
     enter = 'y'
     while enter == 'y':
         enter = raw_input('Would you like to insert a time signature? y/n ')
@@ -166,23 +164,21 @@ def __offer_create_time_signatures(time_signatures, sequence):
             measure = int(raw_input('Measure: '))
 
             event = midi.TimeSignatureEvent(data=[numerator, denominator, 36, 8])
-            copy[sequence.measure(measure - 1).sample_position()] = event
-
-    return copy
+            time_signatures[sequence.measure(measure - 1).sample_position()] = event
 
 
 def __offer_delete_key_signatures(sequence):
     key_sigs_to_delete = []
 
-    for key in sequence.key_signatures:
-        signature = sequence.key_signatures[key]
+    for key in key_signatures:
+        signature = key_signatures[key]
         delete = raw_input('Would you like to delete the %s key signature at beat %d? y/n '
                            % (signature, key))
 
         if delete == 'y':
             key_sigs_to_delete.append(key)
     for sig in key_sigs_to_delete:
-        del sequence.time_signatures[sig]
+        del time_signatures[sig]
 
 
 def __offer_create_key_signatures(sequence):
@@ -194,7 +190,8 @@ def __offer_create_key_signatures(sequence):
             signature = raw_input('Enter key: ')
             measure = int(raw_input('Enter measure number: '))
 
-            sequence.key_signatures[sequence.measure(measure - 1).sample_position()] = signature
+            global key_signatures
+            key_signatures[sequence.measure(measure - 1).sample_position()] = signature
 
 
 def __report_key_signature_data(item):
@@ -213,7 +210,7 @@ def __offer_create_chords(sequence):
             measure = int(raw_input('Enter measure number: '))
             beat = int(raw_input('Enter beat number: '))
 
-            chord_progression[sequence.measure(measure - 1).sample_position() + (beat - 1) * RESOLUTION] = chord
+            chord_progression[sequence.measure(measure - 1).sample_position() + (beat - 1) * config.resolution] = chord
 
     return chord_progression
 

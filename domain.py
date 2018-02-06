@@ -1,10 +1,11 @@
 from pprint import pformat
 
 import midi
-
-import ts
+import config
+import rhythm
+import math
+import constants
 import ks
-from constants import *
 from notes import Note
 
 
@@ -15,7 +16,7 @@ class Sequence(list):
     we can iterate over it and insert pitches.
     """
 
-    def __init__(self, pattern=None, seed=None, part=None, configuration={}, time_signatures=None):
+    def __init__(self, pattern=None, seed=None, part=None, configuration={},):
         """
         Has two initialization processes: Pattern-based and seed-based.
 
@@ -41,7 +42,7 @@ class Sequence(list):
         #
         # Note that 'track' being non-None and any other arg being non-None is mutually exclusive
         if pattern is not None:
-            self.time_signatures = ts.TimeSignatures()
+            self.time_signatures = rhythm.TimeSignatures()
             self.key_signatures = ks.KeySignatures()
             self.__build_samples(pattern)
 
@@ -50,11 +51,8 @@ class Sequence(list):
                 raise ValueError('\'part\' argument may not be None without supplying a track')
             if seed is None:
                 raise ValueError('\'seed\' arg may not be None without supplying a track')
-            if time_signatures is None:
-                raise ValueError('\'time_signatures\' arg may not be None without supplying a track')
 
             self.part = part
-            self.time_signatures = time_signatures
             self.__build_empty_samples(len(seed.samples))
 
 
@@ -96,61 +94,48 @@ class Sequence(list):
             beats.extend(measure.beats())
 
     def beat_at(self, index):
-        samples = self.samples[index:index + RESOLUTION]
+        samples = self.samples[index:index + config.resolution]
         measure = self.parent_measure(index)
-        beat_index = (index - measure.sample_position()) / RESOLUTION
+        beat_index = (index - measure.sample_position()) / config.resolution
 
         return Beat(samples, measure, beat_index)
 
     def measures(self):
+        more_measures = True
         measures = []
+        sample_position = 0
+        index = 0
 
-        last_key = None
-        last_numerator = None
-
-        loop_index = 0
-        measure_index = 0
-
-        sorted_keys = self.time_signatures.keys()
-        sorted_keys.sort()
-        for key in sorted_keys:
-            last_key = sorted_keys[loop_index]
-            last_numerator = self.time_signatures[last_key].numerator
-
-            if loop_index == 0:
-                loop_index += 1
-                continue
-
-            for i in range(last_key, key):
-                if i % (last_numerator * RESOLUTION) == 0:
-                    measures.append(Measure(measure_index, self.samples[i:(i + last_numerator * RESOLUTION)],
-                                            self.time_signatures[last_key], self))
-                    measure_index += 1
-
-        for i in range(last_key, len(self.samples)):
-            if i % (last_numerator * RESOLUTION) == 0:
-                measures.append(Measure(measure_index, self.samples[i:(i + last_numerator * RESOLUTION)],
-                                        self.time_signatures[last_key], self))
-                measure_index += 1
+        while more_measures:
+            active_time_signature = config.time_signatures[sample_position]
+            samples = self[sample_position:sample_position + active_time_signature.samples_per_bar()]
+            measures.append(Measure(index, samples, active_time_signature, self))
+            sample_position += active_time_signature.samples_per_bar()
+            index += 1
+            more_measures = sample_position < len(self)
 
         return measures
 
     def to_pattern(self):
-        pattern = midi.Pattern(resolution=RESOLUTION)
+        pattern = midi.Pattern(resolution=config.resolution)
         track = midi.Track()
 
         track.append(midi.KeySignatureEvent(data=[0, 0]))
 
         ticks = 0
         for i in range(0, len(self.samples)):
-            if i in self.time_signatures.keys():
-                track.append(self.time_signatures[i])
+            if i in config.time_signatures.keys():
+                time_signature = config.time_signatures[i]
+                track.append(midi.TimeSignatureEvent(data=[time_signature.numerator,
+                                                           int(math.sqrt(time_signature.denominator)),
+                                                           36,
+                                                           8]))
 
             sample = self.samples[i]
             new_event = False
 
             if sample.type == Sample.TYPE_START:
-                track.append(midi.NoteOnEvent(velocity=DEFAULT_VELOCITY, pitch=sample.note.midi(), tick=ticks))
+                track.append(midi.NoteOnEvent(velocity=constants.DEFAULT_VELOCITY, pitch=sample.note.midi(), tick=ticks))
                 new_event = True
             if sample.type == Sample.TYPE_END:
                 track.append(midi.NoteOffEvent(pitch=sample.note.midi(), tick=ticks + 2))
@@ -168,14 +153,14 @@ class Sequence(list):
         elif isinstance(note, int):
             pitch = note
 
-        for i in range(position, position + RESOLUTION):
+        for i in range(position, position + config.resolution):
             if pitch == -1:
                 self[i] = Sample(-1, None)
                 continue
 
             if i == position:
                 self[i] = Sample(pitch, Sample.TYPE_START)
-            elif i == position + RESOLUTION - 1:
+            elif i == position + config.resolution - 1:
                 self[i] = Sample(pitch, Sample.TYPE_END)
             else:
                 self[i] = Sample(pitch, Sample.TYPE_SUSTAIN)
@@ -223,14 +208,15 @@ class Sequence(list):
             self.samples.append(Sample(-1, None))
 
     def __add_time_signature(self, event):
-        self.time_signatures[len(self.samples)] = event
+        time_signature = rhythm.TimeSignature(numerator=event.numerator, denominator=event.denominator)
+        self.time_signatures[len(self.samples)] = time_signature
 
     def __add_key_signature(self, event):
         pass
 
     def beat_index_in_measure(self, position):
         measure = self.parent_measure(position)
-        return (position - measure.sample_position()) / RESOLUTION
+        return (position - measure.sample_position()) / config.resolution
 
     def note_duration_count(self):
         i = -1
@@ -239,7 +225,7 @@ class Sequence(list):
         for sample in self.samples:
             if sample.type == Sample.TYPE_START:
                 i = 1
-            elif sample.type == Sample.TYPE_END and i != RESOLUTION:
+            elif sample.type == Sample.TYPE_END and i != config.resolution:
                 if preferences.get(i, None) is None:
                     preferences[i] = 0
 
@@ -268,7 +254,7 @@ class Measure(list):
         return self.samples[index]
 
     def subdivision_index(self):
-        return self.signature.numerator / 2 * RESOLUTION
+        return self.signature.numerator / 2 * config.resolution
 
     def sample_position(self):
         measures = self.parent.measures()
@@ -284,9 +270,9 @@ class Measure(list):
 
         j = 0
         while j < len(self.samples):
-            beats.append(Beat(self.samples[j:(j + RESOLUTION)], j / RESOLUTION, self))
+            beats.append(Beat(self.samples[j:(j + config.resolution)], j / config.resolution, self))
 
-            j += RESOLUTION
+            j += config.resolution
 
         return beats
 
@@ -312,7 +298,7 @@ class Beat(list):
         return len(self.samples)
 
     def beat_position(self):
-        return len(self.parent) + (self.beat_index * RESOLUTION)
+        return len(self.parent) + (self.beat_index * config.resolution)
 
     def contains_motion(self):
         last_pitch = -1

@@ -1,5 +1,6 @@
 import collections
-
+import config
+import chords
 
 class KeySignatures(collections.MutableMapping):
 
@@ -38,3 +39,34 @@ class KeySignatures(collections.MutableMapping):
 
     def __keytransform__(self, key):
         return key
+
+    def set(self):
+        return KeySignatureSetter(self)
+
+
+class KeySignatureSetter:
+
+    def __init__(self, key_signatures):
+        self.key_signatures = key_signatures
+        self.internal_measure = 0
+        self.internal_beat = 0
+
+    def measure(self, measure):
+        self.internal_measure = measure
+        return self
+
+    def beat(self, beat):
+        self.internal_beat = beat
+        return self
+
+    def commit(self, chord):
+        if isinstance(chord, str):
+            parsed = chords.parse(chord)
+        elif isinstance(chord, Chord):
+            parsed = chord
+        else:
+            raise TypeError
+
+        sample_pos = config.time_signatures.sample_position(measure=self.internal_measure, beat=self.internal_beat)
+
+        self.key_signatures[sample_pos] = parsed

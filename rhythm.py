@@ -1,5 +1,9 @@
+from __future__ import division
+
 import collections
 import math
+import constants
+import config
 
 
 def is_big_beat(time_signature, beat_base_zero):
@@ -11,6 +15,22 @@ def is_big_beat(time_signature, beat_base_zero):
         return beat_base_zero % 3 == 0
     else:
         raise ValueError('What the hell time signature did you submit?')
+
+
+class TimeSignature:
+    def __init__(self, event=None, numerator=0, denominator=0):
+        if event is not None:
+            self.numerator = event.numerator
+            self.denominator = event.denominator
+        else:
+            self.numerator = numerator
+            self.denominator = denominator
+
+    def __repr__(self):
+        return 'num: %d || den: %d' % (self.numerator, self.denominator)
+
+    def samples_per_bar(self):
+        return int(self.numerator * config.resolution / (self.denominator / 4))
 
 
 class TimeSignatures(collections.MutableMapping):
@@ -49,6 +69,19 @@ class TimeSignatures(collections.MutableMapping):
             string += '\n' + str(key) + ': ' + str(self.store[key]) + str(self.store[key]) + str(self.store[key])
 
         return string
+
+    def sample_position(self, measure=0, beat=0):
+        position = 0
+        active_time_signature = self[0]
+
+        for i in range(0, measure):
+            active_time_signature = self[position]
+            position += active_time_signature.numerator * \
+                        (config.resolution / (active_time_signature.denominator / 4))
+
+        position += beat * (config.resolution / (active_time_signature.denominator / 4))
+
+        return int(position)
 
 
 def is_four_four(time_signature_event):

@@ -4,8 +4,9 @@ Utility methods for dealing with midi.Pattern objects
 """
 
 from __future__ import division
-from constants import *
+
 import midi
+import constants
 
 
 def scale_tick_values(pattern, current_duration, correct_duration):
@@ -13,24 +14,6 @@ def scale_tick_values(pattern, current_duration, correct_duration):
 
     for event in pattern[0]:
         event.tick = int(event.tick * scale_ratio)
-
-    return pattern
-
-
-def normalize_resolution(pattern):
-    """
-    Reduces the resolution from > 24 to 24. Simply easier to manipulate at lower resolution.
-    :param pattern: pattern retrieved from parsing midi track
-    :return: Pattern object with resolution = 24
-    """
-    if pattern.resolution == RESOLUTION:
-        return pattern
-
-    track = pattern[0]
-    ratio = RESOLUTION / pattern.resolution
-
-    for event in track:
-        event.tick = int(event.tick * ratio)
 
     return pattern
 
@@ -47,7 +30,7 @@ def is_quantized(pattern):
     for event in track:
         duration = event.tick
 
-        for value in ACCEPTABLE_NOTE_VALUES:
+        for value in constants.ACCEPTABLE_NOTE_VALUES:
             if duration % value == 0:
                 return True
 

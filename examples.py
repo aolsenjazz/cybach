@@ -1,9 +1,9 @@
 import pat_util
 import chords
-import song
+import config
 import ks
-from constants import RESOLUTION
-import ts
+import parts
+import rhythm
 import midi
 import domain
 import constants
@@ -18,53 +18,53 @@ def __read_midi(file_name):
 
 
 def simple():
-    pattern = pat_util.normalize_resolution(__read_midi(constants.EXAMPLES + 'simple.mid'))
+    pattern = __read_midi(constants.EXAMPLES + 'simple.mid')
     soprano = domain.Sequence(pattern[0])
 
-    time_signatures = soprano.time_signatures
+    config.time_signatures = soprano.time_signatures
 
     key_signatures = ks.KeySignatures()
-    key_signatures[0] = chords.parse('C')
+    key_signatures.set().measure(0).commit('C')
 
     chord_progression = chords.ChordProgression()
-    chord_progression[0] = chords.parse('C')
-    chord_progression[(0 * (RESOLUTION * 4)) + (2 * RESOLUTION)] = chords.parse('A-')
-    chord_progression[(1 * (RESOLUTION * 4)) + (0 * RESOLUTION)] = chords.parse('E-')
-    chord_progression[(1 * (RESOLUTION * 4)) + (1 * RESOLUTION)] = chords.parse('F')
-    chord_progression[(1 * (RESOLUTION * 4)) + (2 * RESOLUTION)] = chords.parse('G')
-    chord_progression[(2 * (RESOLUTION * 4)) + (0 * RESOLUTION)] = chords.parse('A-')
-    chord_progression[(2 * (RESOLUTION * 4)) + (2 * RESOLUTION)] = chords.parse('C')
-    chord_progression[(3 * (RESOLUTION * 4)) + (2 * RESOLUTION)] = chords.parse('G')
-    chord_progression[(3 * (RESOLUTION * 4)) + (3 * RESOLUTION)] = chords.parse('E7')
+    chord_progression.set().measure(0).beat(0).commit('C')
+    chord_progression.set().measure(0).beat(2).commit('A-')
+    chord_progression.set().measure(1).beat(0).commit('E-')
+    chord_progression.set().measure(1).beat(1).commit('F')
+    chord_progression.set().measure(1).beat(2).commit('G')
+    chord_progression.set().measure(2).beat(0).commit('A-')
+    chord_progression.set().measure(2).beat(2).commit('C')
+    chord_progression.set().measure(3).beat(2).commit('G')
+    chord_progression.set().measure(3).beat(3).commit('E7')
 
-    return song.Song('simple', soprano, time_signatures, key_signatures, chord_progression, {})
+    __set_config(soprano, chord_progression, key_signatures, config.time_signatures)
 
 
 def key_changes():
-    pattern = pat_util.normalize_resolution(__read_midi(constants.EXAMPLES + 'key_changes.mid'))
+    pattern = __read_midi(constants.EXAMPLES + 'key_changes.mid')
     soprano = domain.Sequence(pattern[0])
 
     time_signatures = soprano.time_signatures
 
     key_signatures = ks.KeySignatures()
-    key_signatures[0] = chords.parse('C')
-    key_signatures[(0 * (RESOLUTION * 4)) + (2 * RESOLUTION)] = chords.parse('Eb')
-    key_signatures[(2 * (RESOLUTION * 4)) + (0 * RESOLUTION)] = chords.parse('G')
-    key_signatures[(3 * (RESOLUTION * 4)) + (0 * RESOLUTION)] = chords.parse('A')
+    key_signatures.set().measure(0).commit('C')
+    key_signatures.set().measure(0).beat(2).commit('Eb')
+    key_signatures.set().measure(2).commit('G')
+    key_signatures.set().measure(3).commit('A')
 
     chord_progression = chords.ChordProgression()
-    chord_progression[0] = chords.parse('C')
-    chord_progression[(0 * (RESOLUTION * 4)) + (2 * RESOLUTION)] = chords.parse('F-')
-    chord_progression[(0 * (RESOLUTION * 4)) + (3 * RESOLUTION)] = chords.parse('Bb7')
-    chord_progression[(1 * (RESOLUTION * 4)) + (0 * RESOLUTION)] = chords.parse('Eb')
-    chord_progression[(2 * (RESOLUTION * 4)) + (0 * RESOLUTION)] = chords.parse('A-')
-    chord_progression[(2 * (RESOLUTION * 4)) + (1 * RESOLUTION)] = chords.parse('D7')
-    chord_progression[(2 * (RESOLUTION * 4)) + (2 * RESOLUTION)] = chords.parse('G')
-    chord_progression[(3 * (RESOLUTION * 4)) + (0 * RESOLUTION)] = chords.parse('B-')
-    chord_progression[(3 * (RESOLUTION * 4)) + (2 * RESOLUTION)] = chords.parse('E7')
-    chord_progression[(4 * (RESOLUTION * 4)) + (0 * RESOLUTION)] = chords.parse('A')
+    chord_progression.set().measure(0).beat(0).commit('C')
+    chord_progression.set().measure(0).beat(2).commit('F-')
+    chord_progression.set().measure(0).beat(3).commit('Bb7')
+    chord_progression.set().measure(1).beat(0).commit('Eb')
+    chord_progression.set().measure(2).beat(0).commit('A-')
+    chord_progression.set().measure(2).beat(1).commit('D7')
+    chord_progression.set().measure(2).beat(2).commit('G')
+    chord_progression.set().measure(3).beat(0).commit('B-')
+    chord_progression.set().measure(3).beat(2).commit('E7')
+    chord_progression.set().measure(4).beat(0).commit('A')
 
-    return song.Song('key_changes', soprano, time_signatures, key_signatures, chord_progression, {})
+    __set_config(soprano, chord_progression, key_signatures, time_signatures)
 
 
 def time_changes():
@@ -72,111 +72,205 @@ def time_changes():
 
 
 def two_four():
-    pattern = pat_util.normalize_resolution(__read_midi(constants.EXAMPLES + 'two_four.mid'))
+    pattern = __read_midi(constants.EXAMPLES + 'two_four.mid')
     soprano = domain.Sequence(pattern[0])
 
-    time_signatures = ts.TimeSignatures()
+    time_signatures = rhythm.TimeSignatures()
     time_signatures[0] = midi.TimeSignatureEvent(tick=0, data=[2, 2, 36, 8])
 
     key_signatures = ks.KeySignatures()
-    key_signatures[0] = chords.parse('C')
+    key_signatures.set().measure(0).commit('C')
 
     chord_progression = chords.ChordProgression()
-    chord_progression[0] = chords.parse('C')
-    chord_progression[(2 * (RESOLUTION * 2)) + (0 * RESOLUTION)] = chords.parse('G')
-    chord_progression[(3 * (RESOLUTION * 2)) + (0 * RESOLUTION)] = chords.parse('C')
-    chord_progression[(4 * (RESOLUTION * 2)) + (0 * RESOLUTION)] = chords.parse('D-')
-    chord_progression[(4 * (RESOLUTION * 2)) + (1 * RESOLUTION)] = chords.parse('G7')
-    chord_progression[(5 * (RESOLUTION * 2)) + (0 * RESOLUTION)] = chords.parse('A-')
-    chord_progression[(6 * (RESOLUTION * 2)) + (0 * RESOLUTION)] = chords.parse('F')
-    chord_progression[(7 * (RESOLUTION * 2)) + (0 * RESOLUTION)] = chords.parse('G')
+    chord_progression.set().measure(0).beat(0).commit('C')
+    chord_progression.set().measure(2).beat(0).commit('G')
+    chord_progression.set().measure(3).beat(0).commit('C')
+    chord_progression.set().measure(4).beat(0).commit('D-')
+    chord_progression.set().measure(4).beat(1).commit('G7')
+    chord_progression.set().measure(5).beat(0).commit('A-')
+    chord_progression.set().measure(6).beat(0).commit('F')
+    chord_progression.set().measure(7).beat(0).commit('G')
 
-    return song.Song('two_four', soprano, time_signatures, key_signatures, chord_progression, {})
+    __set_config(soprano, chord_progression, key_signatures, time_signatures)
 
 
 def three_four():
-    pattern = pat_util.normalize_resolution(__read_midi(constants.EXAMPLES + 'three_four.mid'))
+    pattern = __read_midi(constants.EXAMPLES + 'three_four.mid')
     soprano = domain.Sequence(pattern[0])
 
-    time_signatures = ts.TimeSignatures()
+    time_signatures = rhythm.TimeSignatures()
     time_signatures[0] = midi.TimeSignatureEvent(tick=0, data=[3, 2, 36, 8])
 
     key_signatures = ks.KeySignatures()
-    key_signatures[0] = chords.parse('C-')
+    key_signatures.set().measure(0).commit('C-')
 
     chord_progression = chords.ChordProgression()
-    chord_progression[0] = chords.parse('C-')
-    chord_progression[(1 * (RESOLUTION * 3)) + (0 * RESOLUTION)] = chords.parse('Eb')
-    chord_progression[(2 * (RESOLUTION * 3)) + (0 * RESOLUTION)] = chords.parse('Ab')
-    chord_progression[(3 * (RESOLUTION * 3)) + (0 * RESOLUTION)] = chords.parse('G7')
-    chord_progression[(3 * (RESOLUTION * 3)) + (2 * RESOLUTION)] = chords.parse('C-')
+    chord_progression.set().measure(0).beat(0).commit('C-')
+    chord_progression.set().measure(1).beat(0).commit('Eb')
+    chord_progression.set().measure(2).beat(0).commit('Ab')
+    chord_progression.set().measure(3).beat(0).commit('G7')
+    chord_progression.set().measure(3).beat(2).commit('C-')
 
-    return song.Song('three_four', soprano, time_signatures, key_signatures, chord_progression, {})
+    __set_config(soprano, chord_progression, key_signatures, time_signatures)
 
 
 def six_four():
-    return 1
+    pattern = __read_midi(constants.EXAMPLES + 'six_four.mid')
+    soprano = domain.Sequence(pattern[0])
+
+    time_signatures = rhythm.TimeSignatures()
+    time_signatures[0] = midi.TimeSignatureEvent(tick=0, data=[6, 2, 36, 8])
+
+    key_signatures = ks.KeySignatures()
+    key_signatures.set().measure(0).commit('C-')
+
+    chord_progression = chords.ChordProgression()
+    chord_progression.set().measure(0).beat(0).commit('C-')
+    chord_progression.set().measure(0).beat(3).commit('Ab')
+    chord_progression.set().measure(1).beat(0).commit('C-')
+    chord_progression.set().measure(1).beat(2).commit('G7')
+    chord_progression.set().measure(1).beat(3).commit('C-')
+    chord_progression.set().measure(2).beat(0).commit('F-')
+    chord_progression.set().measure(2).beat(3).commit('C-')
+    chord_progression.set().measure(3).beat(0).commit('Ddim')
+    chord_progression.set().measure(3).beat(3).commit('G7')
+
+    __set_config(soprano, chord_progression, key_signatures, time_signatures)
 
 
 def four_eight():
-    return 1
-
-
-def six_eight():
-    pattern = pat_util.normalize_resolution(__read_midi(constants.EXAMPLES + 'six_eight.mid'))
-    pattern = pat_util.scale_tick_values(pattern, 16, RESOLUTION)
+    pattern = __read_midi(constants.EXAMPLES + 'four_eight.mid')
 
     soprano = domain.Sequence(pattern[0])
 
-    time_signatures = ts.TimeSignatures()
+    time_signatures = rhythm.TimeSignatures()
+    time_signatures[0] = midi.TimeSignatureEvent(tick=0, data=[4, 3, 36, 8])
+    soprano.time_signatures = time_signatures
+
+    key_signatures = ks.KeySignatures()
+    key_signatures.set().measure(0).commit('F')
+
+    chord_progression = chords.ChordProgression()
+    chord_progression.set().measure(0).beat(0).commit('F')
+    chord_progression.set().measure(0).beat(1).commit('C7')
+    chord_progression.set().measure(0).beat(2).commit('A-')
+    chord_progression.set().measure(0).beat(3).commit('G-')
+    chord_progression.set().measure(1).beat(0).commit('F')
+    chord_progression.set().measure(1).beat(2).commit('Bb')
+    chord_progression.set().measure(2).beat(0).commit('F')
+    chord_progression.set().measure(2).beat(1).commit('C')
+    chord_progression.set().measure(2).beat(2).commit('D-')
+    chord_progression.set().measure(2).beat(3).commit('Bb')
+    chord_progression.set().measure(3).beat(0).commit('F')
+    chord_progression.set().measure(3).beat(2).commit('C7')
+
+    __set_config(soprano, chord_progression, key_signatures, time_signatures)
+
+
+def six_eight():
+    pattern = __read_midi(constants.EXAMPLES + 'six_eight.mid')
+    pattern = pat_util.scale_tick_values(pattern, 16, config.resolution)
+
+    soprano = domain.Sequence(pattern[0])
+
+    time_signatures = rhythm.TimeSignatures()
     time_signatures[0] = midi.TimeSignatureEvent(tick=0, data=[6, 3, 36, 8])
     soprano.time_signatures = time_signatures
 
     key_signatures = ks.KeySignatures()
-    key_signatures[0] = chords.parse('C-')
+    key_signatures.set().measure(0).commit('C-')
 
     chord_progression = chords.ChordProgression()
-    chord_progression[0] = chords.parse('C-')
-    chord_progression[(0 * (RESOLUTION * 6)) + (3 * RESOLUTION)] = chords.parse('Ab')
-    chord_progression[(1 * (RESOLUTION * 6)) + (0 * RESOLUTION)] = chords.parse('Abdim')
-    chord_progression[(1 * (RESOLUTION * 6)) + (3 * RESOLUTION)] = chords.parse('G7')
-    chord_progression[(1 * (RESOLUTION * 6)) + (5 * RESOLUTION)] = chords.parse('Bb7')
-    chord_progression[(2 * (RESOLUTION * 6)) + (0 * RESOLUTION)] = chords.parse('Eb')
-    chord_progression[(2 * (RESOLUTION * 6)) + (3 * RESOLUTION)] = chords.parse('F-')
-    chord_progression[(3 * (RESOLUTION * 6)) + (0 * RESOLUTION)] = chords.parse('G7')
+    chord_progression.set().measure(0).beat(0).commit('C-')
+    chord_progression.set().measure(0).beat(3).commit('Ab')
+    chord_progression.set().measure(1).beat(0).commit('Abdim')
+    chord_progression.set().measure(1).beat(3).commit('G7')
+    chord_progression.set().measure(1).beat(5).commit('Bb7')
+    chord_progression.set().measure(2).beat(0).commit('Eb')
+    chord_progression.set().measure(2).beat(3).commit('F-')
+    chord_progression.set().measure(3).beat(0).commit('G7')
 
-    return song.Song('six_eight', soprano, time_signatures, key_signatures, chord_progression, {})
+    __set_config(soprano, chord_progression, key_signatures, time_signatures)
 
 
 def nine_eight():
-    return 1
+    pattern = __read_midi(constants.EXAMPLES + 'nine_eight.mid')
+    pattern = pat_util.scale_tick_values(pattern, 36, config.resolution * 3)
+
+    soprano = domain.Sequence(pattern[0])
+
+    time_signatures = rhythm.TimeSignatures()
+    time_signatures[0] = midi.TimeSignatureEvent(tick=0, data=[9, 3, 36, 8])
+    soprano.time_signatures = time_signatures
+
+    key_signatures = ks.KeySignatures()
+    key_signatures.set().measure(0).commit('G')
+
+    chord_progression = chords.ChordProgression()
+    chord_progression.set().measure(0).beat(0).commit('G')
+    chord_progression.set().measure(0).beat(2).commit('D7')
+    chord_progression.set().measure(1).beat(0).commit('C')
+    chord_progression.set().measure(1).beat(1).commit('G')
+    chord_progression.set().measure(1).beat(2).commit('A-')
+    chord_progression.set().measure(2).beat(0).commit('G')
+    chord_progression.set().measure(2).beat(1).commit('A-')
+    chord_progression.set().measure(2).beat(2).commit('G')
+    chord_progression.set().measure(3).beat(0).commit('D')
+    chord_progression.set().measure(3).beat(1).commit('A7')
+    chord_progression.set().measure(3).beat(2).commit('D')
+
+    __set_config(soprano, chord_progression, key_signatures, time_signatures)
 
 
 def twelve_eight():
     return 1
 
+def __bach():
+    pattern = __read_midi(constants.EXAMPLES + 'bach.mid')
+    soprano = domain.Sequence(pattern[0])
 
-SIMPLE = simple()
-KEY_CHANGES = key_changes()
-TIME_CHANGES = time_changes()
-TWO_FOUR = two_four()
-THREE_FOUR = three_four()
-SIX_FOUR = six_four()
-FOUR_EIGHT = four_eight()
-SIX_EIGHT = six_eight()
-NINE_EIGHT = nine_eight()
-TWELVE_EIGHT = twelve_eight()
+    time_signatures = rhythm.TimeSignatures()
+    time_signatures[0] = midi.TimeSignatureEvent(tick=0, data=[3, 2, 36, 8])
+
+    key_signatures = ks.KeySignatures()
+    key_signatures.set().measure(0).commit('G')
+
+    chord_progression = chords.ChordProgression()
+    chord_progression.set().measure(0).beat(0).commit('C-')
+    chord_progression.set().measure(1).beat(0).commit('Eb')
+    chord_progression.set().measure(2).beat(0).commit('Ab')
+    chord_progression.set().measure(3).beat(0).commit('G7')
+    chord_progression.set().measure(3).beat(2).commit('C-')
+
+    __set_config(soprano, chord_progression, key_signatures, time_signatures)
+
+
+def __set_config(soprano, chord_progression, key_signatures, time_signatures):
+    config.resolution = 96
+    config.soprano = soprano
+    config.alto = domain.Sequence(seed=soprano, part=parts.ALTO, configuration={})
+    config.tenor = domain.Sequence(seed=soprano, part=parts.TENOR, configuration={})
+    config.bass = domain.Sequence(seed=soprano, part=parts.BASS,
+                                  configuration={'motion_tendency': 0.3})
+    config.chord_progression = chord_progression
+    config.key_signatures = key_signatures
+    config.time_signatures = time_signatures
+
+
+def load(name):
+    config.name = name
+    ALL.get(name, None)()
 
 
 ALL = {
-    'simple': SIMPLE,
-    'key_changes': KEY_CHANGES,
-    'time_changes': TIME_CHANGES,
-    'two_four': TWO_FOUR,
-    'three_four': THREE_FOUR,
-    'six_four': SIX_FOUR,
-    'four_eight': FOUR_EIGHT,
-    'six_eight': SIX_EIGHT,
-    'nine_eight': NINE_EIGHT,
-    'twelve_eight': TWELVE_EIGHT
+    'simple': simple,
+    'key_changes': key_changes,
+    'time_changes': time_changes,
+    'two_four': two_four,
+    'three_four': three_four,
+    'six_four': six_four,
+    'four_eight': four_eight,
+    'six_eight': six_eight,
+    'nine_eight': nine_eight,
+    'twelve_eight': twelve_eight
 }

@@ -8,7 +8,6 @@ import re
 import sys
 
 import midi
-
 import chords
 import instruments
 import ks
@@ -16,9 +15,9 @@ import motion
 import note_picker
 import constants
 import parts
+import config
 import examples
 import songloader
-from domain import RESOLUTION
 
 # ~~~~~~~~ verify command line arguments ~~~~~~~~
 midi_regex = re.compile('.+\.(midi|mid)')
@@ -44,43 +43,42 @@ if re.match(midi_regex, sys.argv[1]) and not os.path.isfile(sys.argv[1]):
     exit(2)
 
 # ~~~~~~~~ load midi and initialize parts ~~~~~~~~
-song = songloader.load(sys.argv[1])
+songloader.load(sys.argv[1])
 
 # ~~~~~~~~ Write simple accompaniment, using only notes equal to time signature denominators ~~~~~~~~
 # ~~~~~~~~ (quarter notes for 4/4, eights for 6/8) ~~~~~~~~
 
-picker = note_picker.NotePicker(song.soprano, song.alto, song.tenor, song.bass,
-                                song.key_signatures, song.chord_progression)
-for measure in song.bass.measures():
+picker = note_picker.NotePicker(config.soprano, config.alto, config.tenor, config.bass)
+for measure in config.bass.measures():
     for beat in measure.beats():
-        position = measure.sample_position() + beat.beat_index * RESOLUTION
+        position = measure.sample_position() + beat.beat_index * config.resolution
         pitches = picker.compute_next()
 
-        song.bass.set_beat_at_position(position, pitches['bass'])
-        song.tenor.set_beat_at_position(position, pitches['tenor'])
-        song.alto.set_beat_at_position(position, pitches['alto'])
+        config.bass.set_beat_at_position(position, pitches['bass'])
+        config.tenor.set_beat_at_position(position, pitches['tenor'])
+        config.alto.set_beat_at_position(position, pitches['alto'])
 
 # ~~~~~~~~ Increase or decrease motion by grouping notes together or adding inter-beat motion ~~~~~~~~
 
-motionizer = motion.Motionizer(song.key_signatures, song.chord_progression)
-for measure in song.bass.measures():
+motionizer = motion.Motionizer()
+for measure in config.bass.measures():
     for beat in measure.beats():
-        position = measure.sample_position() + beat.beat_index * RESOLUTION
+        position = measure.sample_position() + beat.beat_index * config.resolution
 
-        transforms = motionizer.compute_next(song.soprano, song.alto, song.tenor, song.bass)
+        transforms = motionizer.compute_next(config.soprano, config.alto, config.tenor, config.bass)
 
-        song.alto.apply_transform(transforms['alto'])
-        song.tenor.apply_transform(transforms['tenor'])
-        song.bass.apply_transform(transforms['bass'])
+        config.alto.apply_transform(transforms['alto'])
+        config.tenor.apply_transform(transforms['tenor'])
+        config.bass.apply_transform(transforms['bass'])
 
 # ~~~~~~~~ Write to file ~~~~~~~~
-folder = constants.OUT_DIR + song.name + '/'
+folder = constants.OUT_DIR + config.name + '/'
 if not os.path.exists(folder):
     os.makedirs(folder)
 
-midi.write_midifile(folder + 'soprano.mid', song.soprano.to_pattern())
-midi.write_midifile(folder + 'alto.mid', song.alto.to_pattern())
-midi.write_midifile(folder + 'tenor.mid', song.tenor.to_pattern())
-midi.write_midifile(folder + 'bass.mid', song.bass.to_pattern())
+midi.write_midifile(folder + 'soprano.mid', config.soprano.to_pattern())
+midi.write_midifile(folder + 'alto.mid', config.alto.to_pattern())
+midi.write_midifile(folder + 'tenor.mid', config.tenor.to_pattern())
+midi.write_midifile(folder + 'bass.mid', config.bass.to_pattern())
 
 print 'Your arrangement has been written to ', folder, ' :)'

@@ -2,12 +2,13 @@ from __future__ import division
 
 import abc
 import constants
-import ts
+import rhythm
 import chords
 import domain
+import config
 import vars
 import notes
-from constants import RESOLUTION
+
 
 
 class MotionTransform:
@@ -40,14 +41,13 @@ class MotionTransform:
 
 class JoinTransform(MotionTransform):
 
-    def __init__(self, duration, position, sequence, chord_progression):
+    def __init__(self, duration, position, sequence):
         MotionTransform.__init__(self)
 
         self.scale = self.SCALE_MACRO
         self.sequence = sequence
         self.position = position
         self.duration = duration
-        self.chord_progression = chord_progression
         self.intrinsic_motion = 0.50 - (duration * vars.JOIN_MOTION_COEFFICIENT)
         self.intrinsic_musicality = self.set_musicality()
 
@@ -61,10 +61,10 @@ class JoinTransform(MotionTransform):
         duration_score = (((2 - (.1 * self.duration) / 2) ** self.duration) / 2) / 100
         score += duration_score
 
-        num_unique_chords = unique_chord_count(self.position, self.duration, self.chord_progression)
+        num_unique_chords = unique_chord_count(self.position, self.duration)
         score += vars.TWO_BEAT_MULTIPLE_CHORDS * num_unique_chords
 
-        time_signature = self.sequence.time_signatures[self.position]
+        time_signature = config.time_signatures[self.position]
         if time_signature.numerator % 3 == 0 and not self.is_syncopation():
             score += vars.JOIN_PREFER_BIG_BEATS
 
@@ -72,21 +72,21 @@ class JoinTransform(MotionTransform):
 
     def crosses_bar_line(self):
         beat_index = self.sequence.beat_index_in_measure(self.position)
-        time_signature = self.sequence.time_signatures[self.position]
+        time_signature = config.time_signatures[self.position]
 
         return beat_index + self.duration > time_signature.numerator
 
     def is_syncopation(self):
         beat_index = self.sequence.beat_index_in_measure(self.position)
-        time_signature = self.sequence.time_signatures[self.position]
+        time_signature = config.time_signatures[self.position]
 
-        return not ts.is_big_beat(time_signature, beat_index)
+        return not rhythm.is_big_beat(time_signature, beat_index)
 
     def apply(self):
-        for i in range(self.position, self.position + self.duration * RESOLUTION):
+        for i in range(self.position, self.position + self.duration * config.resolution):
             if i == self.position:
                 continue
-            elif i == self.position + (self.duration * RESOLUTION) - 1:
+            elif i == self.position + (self.duration * config.resolution) - 1:
                 self.sequence[i].type = domain.Sample.TYPE_END
             else:
                 self.sequence[i].type = domain.Sample.TYPE_SUSTAIN
@@ -125,23 +125,21 @@ class NoneTransform(MotionTransform):
 
 class EighthNoteTransform(MotionTransform):
 
-    def __init__(self, position, sequence, key_signatures, chord_progression):
+    def __init__(self, position, sequence):
         MotionTransform.__init__(self)
 
         self.position = position
         self.sequence = sequence
         self.intermediate_pitch = -1
-        self.key_signatures = key_signatures
-        self.chord_progression = chord_progression
 
     def apply(self):
-        half_way = int(self.position + (RESOLUTION / 2))
+        half_way = int(self.position + (config.resolution / 2))
 
-        for i in range(half_way, self.position + RESOLUTION):
+        for i in range(half_way, self.position + config.resolution):
             if i == half_way:
                 self.sequence[i - 1] = domain.Sample(self.sequence[i - 1].pitch(), domain.Sample.TYPE_END)
                 self.sequence[i] = domain.Sample(self.intermediate_pitch, domain.Sample.TYPE_START)
-            elif i == self.position + RESOLUTION - 1:
+            elif i == self.position + config.resolution - 1:
                 self.sequence[i] = domain.Sample(self.intermediate_pitch, domain.Sample.TYPE_END)
             else:
                 self.sequence[i] = domain.Sample(self.intermediate_pitch, domain.Sample.TYPE_SUSTAIN)
@@ -150,7 +148,7 @@ class EighthNoteTransform(MotionTransform):
 
     def synergy(self, transform):
         if isinstance(transform, EighthNoteTransform) and not isinstance(transform, self.__class__):
-            next_chord = self.chord_progression[self.position + RESOLUTION]
+            next_chord = config.chord_progression[self.position + config.resolution]
 
             if dissonant(self.intermediate_pitch, transform.intermediate_pitch):
                 return vars.EIGHTH_NOTE_DISSONANCE
@@ -174,11 +172,11 @@ class EighthNoteTransform(MotionTransform):
         return False
 
     def causes_flickering(self):
-        if self.position < RESOLUTION:
+        if self.position < config.resolution:
             return False
 
-        one_whole_note_ago = self.sequence[self.position - RESOLUTION].pitch()
-        one_half_note_ago = self.sequence[int(self.position - (RESOLUTION / 2))].pitch()
+        one_whole_note_ago = self.sequence[self.position - config.resolution].pitch()
+        one_half_note_ago = self.sequence[int(self.position - (config.resolution / 2))].pitch()
 
         pitch_at_position = self.sequence[self.position].pitch()
 
@@ -188,11 +186,11 @@ class EighthNoteTransform(MotionTransform):
 
 class MajorThirdScalarTransform(EighthNoteTransform):
 
-    def __init__(self, position, sequence, key_signatures, chord_progression):
-        EighthNoteTransform.__init__(self, position, sequence, key_signatures, chord_progression)
+    def __init__(self, position, sequence):
+        EighthNoteTransform.__init__(self, position, sequence)
 
         this_note = sequence[position]
-        next_note = sequence[position + RESOLUTION]
+        next_note = sequence[position + config.resolution]
         self.intermediate_pitch = int((this_note.pitch() + next_note.pitch()) / 2)
 
         self.intrinsic_motion = vars.MAJOR_THIRD_SCALAR_MOTION
@@ -205,7 +203,7 @@ class MajorThirdScalarTransform(EighthNoteTransform):
         if self.position == 0:
             return vars.MAJOR_THIRD_SCALAR_BEAT_ONE
 
-        last_beat = self.sequence.beat_at(self.position - RESOLUTION)
+        last_beat = self.sequence.beat_at(self.position - config.resolution)
 
         score +=  vars.MAJOR_THIRD_SCALAR_CONTINUES_LINEARITY if last_beat.contains_linear_movement() \
             else vars.MAJOR_THIRD_SCALAR_DEFAULT_MUSICALITY
@@ -215,17 +213,17 @@ class MajorThirdScalarTransform(EighthNoteTransform):
         return score
 
     @staticmethod
-    def applicable_at(position, sequence, key_signatures):
+    def applicable_at(position, sequence):
         try:
-            sequence[position + (1 * RESOLUTION)]
+            sequence[position + (1 * config.resolution)]
         except IndexError:
             return False  # we've reached the end of the track
 
         this_note = sequence[position]
-        next_note = sequence[position + RESOLUTION]
+        next_note = sequence[position + config.resolution]
         intermediate_pitch = int((this_note.pitch() + next_note.pitch()) / 2)
 
-        this_signature = key_signatures[position]
+        this_signature = config.key_signatures[position]
 
         return this_note.type == domain.Sample.TYPE_START and next_note.type == domain.Sample.TYPE_START \
             and abs(this_note.pitch() - next_note.pitch()) == 4 and intermediate_pitch in this_signature.scale()
@@ -233,12 +231,12 @@ class MajorThirdScalarTransform(EighthNoteTransform):
 
 class MinorThirdScalarTransform(EighthNoteTransform):
 
-    def __init__(self, position, sequence, key_signatures, chord_progression):
-        EighthNoteTransform.__init__(self, position, sequence, key_signatures, chord_progression)
+    def __init__(self, position, sequence):
+        EighthNoteTransform.__init__(self, position, sequence)
 
         this_pitch = sequence[position].pitch()
-        next_pitch = sequence[position + RESOLUTION].pitch()
-        this_signature = key_signatures[position + RESOLUTION]
+        next_pitch = sequence[position + config.resolution].pitch()
+        this_signature = config.key_signatures[position + config.resolution]
 
         intermediary_notes = this_pitch + 2, this_pitch + 1, this_pitch - 1, this_pitch - 2
         for note in intermediary_notes:
@@ -255,7 +253,7 @@ class MinorThirdScalarTransform(EighthNoteTransform):
         if self.position == 0:
             return vars.MINOR_THIRD_SCALAR_BEAT_ONE
 
-        last_beat = self.sequence.beat_at(self.position - RESOLUTION)
+        last_beat = self.sequence.beat_at(self.position - config.resolution)
 
         score += vars.MINOR_THIRD_SCALAR_CONTINUES_LINEARITY if last_beat.contains_linear_movement() \
             else vars.MINOR_THIRD_SCALAR_DEFAULT_MUSICALITY
@@ -265,17 +263,17 @@ class MinorThirdScalarTransform(EighthNoteTransform):
         return score
 
     @staticmethod
-    def applicable_at(position, sequence, key_signatures):
+    def applicable_at(position, sequence):
         try:
-            sequence[position + (1 * RESOLUTION)]
+            sequence[position + (1 * config.resolution)]
         except IndexError:
             return False  # we've reached the end of the track
 
         this_note = sequence[position]
-        next_note = sequence[position + RESOLUTION]
+        next_note = sequence[position + config.resolution]
         intermediary_notes = this_note.pitch() + 2, this_note.pitch() + 1, this_note.pitch() - 1, this_note.pitch() - 2
 
-        this_signature = key_signatures[position + RESOLUTION]
+        this_signature = config.key_signatures[position + config.resolution]
 
         if this_note.type == domain.Sample.TYPE_START and next_note.type == domain.Sample.TYPE_START \
                 and abs(this_note.pitch() - next_note.pitch()) == 3:
@@ -289,14 +287,14 @@ class MinorThirdScalarTransform(EighthNoteTransform):
 
 class ArpeggialTransform(EighthNoteTransform):
 
-    def __init__(self, position, sequence, key_signatures, chord_progression):
-        EighthNoteTransform.__init__(self, position, sequence, key_signatures, chord_progression)
+    def __init__(self, position, sequence):
+        EighthNoteTransform.__init__(self, position, sequence)
 
         this_note = sequence[position]
-        next_note = sequence[position + RESOLUTION]
+        next_note = sequence[position + config.resolution]
 
-        this_chord = chord_progression[position]
-        next_chord = chord_progression[position + RESOLUTION]
+        this_chord = config.chord_progression[position]
+        next_chord = config.chord_progression[position + config.resolution]
 
         intermediary_notes = [i for i in range(min(this_note.pitch() + 1, next_note.pitch() + 1),
                                                max(this_note.pitch(), next_note.pitch()))]
@@ -312,8 +310,8 @@ class ArpeggialTransform(EighthNoteTransform):
     def __get_musicality(self):
         score = 0.0
 
-        this_chord = self.chord_progression[self.position]
-        next_chord = self.chord_progression[self.position + RESOLUTION]
+        this_chord = config.chord_progression[self.position]
+        next_chord = config.chord_progression[self.position + config.resolution]
 
         score += vars.ARPEGGIAL_SAME_CHORD if chords.same(this_chord, next_chord) \
             else vars.ARPEGGIAL_NEW_CHORD
@@ -323,20 +321,20 @@ class ArpeggialTransform(EighthNoteTransform):
         return score
 
     @staticmethod
-    def applicable_at(position, sequence, chord_progression):
+    def applicable_at(position, sequence):
         try:
-            sequence[position + (1 * RESOLUTION)]
+            sequence[position + (1 * config.resolution)]
         except IndexError:
             return False  # we've reached the end of the track
 
         this_note = sequence[position]
-        next_note = sequence[position + RESOLUTION]
+        next_note = sequence[position + config.resolution]
 
         intermediary_notes = [i for i in range(min(this_note.pitch() + 1, next_note.pitch() + 1),
                                                max(this_note.pitch(), next_note.pitch()))]
 
-        this_chord = chord_progression[position]
-        next_chord = chord_progression[position + RESOLUTION]
+        this_chord = config.chord_progression[position]
+        next_chord = config.chord_progression[position + config.resolution]
 
         if this_chord == next_chord:
             return this_note.type == domain.Sample.TYPE_START and next_note.type == domain.Sample.TYPE_START \
@@ -351,12 +349,12 @@ class ArpeggialTransform(EighthNoteTransform):
 
 class HalfStepNeighborTransform(EighthNoteTransform):
 
-    def __init__(self, position, sequence, key_signatures, chord_progression):
-        EighthNoteTransform.__init__(self, position, sequence, key_signatures, chord_progression)
+    def __init__(self, position, sequence):
+        EighthNoteTransform.__init__(self, position, sequence)
         self.intrinsic_motion = vars.HALF_NEIGHBOR_MOTION
 
         this_pitch = sequence[position].pitch()
-        this_sig = key_signatures[position]
+        this_sig = config.key_signatures[position]
 
         self.intermediate_pitch = this_pitch + 1 if this_pitch + 1 in this_sig.scale() else this_pitch - 1
         self.intrinsic_musicality = self.__get_musicality()
@@ -364,8 +362,8 @@ class HalfStepNeighborTransform(EighthNoteTransform):
     def __get_musicality(self):
         score = 0.0
 
-        this_chord = self.chord_progression[self.position]
-        next_chord = self.chord_progression[self.position + RESOLUTION]
+        this_chord = config.chord_progression[self.position]
+        next_chord = config.chord_progression[self.position + config.resolution]
 
         score += vars.HALF_NEIGHBOR_SAME_CHORD if chords.same(this_chord, next_chord) \
             else vars.HALF_NEIGHBOR_DEFAULT_MUSICALITY
@@ -375,16 +373,16 @@ class HalfStepNeighborTransform(EighthNoteTransform):
         return score
 
     @staticmethod
-    def applicable_at(position, sequence, key_signatures):
+    def applicable_at(position, sequence):
         try:
-            sequence[position + (1 * RESOLUTION)]
+            sequence[position + (1 * config.resolution)]
         except IndexError:
             return False  # we've reached the end of the track
 
         this_note = sequence[position]
-        next_note = sequence[position + RESOLUTION]
+        next_note = sequence[position + config.resolution]
 
-        this_sig = key_signatures[position]
+        this_sig = config.key_signatures[position]
 
         return this_note.note.midi_value == next_note.note.midi_value \
             and (this_note.type == domain.Sample.TYPE_START and next_note.type == domain.Sample.TYPE_START) \
@@ -393,12 +391,12 @@ class HalfStepNeighborTransform(EighthNoteTransform):
 
 class WholeStepNeighborTransform(EighthNoteTransform):
 
-    def __init__(self, position, sequence, key_signatures, chord_progression):
-        EighthNoteTransform.__init__(self, position, sequence, key_signatures, chord_progression)
+    def __init__(self, position, sequence):
+        EighthNoteTransform.__init__(self, position, sequence)
         self.intrinsic_motion = vars.WHOLE_NEIGHBOR_MOTION
 
         this_pitch = sequence[position].pitch()
-        this_sig = key_signatures[position]
+        this_sig = config.key_signatures[position]
 
         self.intermediate_pitch = this_pitch + 2 if this_pitch + 2 in this_sig.scale() else this_pitch - 2
         self.intrinsic_musicality = self.__get_musicality()
@@ -406,8 +404,8 @@ class WholeStepNeighborTransform(EighthNoteTransform):
     def __get_musicality(self):
         score = 0.0
 
-        this_chord = self.chord_progression[self.position]
-        next_chord = self.chord_progression[self.position + RESOLUTION]
+        this_chord = config.chord_progression[self.position]
+        next_chord = config.chord_progression[self.position + config.resolution]
 
         score += vars.WHOLE_NEIGHBOR_SAME_CHORD if chords.same(this_chord, next_chord) \
             else vars.WHOLE_NEIGHBOR_DEFAULT_MUSICALITY
@@ -418,16 +416,16 @@ class WholeStepNeighborTransform(EighthNoteTransform):
         return score
 
     @staticmethod
-    def applicable_at(position, sequence, key_signatures):
+    def applicable_at(position, sequence):
         try:
-            sequence[position + (1 * RESOLUTION)]
+            sequence[position + (1 * config.resolution)]
         except IndexError:
             return False  # we've reached the end of the track
 
         this_note = sequence[position]
-        next_note = sequence[position + RESOLUTION]
+        next_note = sequence[position + config.resolution]
 
-        this_sig = key_signatures[position]
+        this_sig = config.key_signatures[position]
 
         return this_note.note.midi_value == next_note.note.midi_value \
                and (this_note.type == domain.Sample.TYPE_START and next_note.type == domain.Sample.TYPE_START) \
@@ -436,12 +434,12 @@ class WholeStepNeighborTransform(EighthNoteTransform):
 
 class ApproachTransform(EighthNoteTransform):
 
-    def __init__(self, position, sequence, key_signatures, chord_progression):
-        EighthNoteTransform.__init__(self, position, sequence, key_signatures, chord_progression)
+    def __init__(self, position, sequence):
+        EighthNoteTransform.__init__(self, position, sequence)
         self.intrinsic_motion = vars.APPROACH_MOTION
 
-        next_pitch = sequence[position + RESOLUTION].pitch()
-        this_chord = chord_progression[position]
+        next_pitch = sequence[position + config.resolution].pitch()
+        this_chord = config.chord_progression[position]
 
         self.intermediate_pitch = next_pitch + 1 if next_pitch + 1 in this_chord else next_pitch - 1
         self.intrinsic_musicality = self.__get_musicality()
@@ -449,9 +447,9 @@ class ApproachTransform(EighthNoteTransform):
     def __get_musicality(self):
         score = 0.0
 
-        next_pitch = self.sequence[self.position + RESOLUTION].pitch()
-        next_chord = self.chord_progression[self.position + RESOLUTION]
-        next_key = self.key_signatures[self.position + RESOLUTION]
+        next_pitch = self.sequence[self.position + config.resolution].pitch()
+        next_chord = config.chord_progression[self.position + config.resolution]
+        next_key = config.key_signatures[self.position + config.resolution]
 
         if notes.same_species(next_pitch, next_chord.root):
             score += vars.APPROACH_KEY_CHANGE if notes.same_species(next_chord.root, next_key.root) \
@@ -464,24 +462,24 @@ class ApproachTransform(EighthNoteTransform):
         return score
 
     @staticmethod
-    def applicable_at(position, sequence, chord_progression):
+    def applicable_at(position, sequence):
         try:
-            sequence[position + (1 * RESOLUTION)]
+            sequence[position + (1 * config.resolution)]
         except IndexError:
             return False  # we've reached the end of the track
 
         this_note = sequence[position]
-        next_note = sequence[position + RESOLUTION]
+        next_note = sequence[position + config.resolution]
 
-        this_chord = chord_progression[position]
+        this_chord = config.chord_progression[position]
 
         return (next_note.pitch() - 1 in this_chord or next_note.pitch() + 1 in this_chord) \
             and (this_note.pitch() < next_note.pitch() - 2 or this_note.pitch() > next_note.pitch() + 2) \
             and next_note.pitch() != -1
 
 
-def unique_chord_count(position, beats, chord_progression):
-    return len(set(*[map(lambda key: chord_progression[key], range(position, position + beats * RESOLUTION))]))
+def unique_chord_count(position, beats):
+    return len(set(*[map(lambda key: config.chord_progression[key], range(position, position + beats * config.resolution))]))
 
 
 def dissonant(pitch1, pitch2):

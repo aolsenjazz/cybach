@@ -2,11 +2,13 @@
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~ NOTE PICKER VARIABLES ~~~~~~~~~~~~~~~~~~~~~~~~~
 #
-# Note picker variables impact which RESOLUTION-level notes are selected
+# Note picker variables impact which config.resolution-level notes are selected
 # on the first round of composition. See note_picker.py for more
 #
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+# Until I'm 100% confident on how to implement rests, severely penalize all rests.
+REST_PENALTY = -2.0
 
 # Penalize lines that form parallel movement. Note candidates can receive this penalty up to three times
 # in the event that all lines are parallel.
@@ -43,7 +45,7 @@ THRESHOLD_ENCROACHMENT = -0.01
 #
 PREFERRED_REGISTER = -0.01
 
-# All parts have a default motion tendency of 0.5. At 0.5, RESOLUTION level movement is "preferred" only in
+# All parts have a default motion tendency of 0.5. At 0.5, config.resolution level movement is "preferred" only in
 # that no score is added or subtracted.
 #
 # If a new note candidate is a different pitch from the preview note, it "creates motion." If the part for which this

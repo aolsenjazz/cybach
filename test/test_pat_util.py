@@ -7,19 +7,18 @@ import domain
 import constants
 import ks
 import parts
-from constants import RESOLUTION
+
 import pat_util
-from pat_util import normalize_resolution
 
 
 class TestPatUtil(TestCase):
 
     def test__is_quantized(self):
-        pattern = normalize_resolution(read_pattern(constants.TEST_MIDI + 'resolution_too_small.mid'))
+        pattern = read_pattern(constants.TEST_MIDI + 'resolution_too_small.mid')
         self.assertTrue(pat_util.is_quantized(pattern))
 
     def test__contains_harmony(self):
-        pattern = normalize_resolution(read_pattern(constants.TEST_MIDI + 'contains_harmony.mid'))
+        pattern = read_pattern(constants.TEST_MIDI + 'contains_harmony.mid')
         self.assertTrue(pat_util.contains_harmony(pattern))
 
 
