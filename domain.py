@@ -328,8 +328,13 @@ class Measure(list):
             beat = self.beats()[position]
             target_duration = value * len(beat)
 
-            if beat.is_note_start() and beat.is_pitch_change() and \
-                    beat.sustain_duration() == target_duration:
+            t = beat.is_note_start()
+            t1 = beat.is_rest()
+            t2 = beat.is_pitch_change()
+            t3 = beat.sustain_duration()
+
+            if (beat.is_note_start() or beat.is_rest()) \
+                    and beat.is_pitch_change() and beat.sustain_duration() == target_duration:
                 likelihood_score += vars.RHYTHM_PHRASING_COEF * value
 
             position += value
@@ -388,10 +393,14 @@ class Beat(list):
         note_type = Sample.TYPE_SUSTAIN
         i = 0
 
-        while i < len(sequence_samples) and pitch == self.pitch() and (note_type == Sample.TYPE_SUSTAIN or i == 1):
+        while i < len(sequence_samples) and pitch == self.pitch() and \
+                (note_type == Sample.TYPE_SUSTAIN or i == 1 or pitch == -1):
             pitch = sequence_samples[self.sample_position() + i].pitch()
             note_type = sequence_samples[self.sample_position() + i].type
             i += 1
+
+        if self.pitch() == -1:
+            i -= 1
 
         return i
 
@@ -444,6 +453,9 @@ class Beat(list):
             last_pitch = sample.pitch()
 
         return contains_linear_motion
+
+    def is_rest(self):
+        return self.samples[0].is_empty()
 
 
 class Sample:

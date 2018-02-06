@@ -3,8 +3,8 @@ import notes
 import chords
 import config
 import rhythm
-
 from notes import MIDI_VALUES
+
 
 class TestChords(TestCase):
 
