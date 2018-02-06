@@ -21,3 +21,9 @@ class TestRhythm(TestCase):
                           (beat_index * config.resolution * 2)
 
         self.assertEqual(sample_position, ts.sample_position(measure_index, beat_index))
+
+    def test__phrase_combinations(self):
+        beats_per_bar = 7
+        total_combinations = 5
+
+        self.assertEqual(total_combinations, len(rhythm.phrase_combinations(beats_per_bar)))

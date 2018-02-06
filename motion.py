@@ -116,7 +116,7 @@ class Motionizer:
         tenor_transforms = self.__all_transformations(self.position, tenor, soprano)
         bass_transforms = self.__all_transformations(self.position, bass, soprano)
 
-        return candidates(alto_transforms, tenor_transforms, bass_transforms)
+        return combine_transform_candidates(alto_transforms, tenor_transforms, bass_transforms)
 
     def __all_transformations(self, position, sequence, soprano):
         trans = [transforms.NoneTransform(sequence)]
@@ -179,7 +179,7 @@ def note_duration_at_position(position, sequence):
     return duration
 
 
-def candidates(*args):
+def combine_transform_candidates(*args):
     r = [[]]
     for x in args:
         t = []

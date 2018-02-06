@@ -2,6 +2,7 @@ from unittest import TestCase
 import notes
 import chords
 import config
+import rhythm
 
 from notes import MIDI_VALUES
 
@@ -9,18 +10,24 @@ class TestChords(TestCase):
 
     def test_chord_progression(self):
         chord_progression = chords.ChordProgression()
-        chord_progression[0] = chords.parse('C')
-        chord_progression[(0 * (config.resolution * 4)) + (2 * config.resolution)] = chords.parse('A-')
-        chord_progression[(1 * (config.resolution * 4)) + (0 * config.resolution)] = chords.parse('E-')
-        chord_progression[(1 * (config.resolution * 4)) + (2 * config.resolution)] = chords.parse('G')
-        chord_progression[(2 * (config.resolution * 4)) + (0 * config.resolution)] = chords.parse('A-')
-        chord_progression[(2 * (config.resolution * 4)) + (2 * config.resolution)] = chords.parse('C')
-        chord_progression[(3 * (config.resolution * 4)) + (0 * config.resolution)] = chords.parse('G')
-        chord_progression[(3 * (config.resolution * 4)) + (2 * config.resolution)] = chords.parse('C')
 
-        self.assertEqual(chord_progression[(1 * (config.resolution * 4)) + (1 * config.resolution)], chords.CHORDS['E-'])
-        self.assertEqual(chord_progression[(1 * (config.resolution * 4)) + (3 * config.resolution) + 5], chords.CHORDS['G'])
-        self.assertEqual(chord_progression[(3 * (config.resolution * 4)) + (3 * config.resolution) + 2], chords.CHORDS['C'])
+        set_config(chord_progression)
+
+        chord_progression.set().measure(0).beat(0).commit('C')
+        chord_progression.set().measure(0).beat(2).commit('A-')
+        chord_progression.set().measure(1).beat(0).commit('E-')
+        chord_progression.set().measure(1).beat(2).commit('G')
+        chord_progression.set().measure(2).beat(0).commit('A-')
+        chord_progression.set().measure(2).beat(2).commit('C')
+        chord_progression.set().measure(3).beat(0).commit('G')
+        chord_progression.set().measure(3).beat(2).commit('C')
+
+        self.assertEqual(chord_progression[(1 * (config.resolution * 4)) + (1 * config.resolution)],
+                         chords.CHORDS['E-'])
+        self.assertEqual(chord_progression[(1 * (config.resolution * 4)) + (3 * config.resolution) + 5],
+                         chords.CHORDS['G'])
+        self.assertEqual(chord_progression[(3 * (config.resolution * 4)) + (3 * config.resolution) + 2],
+                         chords.CHORDS['C'])
 
     def test_note_above(self):
         chord = chords.MajorChord(MIDI_VALUES['C1'])
@@ -54,3 +61,26 @@ class TestChords(TestCase):
         self.assertTrue(chord.indicates_subdominant(MIDI_VALUES['D0'], MIDI_VALUES['F0']))
         self.assertFalse(chord.indicates_subdominant(MIDI_VALUES['D0'], MIDI_VALUES['B0'], MIDI_VALUES['F0']))
 
+    def test__ChordProgression_chords_in_measure(self):
+        chord_progression = chords.ChordProgression()
+
+        set_config(chord_progression)
+
+        chord_progression.set().measure(0).beat(0).commit('C')
+        chord_progression.set().measure(0).beat(1).commit('A-')
+        chord_progression.set().measure(0).beat(2).commit('E-')
+        chord_progression.set().measure(0).beat(3).commit('G')
+        chord_progression.set().measure(3).beat(0).commit('G')
+        chord_progression.set().measure(3).beat(2).commit('C')
+
+        self.assertEqual(4, len(chord_progression.chords_in_measure(0)))
+        self.assertEqual(0, len(chord_progression.chords_in_measure(1)))
+        self.assertEqual(2, len(chord_progression.chords_in_measure(3)))
+
+
+def set_config(chord_progression):
+    time_signatures = rhythm.TimeSignatures()
+    time_signatures[0] = rhythm.TimeSignature(numerator=4, denominator=4)
+
+    config.chord_progression = chord_progression
+    config.time_signatures = time_signatures

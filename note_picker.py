@@ -4,15 +4,11 @@ import motion
 import transforms
 import config
 import vars
-
+import config
 
 
 class NotePicker:
-    def __init__(self, soprano, alto, tenor, bass):
-        self.soprano = soprano
-        self.alto = alto
-        self.tenor = tenor
-        self.bass = bass
+    def __init__(self):
         self.position = 0
 
     def compute_next(self):
@@ -27,21 +23,21 @@ class NotePicker:
         return winner
 
     def get_candidate_matrix(self, chord):
-        alto_candidates = self.alto.part.available_notes(chord)
-        tenor_candidates = self.tenor.part.available_notes(chord)
-        bass_candidates = self.bass.part.available_notes(chord)
+        alto_candidates = config.alto.part.available_notes(chord)
+        tenor_candidates = config.tenor.part.available_notes(chord)
+        bass_candidates = config.bass.part.available_notes(chord)
 
         alto_candidates.append(-1)  # -1 represents rest
         tenor_candidates.append(-1)  # -1 represents rest
         bass_candidates.append(-1)  # -1 represents rest
 
-        matrix = motion.candidates(alto_candidates, tenor_candidates, bass_candidates)
+        matrix = combine_pitch_candidates(alto_candidates, tenor_candidates, bass_candidates)
 
         return self.filter_candidates(matrix)
 
     def filter_candidates(self, matrix):
         filtered = []
-        sop_pitch = self.soprano[self.position].pitch()
+        sop_pitch = config.soprano[self.position].pitch()
 
         for g in matrix:
             if (g['bass'] < g['tenor'] < g['alto'] or g['tenor'] == -1 or g['alto'] == -1) \
@@ -58,13 +54,13 @@ class NotePicker:
         current_winner = None
 
         for candidate in candidates:
-            candidate['soprano'] = (self.soprano[self.position].pitch())
+            candidate['soprano'] = (config.soprano[self.position].pitch())
 
-            bass_score = get_bass_score(candidate['bass'], self.position, self.bass)
-            tenor_score = get_tenor_score(candidate['tenor'], self.position, self.tenor)
-            alto_score = get_alto_score(candidate['alto'], self.position, self.alto)
+            bass_score = get_bass_score(candidate['bass'], self.position, config.bass)
+            tenor_score = get_tenor_score(candidate['tenor'], self.position, config.tenor)
+            alto_score = get_alto_score(candidate['alto'], self.position, config.alto)
             harmony_score = get_harmony_score(candidate, self.current_chord())
-            motion_score = get_motion_score(candidate, self.position, self.alto, self.tenor, self.bass)
+            motion_score = get_motion_score(candidate, self.position, config.alto, config.tenor, config.bass)
             rest_penalty = get_rest_penalty(candidate)
 
             score = sum([bass_score, tenor_score, alto_score, harmony_score, motion_score, rest_penalty])
@@ -148,6 +144,8 @@ def get_alto_score(candidate, position, sequence):
 
 def flicker_avoidance_score(candidate, position, sequence):
     score = 0.0
+    last_note = None
+    two_notes_ago = None
 
     if position >= config.resolution:
         last_note = sequence[position - config.resolution]
@@ -166,6 +164,7 @@ def flicker_avoidance_score(candidate, position, sequence):
             score = vars.TWO_BEATS_REPEATED
 
     return score
+
 
 def get_harmony_score(candidate, chord):
     base_position_chord = [notes.OCTAVES[n.species()][0] for n in chord.all()]
@@ -262,3 +261,19 @@ def is_motion(pitch1, pitch2):
 
 def is_linear_motion(pitch1, pitch2):
     return abs(pitch1 - pitch2) < 3 and pitch1 - pitch2 != 0
+
+
+def combine_pitch_candidates(*args):
+    r = [[]]
+    for x in args:
+        t = []
+        for y in x:
+            for i in r:
+                t.append(i + [y])
+        r = t
+
+    candidates = []
+    for group in r:
+        candidates.append({'alto': group[0], 'tenor': group[1], 'bass': group[2]})
+
+    return candidates

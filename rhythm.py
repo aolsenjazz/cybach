@@ -4,6 +4,25 @@ import collections
 import math
 import constants
 import config
+import util
+import itertools
+
+
+def phrase_combinations(beats_per_bar):
+    max_phrases = int(math.floor(beats_per_bar / 2))
+
+    potential_combinations = []
+
+    for i in range(0, max_phrases):
+        potential_combinations.append([0, 2, 3, 4])
+
+    all_combinations = [i for i in itertools.product(*potential_combinations) if sum(i) == beats_per_bar]
+    parsed = set()
+
+    for combination in all_combinations:
+        parsed.add(tuple([item for item in combination if item != 0]))
+
+    return parsed
 
 
 def is_big_beat(time_signature, beat_base_zero):
@@ -29,7 +48,7 @@ class TimeSignature:
     def __repr__(self):
         return 'num: %d || den: %d' % (self.numerator, self.denominator)
 
-    def samples_per_bar(self):
+    def samples_per_measure(self):
         return int(self.numerator * config.resolution / (self.denominator / 4))
 
 

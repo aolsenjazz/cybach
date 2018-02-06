@@ -1,3 +1,4 @@
+from __future__ import division
 from pprint import pformat
 
 import midi
@@ -6,6 +7,8 @@ import rhythm
 import math
 import constants
 import ks
+import util
+import vars
 from notes import Note
 
 
@@ -16,7 +19,7 @@ class Sequence(list):
     we can iterate over it and insert pitches.
     """
 
-    def __init__(self, pattern=None, seed=None, part=None, configuration={},):
+    def __init__(self, pattern=None, seed=None, part=None, configuration={}, ):
         """
         Has two initialization processes: Pattern-based and seed-based.
 
@@ -54,7 +57,6 @@ class Sequence(list):
 
             self.part = part
             self.__build_empty_samples(len(seed.samples))
-
 
     def __len__(self):
         return len(self.samples)
@@ -108,9 +110,9 @@ class Sequence(list):
 
         while more_measures:
             active_time_signature = config.time_signatures[sample_position]
-            samples = self[sample_position:sample_position + active_time_signature.samples_per_bar()]
+            samples = self[sample_position:sample_position + active_time_signature.samples_per_measure()]
             measures.append(Measure(index, samples, active_time_signature, self))
-            sample_position += active_time_signature.samples_per_bar()
+            sample_position += active_time_signature.samples_per_measure()
             index += 1
             more_measures = sample_position < len(self)
 
@@ -135,7 +137,8 @@ class Sequence(list):
             new_event = False
 
             if sample.type == Sample.TYPE_START:
-                track.append(midi.NoteOnEvent(velocity=constants.DEFAULT_VELOCITY, pitch=sample.note.midi(), tick=ticks))
+                track.append(
+                    midi.NoteOnEvent(velocity=constants.DEFAULT_VELOCITY, pitch=sample.note.midi(), tick=ticks))
                 new_event = True
             if sample.type == Sample.TYPE_END:
                 track.append(midi.NoteOffEvent(pitch=sample.note.midi(), tick=ticks + 2))
@@ -237,12 +240,12 @@ class Sequence(list):
 
 class Measure(list):
 
-    def __init__(self, measure_index, samples, signature, parent):
+    def __init__(self, measure_index, samples, time_signature, parent):
         super(Measure, self).__init__()
         self.samples = samples
         self.parent = parent
         self.measure_index = measure_index
-        self.signature = signature
+        self.time_signature = time_signature
 
     def __repr__(self):
         return '\nMeasure(samples: %s)' % pformat(self.samples)
@@ -253,28 +256,110 @@ class Measure(list):
     def __getitem__(self, index):
         return self.samples[index]
 
+    # TODO: this needs to go away
     def subdivision_index(self):
-        return self.signature.numerator / 2 * config.resolution
+        return self.time_signature.numerator / 2 * config.resolution
 
     def sample_position(self):
-        measures = self.parent.measures()
-
-        sample_count = 0
-        for i in range(0, self.measure_index):
-            sample_count += len(measures[i])
-
-        return sample_count
+        return config.time_signatures.sample_position(measure=self.measure_index)
 
     def beats(self):
         beats = []
+        time_signature = config.time_signatures[self.sample_position()]
+        samples_per_beat = int(config.resolution / (time_signature.denominator / 4))
 
         j = 0
         while j < len(self.samples):
-            beats.append(Beat(self.samples[j:(j + config.resolution)], j / config.resolution, self))
+            beats.append(Beat(self.samples[j:(j + samples_per_beat)], j / samples_per_beat, self))
 
-            j += config.resolution
+            j += samples_per_beat
 
         return beats
+
+    def strong_beats(self):
+
+        if self.time_signature.numerator <= 4:
+            return self.beats()
+        else:
+            phrase_combinations = rhythm.phrase_combinations(self.time_signature.numerator)
+            combination_map = {}
+
+            for combination in phrase_combinations:
+                combination_map[combination] = 0.0
+
+            # Guess the phrase groupings based on the position of chords in the measure
+            chord_based_prediction = self.chord_based_phrasing_prediction()
+            if combination_map.get(chord_based_prediction, None) is not None:
+                combination_map[chord_based_prediction] = combination_map[chord_based_prediction] + 0.10
+
+            # Based on the rhythms of the melody, rank phrase grouping likeliness
+            for combination in combination_map.keys():
+                combination_map[combination] = combination_map[combination] + \
+                                               self.phrasing_likelihood(combination)
+
+            winner = util.key_for_highest_value(combination_map)
+            return self.beats_for_phrasing(winner)
+
+    def beats_for_phrasing(self, phrasing):
+        position = 0
+        beats = [self.beats()[position]]
+
+        for i in range(0, len(phrasing)):
+            if i == len(phrasing) - 1:
+                return beats
+
+            position += phrasing[i]
+            beats.append(self.beats()[position])
+
+    def phrasing_likelihood(self, phrase_combination):
+        """
+        Returns how likely the the measure is to conform to the submitted phrase grouping. Phrase groupings
+        are submitted as a tuple with any permutation of the number 2, 3, 4 provided that the sum of all of them
+        is the current time signature numerator.
+
+        E.g. tuples that can be submitted for 7/8 could include (2, 3, 2), (4, 3), (3, 4)
+
+        :param phrase_combination: A tuple consisting of the numbers 2, 3, 4
+        """
+        likelihood_score = 0.0
+        position = 0
+
+        for value in phrase_combination:
+            beat = self.beats()[position]
+            target_duration = value * len(beat)
+
+            if beat.is_note_start() and beat.is_pitch_change() and \
+                    beat.sustain_duration() == target_duration:
+                likelihood_score += vars.RHYTHM_PHRASING_COEF * value
+
+            position += value
+
+        return likelihood_score
+
+    def chord_based_phrasing_prediction(self):
+        """
+        Based on where the chords are in the measure, tries to guess the phrase groupings.
+
+        E.g. 1: in a 6/8 measure, if there are chords on 1 and 4 (1-based), will return phrase grouping of (1, 4)
+        E.g. 2: in a 7/8 measure, if there are chords on 1, 3, and 5 (1-based), will return phrase grouping of (1, 3, 5)
+        """
+        candidate = []
+
+        chords = config.chord_progression.chords_in_measure(self.measure_index)
+        for beat in self.beats():
+            if beat.is_first_beat() or beat.is_last_beat():
+                continue  # let's assume that 1 is a phrase start, and that the last beat is a phrase end
+
+            if chords.get(beat.sample_position(), None) is not None and \
+                    chords.get(beat.sample_position() - len(beat), None) is None and \
+                    chords.get(beat.sample_position() + len(beat), None) is None:
+                candidate.insert(0, int(beat.beat_index - sum(candidate) + 1))
+
+        remainder = self.time_signature.numerator - sum(candidate) + 1
+        if remainder != 0:
+            candidate.insert(0, int(self.time_signature.numerator - sum(candidate)))
+
+        return tuple(candidate)
 
 
 class Beat(list):
@@ -297,8 +382,26 @@ class Beat(list):
     def __len__(self):
         return len(self.samples)
 
-    def beat_position(self):
-        return len(self.parent) + (self.beat_index * config.resolution)
+    def sustain_duration(self):
+        sequence_samples = self.parent.parent.samples
+        pitch = self.pitch()
+        note_type = Sample.TYPE_SUSTAIN
+        i = 0
+
+        while i < len(sequence_samples) and pitch == self.pitch() and (note_type == Sample.TYPE_SUSTAIN or i == 1):
+            pitch = sequence_samples[self.sample_position() + i].pitch()
+            note_type = sequence_samples[self.sample_position() + i].type
+            i += 1
+
+        return i
+
+    def sample_position(self):
+        time_signature = config.time_signatures[self.parent.sample_position()]
+        return int(self.parent.sample_position() +
+                   (4 / time_signature.denominator * config.resolution) * self.beat_index)
+
+    def pitch(self):
+        return self.samples[0].pitch()
 
     def contains_motion(self):
         last_pitch = -1
@@ -312,6 +415,20 @@ class Beat(list):
                 return True
 
         return False
+
+    def is_first_beat(self):
+        return self.beat_index == 0
+
+    def is_last_beat(self):
+        return self.sample_position() == len(self.parent) - len(self)
+
+    def is_note_start(self):
+        return self.samples[0].type == Sample.TYPE_START
+
+    def is_pitch_change(self):
+        if self.sample_position() == 0:
+            return True
+        return self.parent.parent.samples[self.sample_position() - 1].pitch() != self.samples[0].pitch()
 
     def contains_linear_movement(self):
         last_pitch = self.samples[0].pitch()

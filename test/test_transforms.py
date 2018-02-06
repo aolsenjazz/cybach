@@ -231,7 +231,7 @@ class TestMotionTransforms(TestCase):
 
         set_config(scalar_sequence, chord_progression, key_signatures)
 
-        # Small tests, reall should ever change unless we manipulate values
+        # Small tests, really should ever change unless we manipulate values
         scalar_trans = transforms.MajorThirdScalarTransform(0, scalar_sequence)
         same_trans = transforms.MajorThirdScalarTransform(0, scalar_sequence)
         join = transforms.JoinTransform(2, 0, scalar_sequence)

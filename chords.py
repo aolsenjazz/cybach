@@ -347,6 +347,17 @@ class ChordProgression(collections.MutableMapping):
     def set(self):
         return ChordProgressionSetter(self)
 
+    def chords_in_measure(self, measure_index):
+        sample_pos = config.time_signatures.sample_position(measure=measure_index)
+        time_signature = config.time_signatures[sample_pos]
+        measure_end_pos = sample_pos + time_signature.samples_per_measure()
+        chords = {}
+
+        for key in [k for k in config.chord_progression.keys() if sample_pos <= k <= measure_end_pos]:
+            chords[key] = self[key]
+
+        return chords
+
 
 class ChordProgressionSetter:
 

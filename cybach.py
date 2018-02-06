@@ -48,7 +48,7 @@ songloader.load(sys.argv[1])
 # ~~~~~~~~ Write simple accompaniment, using only notes equal to time signature denominators ~~~~~~~~
 # ~~~~~~~~ (quarter notes for 4/4, eights for 6/8) ~~~~~~~~
 
-picker = note_picker.NotePicker(config.soprano, config.alto, config.tenor, config.bass)
+picker = note_picker.NotePicker()
 for measure in config.bass.measures():
     for beat in measure.beats():
         position = measure.sample_position() + beat.beat_index * config.resolution

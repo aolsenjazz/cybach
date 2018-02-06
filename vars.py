@@ -1,5 +1,14 @@
 # Algorithm variables
 
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~ MISC VARIABLES ~~~~~~~~~~~~~~~~~~~~~~~~~
+#
+# Variables whose family of variables is significant enough to have its own section.
+#
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# Used to figure out measure phrasing. This is multiplied by the number of notes in the group.
+RHYTHM_PHRASING_COEF = 0.01
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~ NOTE PICKER VARIABLES ~~~~~~~~~~~~~~~~~~~~~~~~~
 #
 # Note picker variables impact which config.resolution-level notes are selected
