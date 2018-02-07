@@ -3,15 +3,18 @@ import re
 import config
 import collections
 
-RE_MAJOR = re.compile('[A-G]')
-RE_MINOR = re.compile('[A-G]-')
-RE_SEVEN = re.compile('[A-G]7')
-RE_DIMIN = re.compile('[A-G]dim')
+RE_MAJOR = re.compile('^[A-Ga-g]([Bb]|#)?(maj)?$')
+RE_MINOR = re.compile('^[A-Ga-g]([Bb]|#)?(-|m(in)?)?$')
+RE_SEVEN = re.compile('^[A-Ga-g]([Bb]|#)?7?$')
+RE_DIMIN = re.compile('^[A-Ga-g]([Bb]|#)?dim$')
+RE_SLASH = re.compile('^[A-Ga-g]([Bb]|#)?(7|-|m(in)?|dim|maj)?/[A-Ga-g]([Bb]|#)?$')
+
+RE_CHORD_ROOT = re.compile('([A-Ga-g]|#)')
 
 
 class Chord:
 
-    def __init__(self, root):
+    def __init__(self, root, bass_note=None):
         note = -1
 
         if isinstance(root, notes.Note):
@@ -22,6 +25,16 @@ class Chord:
             note = notes.Note(root)
 
         self.root = note
+
+        if bass_note is None:
+            self.bass_note = self.root
+        else:
+            if isinstance(bass_note, notes.Note):
+                self.bass_note = bass_note
+            elif isinstance(root, int):
+                self.bass_note = notes.Note(bass_note)
+            elif isinstance(root, str):
+                self.bass_note = notes.Note(bass_note)
 
     def __repr__(self):
         return str(self.root)
@@ -41,6 +54,24 @@ class Chord:
         if parsed.species() == self.fifth.species():
             return True
         return False
+
+    def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            return False
+
+        return notes.same_species(other.bass_note, self.bass_note) and notes.same_species(other.root, self.root)
+
+    def __ne__(self, other):
+        if isinstance(other, self.__class__):
+            return False
+
+        return not (notes.same_species(other.bass_note, self.bass_note) and notes.same_species(other.root, self.root))
+
+    def __hash__(self):
+        return hash((self.bass_note, self.root))
+
+    def root_in_bass(self):
+        return notes.same_species(self.root, self.bass_note)
 
     def note_above(self, note):
         """
@@ -95,8 +126,8 @@ class Chord:
 
 class MajorChord(Chord):
 
-    def __init__(self, root_note):
-        Chord.__init__(self, root_note)
+    def __init__(self, root_note, bass_note=None):
+        Chord.__init__(self, root_note, bass_note)
         self.third = notes.Note(self.root.midi() + 4)
         self.fifth = notes.Note(self.root.midi() + 7)
 
@@ -145,8 +176,8 @@ class MajorChord(Chord):
 
 class MinorChord(Chord):
 
-    def __init__(self, root_note):
-        Chord.__init__(self, root_note)
+    def __init__(self, root_note, bass_note=None):
+        Chord.__init__(self, root_note, bass_note)
         self.third = notes.Note(self.root.midi() + 3)
         self.fifth = notes.Note(self.root.midi() + 7)
 
@@ -195,8 +226,8 @@ class MinorChord(Chord):
 
 class SevenChord(MajorChord):
 
-    def __init__(self, root_note):
-        Chord.__init__(self, root_note)
+    def __init__(self, root_note, bass_note=None):
+        Chord.__init__(self, root_note, bass_note)
         self.third = notes.Note(self.root.midi() + 4)
         self.fifth = notes.Note(self.root.midi() + 7)
         self.seventh = notes.Note(self.root.midi() + 10)
@@ -248,8 +279,8 @@ class SevenChord(MajorChord):
 
 class DiminishedChord(MinorChord):
 
-    def __init__(self, root_note):
-        Chord.__init__(self, root_note)
+    def __init__(self, root_note, bass_note=None):
+        Chord.__init__(self, root_note, bass_note)
         self.third = notes.Note(self.root.midi() + 3)
         self.fifth = notes.Note(self.root.midi() + 6)
         self.seventh = notes.Note(self.root.midi() + 9)
@@ -386,82 +417,23 @@ class ChordProgressionSetter:
         self.chord_progression[sample_pos] = parsed
 
 
-def parse(chord):
-    parsed = chord[0:1].upper() + chord[1:]
-    return CHORDS.get(parsed, None)
+def parse(chord, bass_note=None):
+    if RE_MAJOR.match(chord):
+        return MajorChord(__get_root(chord), bass_note)
+    elif RE_MINOR.match(chord):
+        return MinorChord(__get_root(chord), bass_note)
+    elif RE_SEVEN.match(chord):
+        return SevenChord(__get_root(chord), bass_note)
+    elif RE_DIMIN.match(chord):
+        return DiminishedChord(__get_root(chord), bass_note)
+    elif RE_SLASH.match(chord):
+        return parse(chord.split('/')[0], chord.split('/')[1])
+
+
+def __get_root(chord):
+    match = RE_CHORD_ROOT.search(chord)
+    return match.group()
 
 
 def same(chord1, chord2):
     return chord1.root.midi_value % 12 == chord2.root.midi_value % 12
-
-
-CHORDS = {
-    'C': MajorChord(notes.Note(notes.C)),
-    'C-': MinorChord(notes.Note(notes.C)),
-    'C7': SevenChord(notes.Note(notes.C)),
-    'Cdim': DiminishedChord(notes.Note(notes.C)),
-    'C#': MajorChord(notes.Note(notes.C_SHARP)),
-    'C#-': MinorChord(notes.Note(notes.C_SHARP)),
-    'C#7': SevenChord(notes.Note(notes.C_SHARP)),
-    'C#dim': DiminishedChord(notes.Note(notes.C_SHARP)),
-    'Db': MajorChord(notes.Note(notes.C_SHARP)),
-    'Db-': MinorChord(notes.Note(notes.C_SHARP)),
-    'Db7': SevenChord(notes.Note(notes.C_SHARP)),
-    'Dbdim': DiminishedChord(notes.Note(notes.C_SHARP)),
-    'D': MajorChord(notes.Note(notes.D)),
-    'D-': MinorChord(notes.Note(notes.D)),
-    'D7': SevenChord(notes.Note(notes.D)),
-    'Ddim': DiminishedChord(notes.Note(notes.D)),
-    'D#': MajorChord(notes.Note(notes.D_SHARP)),
-    'D#-': MinorChord(notes.Note(notes.D_SHARP)),
-    'D#7': SevenChord(notes.Note(notes.D_SHARP)),
-    'D#dim': DiminishedChord(notes.Note(notes.D_SHARP)),
-    'Eb': MajorChord(notes.Note(notes.D_SHARP)),
-    'Eb-': MinorChord(notes.Note(notes.D_SHARP)),
-    'Eb7': SevenChord(notes.Note(notes.D_SHARP)),
-    'Ebdim': DiminishedChord(notes.Note(notes.D_SHARP)),
-    'E': MajorChord(notes.Note(notes.E)),
-    'E-': MinorChord(notes.Note(notes.E)),
-    'E7': SevenChord(notes.Note(notes.E)),
-    'Edim': DiminishedChord(notes.Note(notes.E)),
-    'F': MajorChord(notes.Note(notes.F)),
-    'F-': MinorChord(notes.Note(notes.F)),
-    'F7': SevenChord(notes.Note(notes.F)),
-    'Fdim': DiminishedChord(notes.Note(notes.F)),
-    'F#': MajorChord(notes.Note(notes.F_SHARP)),
-    'F#-': MinorChord(notes.Note(notes.F_SHARP)),
-    'F#7': SevenChord(notes.Note(notes.F_SHARP)),
-    'F#dim': DiminishedChord(notes.Note(notes.F_SHARP)),
-    'Gb': MajorChord(notes.Note(notes.F_SHARP)),
-    'Gb-': MinorChord(notes.Note(notes.F_SHARP)),
-    'Gb7': SevenChord(notes.Note(notes.F_SHARP)),
-    'Gbdim': DiminishedChord(notes.Note(notes.F_SHARP)),
-    'G': MajorChord(notes.Note(notes.G)),
-    'G-': MinorChord(notes.Note(notes.G)),
-    'G7': SevenChord(notes.Note(notes.G)),
-    'Gdim': DiminishedChord(notes.Note(notes.G)),
-    'G#': MajorChord(notes.Note(notes.G_SHARP)),
-    'G#-': MinorChord(notes.Note(notes.G_SHARP)),
-    'G#7': SevenChord(notes.Note(notes.G_SHARP)),
-    'G#dim': DiminishedChord(notes.Note(notes.G_SHARP)),
-    'Ab': MajorChord(notes.Note(notes.G_SHARP)),
-    'Ab-': MinorChord(notes.Note(notes.G_SHARP)),
-    'Ab7': SevenChord(notes.Note(notes.G_SHARP)),
-    'Abdim': DiminishedChord(notes.Note(notes.G_SHARP)),
-    'A': MajorChord(notes.Note(notes.A)),
-    'A-': MinorChord(notes.Note(notes.A)),
-    'A7': SevenChord(notes.Note(notes.A)),
-    'Adim': DiminishedChord(notes.Note(notes.A)),
-    'A#': MajorChord(notes.Note(notes.A_SHARP)),
-    'A#-': MinorChord(notes.Note(notes.A_SHARP)),
-    'A#7': SevenChord(notes.Note(notes.A_SHARP)),
-    'A#dim': DiminishedChord(notes.Note(notes.A_SHARP)),
-    'Bb': MajorChord(notes.Note(notes.A_SHARP)),
-    'Bb-': MinorChord(notes.Note(notes.A_SHARP)),
-    'Bb7': SevenChord(notes.Note(notes.A_SHARP)),
-    'Bbdim': DiminishedChord(notes.Note(notes.A_SHARP)),
-    'B': MajorChord(notes.Note(notes.B)),
-    'B-': MinorChord(notes.Note(notes.B)),
-    'B7': SevenChord(notes.Note(notes.B)),
-    'Bdim': DiminishedChord(notes.Note(notes.B)),
-}

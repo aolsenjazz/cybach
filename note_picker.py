@@ -4,7 +4,7 @@ import motion
 import transforms
 import config
 import vars
-import config
+import chords
 
 
 class NotePicker:
@@ -106,8 +106,8 @@ def get_bass_score(candidate, position, sequence):
     score += preferred_register_score(candidate, high_thresh, high_thresh - 7)
     score += motion_tendency_score(candidate, position, sequence)
     score += linear_motion_score(candidate, position, sequence)
-    score += root_tendency_score(candidate, position, sequence)
     score += flicker_avoidance_score(candidate, position, sequence)
+    score += bass_note_tendency_score(candidate, position, sequence)
 
     return score
 
@@ -180,30 +180,33 @@ def get_harmony_score(candidate, chord):
     return count * vars.HARMONY
 
 
-def root_tendency_score(candidate, position, sequence):
+def bass_note_tendency_score(candidate, position, sequence):
     this_chord = config.chord_progression[position]
     score = 0.0
 
     # first bass note should definitely be the root
-    if position == 0 and notes.species(candidate) == this_chord.root.species():
+    if position == 0 and notes.species(candidate) == this_chord.bass_note.species():
         return vars.FIRST_BEAT_BASS_ROOT
 
     last_chord = config.chord_progression[position - config.resolution]
 
-    # if location is a "big beat" (1 or 3 in 4/4, 1 or 4 in 6/8), root is more valuable
-    measure = sequence.parent_measure(position)
-
-    if position == measure.sample_position() or (measure.sample_position() + position) == measure.subdivision_index():
-        score += vars.BIG_BEAT_BASS_ROOT
+    # If beat one, we definitely want to hear the bass note
+    if sequence.beat_at(position).is_first_beat():
+        score += vars.FIRST_BEAT_BASS_NOTE
 
     # Chord is the same as the last chord, and this is root note. Less important as root was likely
     # already established
-    if notes.same_species(last_chord.root, this_chord.root) and notes.same_species(candidate, this_chord.root):
+    if chords.same(last_chord, this_chord) and notes.same_species(candidate, this_chord.bass_note) and \
+            this_chord.root_in_bass():
         score += vars.BASS_ROOT_SAME_CHORD
 
-    # new chord, we definitely want to hear the root
-    if not notes.same_species(last_chord.root, this_chord.root) and notes.same_species(candidate, this_chord.root):
-        score += vars.BASS_ROOT_NEW_CHORD
+    # Bass note does not equal root note, therefore it is especially important
+    if notes.same_species(candidate, this_chord.bass_note) and not this_chord.root_in_bass():
+        score += vars.NON_ROOT_BASS_NOTE
+
+    # new chord, we definitely want to hear the bass_note
+    if not chords.same(last_chord, this_chord) and notes.same_species(candidate, this_chord.bass_note):
+        score += vars.BASS_NOTE_NEW_CHORD
 
     return score
 

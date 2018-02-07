@@ -33,15 +33,18 @@ HARMONY = 0.05
 # Prefer to have the bass play the root note on the first beat of the piece.
 FIRST_BEAT_BASS_ROOT = 0.10
 
-# Prefer to have the bass play the root on the big beats (1 or 3 in 4/4, 1 or 4 in 6/8, etc.)
-BIG_BEAT_BASS_ROOT = 0.05
+# Prefer to have the bass play the bass note on the beat 1
+FIRST_BEAT_BASS_NOTE = 0.05
 
 # Slight preference for the bass to choose the root. Comes into play when the same chord that is active
-# on any given beat is the same chord as the previous beat.
+# on any given beat is the same chord as the previous beat and the bass note isn't the root.
 BASS_ROOT_SAME_CHORD = 0.03
 
+# If there's a different note in the bass than the root, we should always choose it.
+NON_ROOT_BASS_NOTE = 0.5
+
 # When the chord changes, we really want to hear the root in the bass line.
-BASS_ROOT_NEW_CHORD = 0.5
+BASS_NOTE_NEW_CHORD = 0.5
 
 # As a line approaches the extremes of its register, start to decrease score. This variable is modified
 # as it moves closer to register extremes with the following:

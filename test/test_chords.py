@@ -23,11 +23,11 @@ class TestChords(TestCase):
         chord_progression.set().measure(3).beat(2).commit('C')
 
         self.assertEqual(chord_progression[(1 * (config.resolution * 4)) + (1 * config.resolution)],
-                         chords.CHORDS['E-'])
+                         chords.parse('E-'))
         self.assertEqual(chord_progression[(1 * (config.resolution * 4)) + (3 * config.resolution) + 5],
-                         chords.CHORDS['G'])
+                         chords.parse('G'))
         self.assertEqual(chord_progression[(3 * (config.resolution * 4)) + (3 * config.resolution) + 2],
-                         chords.CHORDS['C'])
+                         chords.parse('C'))
 
     def test_note_above(self):
         chord = chords.MajorChord(MIDI_VALUES['C1'])
@@ -76,6 +76,15 @@ class TestChords(TestCase):
         self.assertEqual(4, len(chord_progression.chords_in_measure(0)))
         self.assertEqual(0, len(chord_progression.chords_in_measure(1)))
         self.assertEqual(2, len(chord_progression.chords_in_measure(3)))
+
+    def test__ChordProgression_root_in_bass(self):
+        root_in_bass = chords.parse('C')
+        root_not_in_bass = chords.parse('C/G')
+
+        root_not_in_bass.root_in_bass()
+
+        self.assertTrue(root_in_bass.root_in_bass())
+        self.assertFalse(root_not_in_bass.root_in_bass())
 
 
 def set_config(chord_progression):

@@ -59,7 +59,10 @@ class TimeSignature:
         return 'num: %d || den: %d' % (self.numerator, self.denominator)
 
     def samples_per_measure(self):
-        return int(self.numerator * config.resolution / (self.denominator / 4))
+        return int(self.numerator * self.samples_per_beat())
+
+    def samples_per_beat(self):
+        return int(config.resolution / (self.denominator / 4))
 
 
 class TimeSignatures(collections.MutableMapping):
@@ -101,15 +104,13 @@ class TimeSignatures(collections.MutableMapping):
 
     def sample_position(self, measure=0, beat=0):
         position = 0
-        active_time_signature = self[0]
 
         for i in range(0, measure):
             active_time_signature = self[position]
-            position += active_time_signature.numerator * \
-                        (config.resolution / (active_time_signature.denominator / 4))
+            position += active_time_signature.samples_per_measure()
 
         active_time_signature = self[position]
-        position += beat * (config.resolution / (active_time_signature.denominator / 4))
+        position += beat * active_time_signature.samples_per_beat()
 
         return int(position)
 

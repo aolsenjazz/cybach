@@ -104,10 +104,11 @@ class Sequence(list):
         for measure in self.measures():
             beats.extend(measure.beats())
 
-    def beat_at(self, index):
-        samples = self.samples[index:index + config.resolution]
-        measure = self.parent_measure(index)
-        beat_index = (index - measure.sample_position()) / config.resolution
+    def beat_at(self, sample_index):
+        time_signature = config.time_signatures[sample_index]
+        samples = self.samples[sample_index:(sample_index + time_signature.samples_per_beat())]
+        measure = self.parent_measure(sample_index)
+        beat_index = (sample_index - measure.sample_position()) / config.resolution
 
         return Beat(samples, measure, beat_index)
 
@@ -265,21 +266,17 @@ class Measure(list):
     def __getitem__(self, index):
         return self.samples[index]
 
-    # TODO: this needs to go away
-    def subdivision_index(self):
-        return self.time_signature.numerator / 2 * config.resolution
-
     def sample_position(self):
         return int(config.time_signatures.sample_position(measure=self.measure_index))
 
     def beats(self):
         beats = []
         time_signature = config.time_signatures[self.sample_position()]
-        samples_per_beat = int(config.resolution / (time_signature.denominator / 4))
+        samples_per_beat = time_signature.samples_per_beat()
 
         j = 0
         while j < len(self.samples):
-            beats.append(Beat(self.samples[j:(j + samples_per_beat)], int(j / samples_per_beat), self))
+            beats.append(Beat(self.samples[j:j + samples_per_beat], int(j / samples_per_beat), self))
 
             j += samples_per_beat
 
@@ -406,8 +403,7 @@ class Beat(list):
 
     def sample_position(self):
         time_signature = config.time_signatures[self.parent.sample_position()]
-        return int(self.parent.sample_position() +
-                   (4 / time_signature.denominator * config.resolution) * self.beat_index)
+        return int(self.parent.sample_position() + time_signature.samples_per_beat() * self.beat_index)
 
     def pitch(self):
         return self.samples[0].pitch()

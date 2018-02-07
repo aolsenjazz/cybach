@@ -11,14 +11,20 @@ class TestRhythm(TestCase):
 
     def test__sample_position(self):
         ts = rhythm.TimeSignatures()
-        ts[0] = rhythm.TimeSignature(numerator=4, denominator=4)
-        ts[config.resolution * 4] = rhythm.TimeSignature(numerator=6, denominator=8)
-        ts[config.resolution * 4 + (config.resolution / 2) * 6] = rhythm.TimeSignature(numerator=3, denominator=2)
 
-        measure_index = 4
+        four_four = rhythm.TimeSignature(numerator=4, denominator=4)
+        six_eight = rhythm.TimeSignature(numerator=6, denominator=8)
+        three_two = rhythm.TimeSignature(numerator=3, denominator=2)
+
+        ts[0] = four_four
+        ts[four_four.samples_per_measure()] = six_eight
+        ts[four_four.samples_per_measure() + six_eight.samples_per_measure()] = three_two
+
+        measure_index = 3
         beat_index = 1
-        sample_position = (config.resolution * 4) + (config.resolution / 2 * 6) + (config.resolution * 2 * 3 * 2) + \
-                          (beat_index * config.resolution * 2)
+        sample_position = 1440
+
+        ts.sample_position(measure_index, beat_index)
 
         self.assertEqual(sample_position, ts.sample_position(measure_index, beat_index))
 
