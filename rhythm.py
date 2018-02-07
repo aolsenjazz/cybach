@@ -10,7 +10,7 @@ import itertools
 
 def phrase_combinations(beats_per_bar):
     if beats_per_bar <= 4:
-        return [tuple([1 for i in range(0, beats_per_bar)])]
+        return [tuple([i for i in range(0, beats_per_bar)])]
     else:
         max_phrases = int(math.floor(beats_per_bar / 2))
 
@@ -23,12 +23,17 @@ def phrase_combinations(beats_per_bar):
         parsed = set()
 
         for combination in all_combinations:
-            parsed.add(tuple([item for item in combination if item != 0]))
+            parsed_combination = tuple([item for item in combination if item != 0])
+            reformatted_combination = [0]
+
+            for item in parsed_combination:
+                if len(reformatted_combination) == len(parsed_combination):
+                    parsed.add(tuple(reformatted_combination))
+                    break
+
+                reformatted_combination.append(item + sum(reformatted_combination))
 
         return parsed
-
-
-
 
 def is_big_beat(time_signature, beat_base_zero):
     numerator = time_signature.numerator

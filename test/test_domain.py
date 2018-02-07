@@ -162,7 +162,7 @@ class TestDomain(TestCase):
         config.chord_progression.set().measure(0).beat(2).commit('G')
         config.chord_progression.set().measure(0).beat(4).commit('A')
 
-        phrasing = (2, 2, 3)
+        phrasing = (0, 2, 2)
         first_measure = sequence.measures()[0]
 
         self.assertEqual(phrasing, first_measure.chord_based_phrasing_prediction())
@@ -201,9 +201,9 @@ class TestDomain(TestCase):
         four_four_measure = measures[2]
         seven_eight_measure = measures[1]
 
-        self.assertEqual({(1, 1, 1, 1): 1}, four_four_measure.phrasing_candidates())
+        self.assertEqual({(0, 1, 2, 3): 1}, four_four_measure.phrasing_candidates())
         candidates = seven_eight_measure.phrasing_candidates()
-        self.assertEqual((3, 4), util.key_for_highest_value(candidates))
+        self.assertEqual((0, 3), util.key_for_highest_value(candidates))
 
 
 def set_config(soprano):

@@ -297,6 +297,7 @@ def initialize(soprano, chord_progression, key_signatures, part_configuration):
     config.chord_progression = chord_progression
     config.key_signatures = key_signatures
 
+    # TODO: this sure as hell shouldn't be here
     signatures_plus_end = config.time_signatures.keys()
     signatures_plus_end.append(len(soprano))
     signatures_plus_end.sort()
@@ -304,8 +305,10 @@ def initialize(soprano, chord_progression, key_signatures, part_configuration):
     for i in range(1, len(signatures_plus_end)):
         measures = [measure for measure in soprano.measures()
                     if last_position <= measure.sample_position() < signatures_plus_end[i]]
+
         winner = phrasing.get_most_likely_phrasing(measures)
-        print winner
+
+        config.time_signatures[measures[0].sample_position()].phrasing = winner
 
         last_position = signatures_plus_end[i]
 

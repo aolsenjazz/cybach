@@ -79,6 +79,15 @@ class Sequence(list):
     def __getslice__(self, i, j):
         return self.samples.__getslice__(i, j)
 
+    def strong_beat_positions(self):
+        beats = []
+
+        for measure in self.measures():
+            phrasing = config.time_signatures[measure.sample_position()].phrasing
+            beats.extend([measure.beats()[i].sample_position() for i in phrasing])
+
+        return beats
+
     def parent_measure(self, index):
         measures = self.measures()
         measures.reverse()
@@ -150,20 +159,20 @@ class Sequence(list):
         pattern.append(track)
         return pattern
 
-    def set_beat_at_position(self, position, note):
+    def set_pitch(self, start, end, note):
         if isinstance(note, Note):
             pitch = note.midi()
         elif isinstance(note, int):
             pitch = note
 
-        for i in range(position, position + config.resolution):
+        for i in range(start, end):
             if pitch == -1:
                 self[i] = Sample(-1, None)
                 continue
 
-            if i == position:
+            if i == start:
                 self[i] = Sample(pitch, Sample.TYPE_START)
-            elif i == position + config.resolution - 1:
+            elif i == end - 1:
                 self[i] = Sample(pitch, Sample.TYPE_END)
             else:
                 self[i] = Sample(pitch, Sample.TYPE_SUSTAIN)
@@ -278,13 +287,11 @@ class Measure(list):
 
     def phrasing_candidates(self):
         if self.time_signature.numerator <= 4:
-            return {tuple([1 for item in self.beats()]): 1}
+            return {tuple([i for i in range(0, len(self.beats()))]): 1}
         else:
             phrase_combinations = rhythm.phrase_combinations(self.time_signature.numerator)
             combination_map = {}
 
-            if self.time_signature.numerator == 7:
-                block = 1
             for combination in phrase_combinations:
                 combination_map[combination] = 0.0
 
@@ -340,10 +347,10 @@ class Measure(list):
         """
         Based on where the chords are in the measure, tries to guess the phrase groupings.
 
-        E.g. 1: in a 6/8 measure, if there are chords on 1 and 4 (1-based), will return phrase grouping of (1, 4)
-        E.g. 2: in a 7/8 measure, if there are chords on 1, 3, and 5 (1-based), will return phrase grouping of (1, 3, 5)
+        E.g. 1: in a 6/8 measure, if there are chords on 0 and 3, will return phrase grouping of (0, 3)
+        E.g. 2: in a 7/8 measure, if there are chords on 0, 2, and 4, will return phrase grouping of (0, 2, 4)
         """
-        candidate = []
+        candidate = [0]
         chords = config.chord_progression.chords_in_measure(self.measure_index)
         beats = self.beats()
         beats.sort()
@@ -356,10 +363,6 @@ class Measure(list):
                     chords.get(beat.sample_position() - len(beat), None) is None and \
                     chords.get(beat.sample_position() + len(beat), None) is None:
                 candidate.append(int(beat.beat_index - sum(candidate)))
-
-        remainder = self.time_signature.numerator - sum(candidate)
-        if remainder != 0:
-            candidate.append(remainder)
 
         return tuple(candidate)
 

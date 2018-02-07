@@ -43,33 +43,36 @@ if re.match(midi_regex, sys.argv[1]) and not os.path.isfile(sys.argv[1]):
     exit(2)
 
 # ~~~~~~~~ load midi and initialize parts ~~~~~~~~
+print 'Parsing MIDI and initializing...'
 songloader.load(sys.argv[1])
 
 # ~~~~~~~~ Write simple accompaniment, using only notes equal to time signature denominators ~~~~~~~~
 # ~~~~~~~~ (quarter notes for 4/4, eights for 6/8) ~~~~~~~~
 
+print 'Selecting initial accompaniment...'
 picker = note_picker.NotePicker()
-for measure in config.bass.measures():
-    for beat in measure.beats():
-        position = measure.sample_position() + beat.beat_index * config.resolution
-        pitches = picker.compute_next()
+strong_beats = config.soprano.strong_beat_positions()
+for i in range(0, len(strong_beats)):
+    start = strong_beats[i]
+    end = len(config.soprano) if i == len(strong_beats) - 1 else strong_beats[i + 1]
+    pitches = picker.compute(start)
 
-        config.bass.set_beat_at_position(position, pitches['bass'])
-        config.tenor.set_beat_at_position(position, pitches['tenor'])
-        config.alto.set_beat_at_position(position, pitches['alto'])
+    config.bass.set_pitch(start, end, pitches['bass'])
+    config.tenor.set_pitch(start, end, pitches['tenor'])
+    config.alto.set_pitch(start, end, pitches['alto'])
 
 # ~~~~~~~~ Increase or decrease motion by grouping notes together or adding inter-beat motion ~~~~~~~~
 
-motionizer = motion.Motionizer()
-for measure in config.bass.measures():
-    for beat in measure.beats():
-        position = measure.sample_position() + beat.beat_index * config.resolution
-
-        transforms = motionizer.compute_next(config.soprano, config.alto, config.tenor, config.bass)
-
-        config.alto.apply_transform(transforms['alto'])
-        config.tenor.apply_transform(transforms['tenor'])
-        config.bass.apply_transform(transforms['bass'])
+# motionizer = motion.Motionizer()
+# for measure in config.bass.measures():
+#     for beat in measure.beats():
+#         position = measure.sample_position() + beat.beat_index * config.resolution
+#
+#         transforms = motionizer.compute_next(config.soprano, config.alto, config.tenor, config.bass)
+#
+#         config.alto.apply_transform(transforms['alto'])
+#         config.tenor.apply_transform(transforms['tenor'])
+#         config.bass.apply_transform(transforms['bass'])
 
 # ~~~~~~~~ Write to file ~~~~~~~~
 folder = constants.OUT_DIR + config.name + '/'

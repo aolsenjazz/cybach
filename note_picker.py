@@ -11,16 +11,16 @@ class NotePicker:
     def __init__(self):
         self.position = 0
 
-    def compute_next(self):
-        chord = self.current_chord()
+    def compute(self, position):
+        self.position = position
 
+        chord = self.current_chord()
         candidates = self.get_candidate_matrix(chord)
 
-        winner = self.compute_winner(candidates)
+        return self.compute_winner(candidates)
 
-        self.position += config.resolution
-
-        return winner
+    def has_next(self):
+        return self.position == len(config.soprano)
 
     def get_candidate_matrix(self, chord):
         alto_candidates = config.alto.part.available_notes(chord)
