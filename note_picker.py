@@ -5,6 +5,7 @@ import transforms
 import config
 import vars
 import chords
+import time
 
 
 class NotePicker:
@@ -16,8 +17,9 @@ class NotePicker:
 
         chord = self.current_chord()
         candidates = self.get_candidate_matrix(chord)
+        winner = self.compute_winner(candidates)
 
-        return self.compute_winner(candidates)
+        return winner
 
     def has_next(self):
         return self.position == len(config.soprano)
@@ -54,14 +56,29 @@ class NotePicker:
         current_winner = None
 
         for candidate in candidates:
+            millis = time.time()
             candidate['soprano'] = (config.soprano[self.position].pitch())
+            # m0 = time.time()
+            # print 'CANDIDATE:', m0 - millis
 
             bass_score = get_bass_score(candidate['bass'], self.position, config.bass)
+            # m1 = time.time()
+            # print 'BASS:', m1 - millis
             tenor_score = get_tenor_score(candidate['tenor'], self.position, config.tenor)
+            # m2 = time.time()
+            # print 'TENOR:', m2 - m1
             alto_score = get_alto_score(candidate['alto'], self.position, config.alto)
+            # m3 = time.time()
+            # print 'ALTO:', m3 - m2
             harmony_score = get_harmony_score(candidate, self.current_chord())
+            # m4 = time.time()
+            # print 'HARMONY:', m4 - m3
             motion_score = get_motion_score(candidate, self.position, config.alto, config.tenor, config.bass)
+            # m5 = time.time()
+            # print 'MOTION:', m5 - m4
             rest_penalty = get_rest_penalty(candidate)
+            # m6 = time.time()
+            # print 'REST:', m6 - millis
 
             score = sum([bass_score, tenor_score, alto_score, harmony_score, motion_score, rest_penalty])
 
@@ -132,12 +149,25 @@ def get_alto_score(candidate, position, sequence):
     low_thresh = parts.ALTO.max_low
     high_thresh = parts.ALTO.max_high
 
+    millis = time.time()
     score += threshold_encroachment_score(candidate, low_thresh, low_thresh + 4)
+    m1 = time.time()
+    print 'thresh1', m1 - millis
     score += threshold_encroachment_score(candidate, high_thresh, high_thresh - 4)
+    m2 = time.time()
+    print 'thresh2', m2 - m1
     score += preferred_register_score(candidate, high_thresh, high_thresh - 7)
+    m3 = time.time()
+    print 'thresh3', m3 - m2
     score += motion_tendency_score(candidate, position, sequence)
+    m4 = time.time()
+    print 'thresh4', m4 - m3
     score += linear_motion_score(candidate, position, sequence)
+    m5 = time.time()
+    print 'thresh5', m5 - m4
     score += flicker_avoidance_score(candidate, position, sequence)
+    m6 = time.time()
+    print 'thresh6', m6 - m5
 
     return score
 
@@ -167,7 +197,7 @@ def flicker_avoidance_score(candidate, position, sequence):
 
 
 def get_harmony_score(candidate, chord):
-    base_position_chord = [notes.OCTAVES[n.species()][0] for n in chord.all()]
+    base_position_chord = [notes.OCTAVES[notes.species(n)][0] for n in chord.all_octaves()]
     base_position_candidate = [candidate[key] % 12 for key in candidate.keys()]
     added = []
     count = 0

@@ -384,9 +384,9 @@ class HalfStepNeighborTransform(EighthNoteTransform):
 
         this_sig = config.key_signatures[position]
 
-        return this_note.note.midi_value == next_note.note.midi_value \
+        return this_note.note.midi() == next_note.note.midi() \
             and (this_note.type == domain.Sample.TYPE_START and next_note.type == domain.Sample.TYPE_START) \
-            and (this_note.note.midi_value - 1 in this_sig.scale() or this_note.note.midi_value + 1 in this_sig.scale())
+            and (this_note.note.midi() - 1 in this_sig.scale() or this_note.note.midi() + 1 in this_sig.scale())
 
 
 class WholeStepNeighborTransform(EighthNoteTransform):
@@ -427,7 +427,7 @@ class WholeStepNeighborTransform(EighthNoteTransform):
 
         this_sig = config.key_signatures[position]
 
-        return this_note.note.midi_value == next_note.note.midi_value \
+        return this_note.note.midi() == next_note.note.midi() \
                and (this_note.type == domain.Sample.TYPE_START and next_note.type == domain.Sample.TYPE_START) \
                and (this_note.pitch() - 2 in this_sig.scale() or this_note.pitch() + 2 in this_sig.scale())
 

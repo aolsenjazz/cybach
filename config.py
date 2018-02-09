@@ -10,5 +10,6 @@
 # key_signatures: a map with key_signature information
 
 # resolution: samples per quarter note
+# song_length: length of the song in samples
 
 resolution = 96

@@ -148,7 +148,7 @@ class TestNotes(TestCase):
 
     def test_species(self):
         c = 24
-        note_c = notes.Note('C')
+        note_c = notes.parse('C')
         species_c = 'C'
         octave_c = 'C2'
 
@@ -158,3 +158,13 @@ class TestNotes(TestCase):
         self.assertEqual(notes.species(note_c), correct)
         self.assertEqual(notes.species(species_c), correct)
         self.assertEqual(notes.species(octave_c), correct)
+
+    def test__midi_value(self):
+        c0 = 0
+        c2 = 24
+
+        string_c0 = 'C'
+        string_c2 = 'C2'
+
+        self.assertEqual(c0, notes.midi_value(string_c0))
+        self.assertEqual(c2, notes.midi_value(string_c2))

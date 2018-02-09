@@ -6,18 +6,28 @@ from pprint import pformat
 TEXT_WITH_OCTAVE = re.compile('[A-G]#?[0-9]+')
 TEXT_WITHOUT_OCTAVE = re.compile('[A-G]#?')
 
-C = 'C'
+# Sorry PEP, some rules need to be broken
+C_FLAT  = 'Cb'
+C       = 'C'
 C_SHARP = 'C#'
-D = 'D'
+D_FLAT  = 'Db'
+D       = 'D'
 D_SHARP = 'D#'
-E = 'E'
-F = 'F'
+E_FLAT  = 'Eb'
+E       = 'E'
+E_SHARP = 'E#'
+F_FLAT  = 'Fb'
+F       = 'F'
 F_SHARP = 'F#'
-G = 'G'
+G_FLAT  = 'Gb'
+G       = 'G'
 G_SHARP = 'G#'
-A = 'A'
+A_FLAT  = 'Ab'
+A       = 'A'
 A_SHARP = 'A#'
-B = 'B'
+B_FLAT  = 'Bb'
+B       = 'B'
+B_SHARP = 'B#'
 
 MIDI_VALUES = {
     'C0': 0, 'C#0': 1, 'D0': 2, 'D#0': 3, 'E0': 4, 'F0': 5, 'F#0': 6, 'G0': 7, 'G#0': 8, 'A0': 9, 'A#0': 10, 'B0': 11,
@@ -33,36 +43,55 @@ MIDI_VALUES = {
     'C10': 120, 'C#10': 121, 'D10': 122, 'D#10': 123, 'E10': 124, 'F10': 125, 'F#10': 126, 'G10': 127
 }
 
+PITCH_COEFS = {
+    C: 0,
+    C_SHARP: 1,
+    D_FLAT: 1,
+    D: 2,
+    D_SHARP: 3,
+    E_FLAT: 3,
+    E: 4,
+    F_FLAT: 4,
+    E_SHARP: 5,
+    F: 5,
+    F_SHARP: 6,
+    G_FLAT: 6,
+    G: 7,
+    G_SHARP: 8,
+    A_FLAT: 8,
+    A: 9,
+    A_SHARP: 10,
+    B_FLAT: 10,
+    B: 11,
+    C_FLAT: 11
+}
+
 OCTAVES = {
-    C: [0, 12, 24, 36, 48, 60, 72, 84, 96, 108, 120],
-    C_SHARP: [1, 13, 25, 37, 49, 61, 73, 85, 97, 109, 121],
-    D: [2, 14, 26, 38, 50, 62, 74, 86, 98, 110, 122],
-    D_SHARP: [3, 15, 27, 39, 51, 63, 75, 87, 99, 111, 123],
-    E: [4, 16, 28, 40, 52, 64, 76, 88, 100, 112, 124],
-    F: [5, 17, 29, 41, 53, 65, 77, 89, 101, 113, 125],
-    F_SHARP: [6, 18, 30, 42, 54, 66, 78, 90, 102, 114, 126],
-    G: [7, 19, 31, 43, 55, 67, 79, 91, 103, 115, 127],
-    G_SHARP: [8, 20, 32, 44, 56, 68, 80, 92,  104, 116],
-    A: [9, 21, 33, 45, 57, 69, 81, 93, 105, 117],
-    A_SHARP: [10, 22, 34, 46, 58, 70, 82, 94, 106, 118],
-    B: [11, 23, 35, 47, 59, 71, 83, 95, 107, 119]
+    C:       range(0, 128)[::12],
+    C_SHARP: range(0, 128)[PITCH_COEFS[C_SHARP]::12],
+    D_FLAT: range(0, 128)[PITCH_COEFS[D_FLAT]::12],
+    D: range(0, 128)[PITCH_COEFS[D]::12],
+    D_SHARP: range(0, 128)[PITCH_COEFS[D_SHARP]::12],
+    E_FLAT: range(0, 128)[PITCH_COEFS[E_FLAT]::12],
+    E: range(0, 128)[PITCH_COEFS[E]::12],
+    F_FLAT: range(0, 128)[PITCH_COEFS[F_FLAT]::12],
+    E_SHARP: range(0, 128)[PITCH_COEFS[E_SHARP]::12],
+    F: range(0, 128)[PITCH_COEFS[F]::12],
+    F_SHARP: range(0, 128)[PITCH_COEFS[F_SHARP]::12],
+    G_FLAT: range(0, 128)[PITCH_COEFS[G_FLAT]::12],
+    G: range(0, 128)[PITCH_COEFS[G]::12],
+    G_SHARP: range(0, 128)[PITCH_COEFS[G_SHARP]::12],
+    A_FLAT: range(0, 128)[PITCH_COEFS[A_FLAT]::12],
+    A: range(0, 128)[PITCH_COEFS[A]::12],
+    A_SHARP: range(0, 128)[PITCH_COEFS[A_SHARP]::12],
+    B_FLAT: range(0, 128)[PITCH_COEFS[B_FLAT]::12],
+    B: range(0, 128)[PITCH_COEFS[B]::12],
+    C_FLAT: range(0, 128)[PITCH_COEFS[C_FLAT]::12]
 }
 
 
 def species(value):
-    parsed_value = None
-
-    if isinstance(value, Note):
-        parsed_value = value.midi()
-    elif isinstance(value, int):
-        parsed_value = value
-    elif isinstance(value, str):
-        if TEXT_WITH_OCTAVE.match(value):
-            return value[0:len(value) - 1]
-        elif TEXT_WITHOUT_OCTAVE.match(value):
-            return value
-    else:
-        raise TypeError('must submit either int, note, or str')
+    parsed_value = parse(value).midi()
 
     for key in MIDI_VALUES:
         remainder = parsed_value % 12
@@ -238,28 +267,47 @@ def whole_half(pitch):
     return all_pitches
 
 
+def midi_value(string):
+    if TEXT_WITH_OCTAVE.match(string):
+        value_with_octave = string
+    elif TEXT_WITHOUT_OCTAVE.match(string):
+        value_with_octave = string + '0'
+    else:
+        raise ValueError('Invalid string value ' + value + ' submitted')
+
+    note_without_octave = ''.join(c for c in value_with_octave if not c.isdigit())
+    octave = int(''.join(c for c in value_with_octave if c.isdigit()))
+    coef = PITCH_COEFS[[key for key in PITCH_COEFS.keys() if key.lower() == note_without_octave.lower()][0]]
+    return 12 * octave + coef
+
+
+def parse(value):
+    if isinstance(value, int):
+        if -1 <= value <= 127:
+            return Note(value)
+        else:
+            raise ValueError('value ' + str(value) + ' is out of midi range')
+    elif isinstance(value, str):
+        return Note(midi_value(value))
+    elif isinstance(value, Note):
+        return value
+    else:
+        raise TypeError(str(value) + ' is not a valid Note, int or string')
+
+
 class Note:
 
     def __init__(self, value):
-        if isinstance(value, int):
-            self.midi_value = value
-        elif isinstance(value, str):
-            if TEXT_WITH_OCTAVE.match(value):
-                self.midi_value = MIDI_VALUES[value]
-            elif TEXT_WITHOUT_OCTAVE.match(value):
-                self.midi_value = MIDI_VALUES[value + '0']
-        else:
-            raise TypeError('submit a valid int or string')
-            
+        self._midi_value = value
 
     def midi(self):
-        return self.midi_value
+        return self._midi_value
 
     def species(self):
         return species(self.midi())
 
     def is_empty(self):
-        return self.midi_value == -1
+        return self._midi_value == -1
 
     def __repr__(self):
-        return '\n%s' % self.midi_value
+        return '\n%s' % self._midi_value

@@ -9,6 +9,7 @@ import domain
 import constants
 import util
 import phrasing
+import ks_detector
 
 
 def __read_midi(file_name):
@@ -294,8 +295,10 @@ def initialize(soprano, chord_progression, key_signatures, part_configuration):
     config.tenor = domain.Sequence(seed=soprano, part=parts.TENOR, configuration={})
     config.bass = domain.Sequence(seed=soprano, part=parts.BASS, configuration={'motion_tendency': 0.3})
 
+    config.song_length = len(soprano)
     config.chord_progression = chord_progression
-    config.key_signatures = key_signatures
+    # config.key_signatures = key_signatures
+    ks_detector.detect_and_set_key_signatures()
 
     # TODO: this sure as hell shouldn't be here
     signatures_plus_end = config.time_signatures.keys()

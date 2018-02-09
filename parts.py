@@ -12,8 +12,8 @@ class Part:
     def available_notes(self, chord):
         available = []
 
-        for pitch in chord.all():
-            octaves = notes.OCTAVES[notes.Note(pitch.midi()).species()]
+        for pitch in chord.all_octaves():
+            octaves = notes.OCTAVES[notes.species(pitch)]
             for octave in octaves:
                 if self.max_low < octave < self.max_high:
                     available.append(octave)

@@ -1,5 +1,59 @@
 # Algorithm variables
 
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~ KEY SIGNATURE RELEVANCE VARIABLES ~~~~~~~~~~~~~~~~~~~~~~~~~
+#
+# Variables that help determine key signatures by providing a specific relevance of
+# chords to specific key signatures.
+#
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# Represents I or i in the key (major and minor respectively)
+ONE_CHORD_HARMONY = 0.05
+
+# Represents ii or ii(dim) in the key (major and minor respectively)
+TWO_CHORD_HARMONY = 0.05
+
+# Represents iii or III in the key (major and minor respectively)
+THREE_CHORD_HARMONY = 0.05
+
+# Represents IV or iv in the key (major and minor)
+FOUR_CHORD_HARMONY = 0.05
+
+# Represents V7 in the key
+FIVE_DOMINANT_HARMONY = 0.20
+
+# Represents V in the key
+FIVE_MAJOR_HARMONY = 0.05
+
+# Represents vi or VI in the key (major and minor)
+SIX_CHORD_HARMONY = 0.05
+
+# Represents vii(dim) in the keys (both major and minor)
+MAJOR_SEVEN_DIMINISHED_HARMONY = 0.05
+
+# Dominant V's are much more valuable in functional relationships
+DOMINANT_FIVE_IN_FUNCTIONAL_RELEVANCE = 0.20
+
+# Major V's are much less valuable than dominant V's in functional relationships
+MAJOR_FIVE_IN_FUNCTIONAL_RELEVANCE = 0.05
+
+# Represents a V -> I in a key
+FIVE_ONE_FUNCTIONALITY = 0.25
+
+# Represents a vii -> I in a key
+SEVEN_ONE_FUNCTIONALITY = 0.10
+
+# Represents a ii -> V in a key
+TWO_FIVE_FUNCTIONALITY = 0.10
+
+# Represents a IV -> V in a key
+FOUR_FIVE_FUNCTIONALITY = 0.10
+
+# Represents a V -> vi relationship
+FIVE_SIX_FUNCTIONALITY = 0.10
+
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~ MISC VARIABLES ~~~~~~~~~~~~~~~~~~~~~~~~~
 #
 # Variables whose family of variables is significant enough to have its own section.
