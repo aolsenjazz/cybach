@@ -17,7 +17,7 @@ import constants
 import parts
 import config
 import examples
-import songloader
+import fileloader
 
 # ~~~~~~~~ verify command line arguments ~~~~~~~~
 midi_regex = re.compile('.+\.(midi|mid)')
@@ -28,11 +28,11 @@ if len(sys.argv) < 2:
 
 if sys.argv[1] == 'examples':
     print 'Valid example names:'
-    for key in examples.ALL:
+    for key in examples.ALL.keys():
         print key
     exit(1)
 
-if not re.match(midi_regex, sys.argv[1]) and sys.argv[1] not in examples.ALL:
+if not re.match(midi_regex, sys.argv[1]) and sys.argv[1] not in examples.ALL.keys():
     print 'Must supply a valid midi file or example name.'
     print 'To find example names, run cybach.py examples'
     print 'Midi file example: python cybach.py simple.mid'
@@ -44,7 +44,7 @@ if re.match(midi_regex, sys.argv[1]) and not os.path.isfile(sys.argv[1]):
 
 # ~~~~~~~~ load midi and initialize parts ~~~~~~~~
 print 'Parsing MIDI and initializing...'
-songloader.load(sys.argv[1])
+fileloader.load(sys.argv[1], False)
 
 # ~~~~~~~~ Write simple accompaniment, using only notes equal to time signature denominators ~~~~~~~~
 # ~~~~~~~~ (quarter notes for 4/4, eights for 6/8) ~~~~~~~~

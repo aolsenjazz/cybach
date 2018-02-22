@@ -61,7 +61,10 @@ def detect_and_set_key_signatures():
                 config.key_signatures[last_key_signature_end] = __most_likely_key(signature_pool, chord_segment)
             else:
                 this_segments_keys = [k for k in keys if last_key_signature_end <= k < key]
-                config.key_signatures.update({key: ks.parse(chord_progression[key]) for key in this_segments_keys})
+                keys = {key: __most_likely_key(all_key_signatures, {key: chord_progression[key]})
+                        for key
+                        in this_segments_keys}
+                config.key_signatures.update(keys)
 
             last_key_signature_end = key
             removed = [key_sig for key_sig in potential_keys if not key_sig.is_functional(chord)]

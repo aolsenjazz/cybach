@@ -45,7 +45,9 @@ def contains_harmony(pattern):
     """
     active_pitches = []
 
+    i = 0
     for event in pattern[0]:
+        i += 1 # position of next event
         if isinstance(event, midi.NoteOnEvent):
             active_pitches.append(event.data[0])
         elif isinstance(event, midi.NoteOffEvent):
@@ -55,7 +57,7 @@ def contains_harmony(pattern):
             active_pitches.remove(event.data[0])
 
         if isinstance(event, midi.NoteOnEvent) and len(active_pitches) > 1:
-            if event.tick > 0:
+            if event.tick > 0 and not isinstance(pattern[0][i], midi.NoteOffEvent):
                 return True
 
     return False

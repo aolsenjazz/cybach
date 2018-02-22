@@ -1,29 +1,35 @@
-import pat_util
+import midi
+
 import chords
 import config
-import ks
-import parts
-import rhythm
-import midi
-import domain
 import constants
-import util
-import phrasing
+import domain
 import ks_detector
+import parts
+import pat_util
+import phrasing
+import rhythm
 
 
+class Example:
 
+    def __init__(self, name, chord_progression):
+        self._file_name = constants.EXAMPLES + name + '.mid'
+        self._chord_progression = chord_progression
+
+    def file_name(self):
+        return self._file_name
+
+    def chord_progression(self):
+        return self._chord_progression()
+
+
+# it's so frustrating that python doesn't have a good implementation of overriding abstract classes like in java.
+# we deal with it by declaring individual methods for chord progressions so that chord progression code isn't executed
+# when the file is read.
 
 
 def simple():
-    pattern = __read_midi(constants.EXAMPLES + 'simple.mid')
-    soprano = domain.Sequence(pattern[0])
-
-    config.time_signatures = soprano.time_signatures
-
-    key_signatures = ks.KeySignatures()
-    key_signatures.set().measure(0).commit('C')
-
     chord_progression = chords.ChordProgression()
     chord_progression.set().measure(0).beat(0).commit('C')
     chord_progression.set().measure(0).beat(2).commit('A-')
@@ -34,30 +40,10 @@ def simple():
     chord_progression.set().measure(2).beat(2).commit('C')
     chord_progression.set().measure(3).beat(2).commit('G')
     chord_progression.set().measure(3).beat(3).commit('E7')
-
-    initialize(soprano, chord_progression, key_signatures, {})
+    return chord_progression
 
 
 def mixed_meter():
-    pattern = __read_midi(constants.EXAMPLES + 'mixed_meter.mid')
-    soprano = domain.Sequence(pattern[0])
-
-    config.time_signatures = rhythm.TimeSignatures()
-    config.time_signatures[0] = rhythm.TimeSignature(numerator=4, denominator=4)
-    config.time_signatures[768] = rhythm.TimeSignature(numerator=6, denominator=8)
-    config.time_signatures[1344] = rhythm.TimeSignature(numerator=7, denominator=8)
-    config.time_signatures[2016] = rhythm.TimeSignature(numerator=4, denominator=16)
-    config.time_signatures[2208] = rhythm.TimeSignature(numerator=3, denominator=2)
-    config.time_signatures[3360] = rhythm.TimeSignature(numerator=4, denominator=4)
-
-    key_signatures = ks.KeySignatures()
-    key_signatures.set().measure(0).commit('C')
-    key_signatures.set().measure(3).commit('G')
-    key_signatures.set().measure(4).commit('C')
-    key_signatures.set().measure(7).commit('D')
-    key_signatures.set().measure(9).commit('G')
-    key_signatures.set().measure(9).beat(2).commit('C')
-
     chord_progression = chords.ChordProgression()
     chord_progression.set().measure(0).beat(0).commit('C')
     chord_progression.set().measure(0).beat(2).commit('G')
@@ -79,16 +65,10 @@ def mixed_meter():
     chord_progression.set().measure(9).beat(0).commit('D7')
     chord_progression.set().measure(9).beat(2).commit('G7')
     chord_progression.set().measure(10).beat(0).commit('C')
-
-    initialize(soprano, chord_progression, key_signatures, {})
+    return chord_progression
 
 
 def key_changes():
-    pattern = __read_midi(constants.EXAMPLES + 'key_changes.mid')
-    soprano = domain.Sequence(pattern[0])
-
-    config.time_signatures = soprano.time_signatures
-
     chord_progression = chords.ChordProgression()
     chord_progression.set().measure(0).beat(0).commit('C')
     chord_progression.set().measure(0).beat(2).commit('F-')
@@ -100,21 +80,10 @@ def key_changes():
     chord_progression.set().measure(3).beat(0).commit('B-')
     chord_progression.set().measure(3).beat(2).commit('E7')
     chord_progression.set().measure(4).beat(0).commit('A')
-
-    initialize(soprano, chord_progression, None, {})
-
-
-def time_changes():
-    return 1
+    return chord_progression
 
 
 def two_four():
-    pattern = __read_midi(constants.EXAMPLES + 'two_four.mid')
-    soprano = domain.Sequence(pattern[0])
-
-    time_signatures = rhythm.TimeSignatures()
-    time_signatures[0] = midi.TimeSignatureEvent(tick=0, data=[2, 2, 36, 8])
-
     chord_progression = chords.ChordProgression()
     chord_progression.set().measure(0).beat(0).commit('C')
     chord_progression.set().measure(2).beat(0).commit('G')
@@ -124,34 +93,20 @@ def two_four():
     chord_progression.set().measure(5).beat(0).commit('A-')
     chord_progression.set().measure(6).beat(0).commit('F')
     chord_progression.set().measure(7).beat(0).commit('G')
-
-    config.initialize(pattern.resolution, soprano, chord_progression, time_signatures, key_signatures, {})
+    return chord_progression
 
 
 def three_four():
-    pattern = __read_midi(constants.EXAMPLES + 'three_four.mid')
-    soprano = domain.Sequence(pattern[0])
-
-    time_signatures = rhythm.TimeSignatures()
-    time_signatures[0] = midi.TimeSignatureEvent(tick=0, data=[3, 2, 36, 8])
-
     chord_progression = chords.ChordProgression()
     chord_progression.set().measure(0).beat(0).commit('C-')
     chord_progression.set().measure(1).beat(0).commit('Eb')
     chord_progression.set().measure(2).beat(0).commit('Ab')
     chord_progression.set().measure(3).beat(0).commit('G7')
     chord_progression.set().measure(3).beat(2).commit('C-')
-
-    config.initialize(pattern.resolution, soprano, chord_progression, time_signatures, key_signatures, {})
+    return chord_progression
 
 
 def six_four():
-    pattern = __read_midi(constants.EXAMPLES + 'six_four.mid')
-    soprano = domain.Sequence(pattern[0])
-
-    time_signatures = rhythm.TimeSignatures()
-    time_signatures[0] = midi.TimeSignatureEvent(tick=0, data=[6, 2, 36, 8])
-
     chord_progression = chords.ChordProgression()
     chord_progression.set().measure(0).beat(0).commit('C-')
     chord_progression.set().measure(0).beat(3).commit('Ab')
@@ -162,17 +117,10 @@ def six_four():
     chord_progression.set().measure(2).beat(3).commit('C-')
     chord_progression.set().measure(3).beat(0).commit('Ddim')
     chord_progression.set().measure(3).beat(3).commit('G7')
-
-    config.initialize(pattern.resolution, soprano, chord_progression, time_signatures, key_signatures, {})
+    return chord_progression
 
 
 def four_eight():
-    pattern = __read_midi(constants.EXAMPLES + 'four_eight.mid')
-    soprano = domain.Sequence(pattern[0])
-
-    time_signatures = rhythm.TimeSignatures()
-    time_signatures[0] = midi.TimeSignatureEvent(tick=0, data=[4, 3, 36, 8])
-
     chord_progression = chords.ChordProgression()
     chord_progression.set().measure(0).beat(0).commit('F')
     chord_progression.set().measure(0).beat(1).commit('C7')
@@ -186,18 +134,10 @@ def four_eight():
     chord_progression.set().measure(2).beat(3).commit('Bb')
     chord_progression.set().measure(3).beat(0).commit('F')
     chord_progression.set().measure(3).beat(2).commit('C7')
-
-    config.initialize(pattern.resolution, soprano, chord_progression, time_signatures, key_signatures, {})
+    return chord_progression
 
 
 def six_eight():
-    pattern = __read_midi(constants.EXAMPLES + 'six_eight.mid')
-    pattern = pat_util.scale_tick_values(pattern, 16, config.resolution)
-    soprano = domain.Sequence(pattern[0])
-
-    time_signatures = rhythm.TimeSignatures()
-    time_signatures[0] = midi.TimeSignatureEvent(tick=0, data=[6, 3, 36, 8])
-
     chord_progression = chords.ChordProgression()
     chord_progression.set().measure(0).beat(0).commit('C-')
     chord_progression.set().measure(0).beat(3).commit('Ab')
@@ -207,18 +147,10 @@ def six_eight():
     chord_progression.set().measure(2).beat(0).commit('Eb')
     chord_progression.set().measure(2).beat(3).commit('F-')
     chord_progression.set().measure(3).beat(0).commit('G7')
-
-    config.initialize(pattern.resolution, soprano, chord_progression, time_signatures, key_signatures, {})
+    return chord_progression
 
 
 def nine_eight():
-    pattern = __read_midi(constants.EXAMPLES + 'nine_eight.mid')
-    pattern = pat_util.scale_tick_values(pattern, 36, config.resolution * 3)
-    soprano = domain.Sequence(pattern[0])
-
-    time_signatures = rhythm.TimeSignatures()
-    time_signatures[0] = midi.TimeSignatureEvent(tick=0, data=[9, 3, 36, 8])
-
     chord_progression = chords.ChordProgression()
     chord_progression.set().measure(0).beat(0).commit('G')
     chord_progression.set().measure(0).beat(2).commit('D7')
@@ -231,20 +163,14 @@ def nine_eight():
     chord_progression.set().measure(3).beat(0).commit('D')
     chord_progression.set().measure(3).beat(1).commit('A7')
     chord_progression.set().measure(3).beat(2).commit('D')
-
-    config.initialize(pattern.resolution, soprano, chord_progression, time_signatures, key_signatures, {})
+    return chord_progression
 
 
 def twelve_eight():
     return 1
 
+
 def __bach():
-    pattern = __read_midi(constants.EXAMPLES + 'bach.mid')
-    soprano = domain.Sequence(pattern[0])
-
-    time_signatures = rhythm.TimeSignatures()
-    time_signatures[0] = midi.TimeSignatureEvent(tick=0, data=[3, 2, 36, 8])
-
     chord_progression = chords.ChordProgression()
     chord_progression.set().measure(0).beat(0).commit('C-')
     chord_progression.set().measure(1).beat(0).commit('Eb')
@@ -252,35 +178,32 @@ def __bach():
     chord_progression.set().measure(3).beat(0).commit('G7')
     chord_progression.set().measure(3).beat(2).commit('C-')
 
-    __set_config(soprano, chord_progression, key_signatures, time_signatures)
+    return {
+        'name': constants.EXAMPLES + 'bach.mid',
+        'chord_progression': chord_progression
+    }
 
 
-def initialize(soprano, chord_progression, part_configuration):
-    config.chord_progression = chord_progression
-    ks_detector.detect_and_set_key_signatures()
-
-    config.soprano = soprano
-    config.alto = domain.Sequence(seed=soprano, part=parts.ALTO, configuration={})
-    config.tenor = domain.Sequence(seed=soprano, part=parts.TENOR, configuration={})
-    config.bass = domain.Sequence(seed=soprano, part=parts.BASS, configuration={'motion_tendency': 0.3})
-
-    phrasing.detect_and_set_measure_phrasing()
-
-
-def load(name):
-    config.name = name
-    ALL.get(name, None)()
-
+_SIMPLE = Example('simple', simple)
+_KEY_CHANGES = Example('key_changes', key_changes)
+_MIXED_METER = Example('mixed_meter', mixed_meter)
+_TWO_FOUR = Example('two_four', two_four)
+_THREE_FOUR = Example('three_four', three_four)
+_SIX_FOUR = Example('six_four', six_four)
+_FOUR_EIGHT = Example('four_eight', four_eight)
+_SIX_EIGHT = Example('six_eight', six_eight)
+_NINE_EIGHT = Example('nine_eight', nine_eight)
+_TWELVE_EIGHT = Example('twelve_eight', twelve_eight)
 
 ALL = {
-    'simple': simple,
-    'key_changes': key_changes,
-    'mixed_meter': mixed_meter,
-    'two_four': two_four,
-    'three_four': three_four,
-    'six_four': six_four,
-    'four_eight': four_eight,
-    'six_eight': six_eight,
-    'nine_eight': nine_eight,
-    'twelve_eight': twelve_eight
+    'simple': _SIMPLE,
+    'key_changes': _KEY_CHANGES,
+    'mixed_meter': _MIXED_METER,
+    'two_four': _TWO_FOUR,
+    'three_four': _THREE_FOUR,
+    'six_four': _SIX_FOUR,
+    'four_eight': _FOUR_EIGHT,
+    'six_eight': _SIX_EIGHT,
+    'nine_eight': _NINE_EIGHT,
+    'twelve_eight': _TWELVE_EIGHT
 }
