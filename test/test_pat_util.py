@@ -21,6 +21,11 @@ class TestPatUtil(TestCase):
         pattern = read_pattern(constants.TEST_MIDI + 'contains_harmony.mid')
         self.assertTrue(pat_util.contains_harmony(pattern))
 
+    def test__get_time_signature_events(self):
+        pattern = read_pattern(constants.TEST_MIDI + 'mixed_meter.mid')
+        signatures = pat_util.get_time_signature_events(pattern)
+        self.assertEqual(6, len(signatures))
+
 
 def read_pattern(file_name):
     try:

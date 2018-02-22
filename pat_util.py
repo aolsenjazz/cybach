@@ -61,6 +61,18 @@ def contains_harmony(pattern):
     return False
 
 
+def get_time_signature_events(pattern):
+    time_signature_events = {}
+
+    position = 0
+    for event in pattern[0]:
+        position += event.tick
+        if isinstance(event, midi.TimeSignatureEvent):
+            time_signature_events[position] = event
+
+    return time_signature_events
+
+
 def contains_time_signature_data(pattern):
     for event in pattern[0]:
         if isinstance(event, midi.TimeSignatureEvent):

@@ -35,6 +35,7 @@ def phrase_combinations(beats_per_bar):
 
         return parsed
 
+# TODO: this has to go
 def is_big_beat(time_signature, beat_base_zero):
     numerator = time_signature.numerator
 
@@ -113,19 +114,3 @@ class TimeSignatures(collections.MutableMapping):
         position += beat * active_time_signature.samples_per_beat()
 
         return int(position)
-
-
-def is_four_four(time_signature_event):
-    return time_signature_event.numerator == 4 and time_signature_event.denominator == 4
-
-
-def is_six_eight(time_signature_event):
-    return time_signature_event.numerator == 6 and time_signature_event.denominator == 8
-
-
-def is_two_four(time_signature_event):
-    return time_signature_event.numerator == 2 and time_signature_event.denominator == 4
-
-
-def is_three_four(time_signature_event):
-    return time_signature_event.numerator == 3 and time_signature_event.denominator == 4

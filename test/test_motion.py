@@ -15,7 +15,7 @@ class TestMotion(TestCase):
 
     def test__note_duration_at_position(self):
         pattern = read_pattern(constants.TEST_MIDI + '2beat_join.mid')
-        sequence = domain.Sequence(pattern=pattern[0])
+        sequence = domain.Sequence(track=pattern[0])
 
         self.assertEqual(motion.note_duration_at_position(0, sequence), 2)
 

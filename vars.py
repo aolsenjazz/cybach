@@ -9,7 +9,7 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # Represents I or i in the key (major and minor respectively)
-ONE_CHORD_HARMONY = 0.05
+ONE_CHORD_HARMONY = 0.10
 
 # Represents ii or ii(dim) in the key (major and minor respectively)
 TWO_CHORD_HARMONY = 0.05
@@ -53,6 +53,11 @@ FOUR_FIVE_FUNCTIONALITY = 0.10
 # Represents a V -> vi relationship
 FIVE_SIX_FUNCTIONALITY = 0.10
 
+# Chords that are on beat 1 are more indicative of a specific key signature
+BEAT_ONE_COEF = 1.5
+
+# The first chords of the piece is ultra indicative of the key
+FIRST_BEAT_COEF = 2.5
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~ MISC VARIABLES ~~~~~~~~~~~~~~~~~~~~~~~~~
 #

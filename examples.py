@@ -12,14 +12,7 @@ import phrasing
 import ks_detector
 
 
-def __read_midi(file_name):
-    try:
-        pattern = midi.read_midifile(file_name)
-        config.resolution = pattern.resolution
-        return pattern
-    except TypeError:
-        print 'Midi file is malformed. Try exporting a new one from any DAW'
-        exit(2)
+
 
 
 def simple():
@@ -94,13 +87,7 @@ def key_changes():
     pattern = __read_midi(constants.EXAMPLES + 'key_changes.mid')
     soprano = domain.Sequence(pattern[0])
 
-    time_signatures = soprano.time_signatures
-
-    key_signatures = ks.KeySignatures()
-    key_signatures.set().measure(0).commit('C')
-    key_signatures.set().measure(0).beat(2).commit('Eb')
-    key_signatures.set().measure(2).commit('G')
-    key_signatures.set().measure(3).commit('A')
+    config.time_signatures = soprano.time_signatures
 
     chord_progression = chords.ChordProgression()
     chord_progression.set().measure(0).beat(0).commit('C')
@@ -114,7 +101,7 @@ def key_changes():
     chord_progression.set().measure(3).beat(2).commit('E7')
     chord_progression.set().measure(4).beat(0).commit('A')
 
-    config.initialize(pattern.resolution, soprano, chord_progression, time_signatures, key_signatures, {})
+    initialize(soprano, chord_progression, None, {})
 
 
 def time_changes():
@@ -127,9 +114,6 @@ def two_four():
 
     time_signatures = rhythm.TimeSignatures()
     time_signatures[0] = midi.TimeSignatureEvent(tick=0, data=[2, 2, 36, 8])
-
-    key_signatures = ks.KeySignatures()
-    key_signatures.set().measure(0).commit('C')
 
     chord_progression = chords.ChordProgression()
     chord_progression.set().measure(0).beat(0).commit('C')
@@ -151,9 +135,6 @@ def three_four():
     time_signatures = rhythm.TimeSignatures()
     time_signatures[0] = midi.TimeSignatureEvent(tick=0, data=[3, 2, 36, 8])
 
-    key_signatures = ks.KeySignatures()
-    key_signatures.set().measure(0).commit('C-')
-
     chord_progression = chords.ChordProgression()
     chord_progression.set().measure(0).beat(0).commit('C-')
     chord_progression.set().measure(1).beat(0).commit('Eb')
@@ -170,9 +151,6 @@ def six_four():
 
     time_signatures = rhythm.TimeSignatures()
     time_signatures[0] = midi.TimeSignatureEvent(tick=0, data=[6, 2, 36, 8])
-
-    key_signatures = ks.KeySignatures()
-    key_signatures.set().measure(0).commit('C-')
 
     chord_progression = chords.ChordProgression()
     chord_progression.set().measure(0).beat(0).commit('C-')
@@ -194,9 +172,6 @@ def four_eight():
 
     time_signatures = rhythm.TimeSignatures()
     time_signatures[0] = midi.TimeSignatureEvent(tick=0, data=[4, 3, 36, 8])
-
-    key_signatures = ks.KeySignatures()
-    key_signatures.set().measure(0).commit('F')
 
     chord_progression = chords.ChordProgression()
     chord_progression.set().measure(0).beat(0).commit('F')
@@ -223,9 +198,6 @@ def six_eight():
     time_signatures = rhythm.TimeSignatures()
     time_signatures[0] = midi.TimeSignatureEvent(tick=0, data=[6, 3, 36, 8])
 
-    key_signatures = ks.KeySignatures()
-    key_signatures.set().measure(0).commit('C-')
-
     chord_progression = chords.ChordProgression()
     chord_progression.set().measure(0).beat(0).commit('C-')
     chord_progression.set().measure(0).beat(3).commit('Ab')
@@ -246,9 +218,6 @@ def nine_eight():
 
     time_signatures = rhythm.TimeSignatures()
     time_signatures[0] = midi.TimeSignatureEvent(tick=0, data=[9, 3, 36, 8])
-
-    key_signatures = ks.KeySignatures()
-    key_signatures.set().measure(0).commit('G')
 
     chord_progression = chords.ChordProgression()
     chord_progression.set().measure(0).beat(0).commit('G')
@@ -276,9 +245,6 @@ def __bach():
     time_signatures = rhythm.TimeSignatures()
     time_signatures[0] = midi.TimeSignatureEvent(tick=0, data=[3, 2, 36, 8])
 
-    key_signatures = ks.KeySignatures()
-    key_signatures.set().measure(0).commit('G')
-
     chord_progression = chords.ChordProgression()
     chord_progression.set().measure(0).beat(0).commit('C-')
     chord_progression.set().measure(1).beat(0).commit('Eb')
@@ -289,32 +255,16 @@ def __bach():
     __set_config(soprano, chord_progression, key_signatures, time_signatures)
 
 
-def initialize(soprano, chord_progression, key_signatures, part_configuration):
+def initialize(soprano, chord_progression, part_configuration):
+    config.chord_progression = chord_progression
+    ks_detector.detect_and_set_key_signatures()
+
     config.soprano = soprano
     config.alto = domain.Sequence(seed=soprano, part=parts.ALTO, configuration={})
     config.tenor = domain.Sequence(seed=soprano, part=parts.TENOR, configuration={})
     config.bass = domain.Sequence(seed=soprano, part=parts.BASS, configuration={'motion_tendency': 0.3})
 
-    config.song_length = len(soprano)
-    config.chord_progression = chord_progression
-    # config.key_signatures = key_signatures
-    ks_detector.detect_and_set_key_signatures()
-
-    # TODO: this sure as hell shouldn't be here
-    signatures_plus_end = config.time_signatures.keys()
-    signatures_plus_end.append(len(soprano))
-    signatures_plus_end.sort()
-    last_position = signatures_plus_end[0]
-    for i in range(1, len(signatures_plus_end)):
-        measures = [measure for measure in soprano.measures()
-                    if last_position <= measure.sample_position() < signatures_plus_end[i]]
-
-        winner = phrasing.get_most_likely_phrasing(measures)
-
-        config.time_signatures[measures[0].sample_position()].phrasing = winner
-
-        last_position = signatures_plus_end[i]
-
+    phrasing.detect_and_set_measure_phrasing()
 
 
 def load(name):

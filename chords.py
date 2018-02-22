@@ -16,15 +16,15 @@ RE_CHORD_ROOT = re.compile('[A-Ga-g]([Bb]|#)?')
 class Chord:
 
     def __init__(self, root, bass_note=None):
-        self.root = notes.parse(root)
+        self._root = notes.parse(root)
 
         if bass_note is None:
-            self.bass_note = self.root
+            self.bass_note = self._root
         else:
             self.bass_note = notes.parse(bass_note)
 
     def __repr__(self):
-        return str(self.root)
+        return self.string()
 
     def __contains__(self, note):
         parsed = None
@@ -34,7 +34,7 @@ class Chord:
         elif isinstance(note, int):
             parsed = notes.parse(note)
 
-        if parsed.species() == self.root.species():
+        if parsed.species() == self._root.species():
             return True
         if parsed.species() == self.three().species():
             return True
@@ -46,19 +46,22 @@ class Chord:
         if not isinstance(other, self.__class__):
             return False
 
-        return notes.same_species(other.bass_note, self.bass_note) and notes.same_species(other.root, self.root)
+        return notes.same_species(other.bass_note, self.bass_note) and notes.same_species(other._root, self._root)
 
     def __ne__(self, other):
         if isinstance(other, self.__class__):
             return False
 
-        return not (notes.same_species(other.bass_note, self.bass_note) and notes.same_species(other.root, self.root))
+        return not (notes.same_species(other.bass_note, self.bass_note) and notes.same_species(other.one, self._root))
 
     def __hash__(self):
-        return hash((self.bass_note, self.root))
+        return hash((self.bass_note, self._root))
 
     def root_in_bass(self):
-        return notes.same_species(self.root, self.bass_note)
+        return notes.same_species(self._root, self.bass_note)
+
+    def string(self):
+        raise NotImplementedError
 
     def note_above(self, note):
         """
@@ -103,7 +106,10 @@ class Chord:
         raise NotImplementedError
 
     def all_degrees(self):
-        return self.root, self.three(), self.five()
+        return self._root, self.three(), self.five()
+
+    def root(self):
+        return self._root
 
     def three(self):
         raise NotImplementedError
@@ -130,8 +136,8 @@ class MajorChord(Chord):
 
     def __init__(self, root_note, bass_note=None):
         Chord.__init__(self, root_note, bass_note)
-        self.__three = notes.parse(self.root.midi() + 4)
-        self.__five = notes.parse(self.root.midi() + 7)
+        self.__three = notes.parse(self._root.midi() + 4)
+        self.__five = notes.parse(self._root.midi() + 7)
 
     def three(self):
         return self.__three
@@ -139,14 +145,14 @@ class MajorChord(Chord):
     def five(self):
         return self.__five
 
-    def __repr__(self):
-        return str(self.root) + ', ' + str(self.__three) + ', ' + str(self.__five)
-
     def scale(self):
-        return notes.ionian(self.root.midi())
+        return notes.ionian(self._root.midi())
+
+    def string(self):
+        return notes.species(self._root)
 
     def indicates_dominant(self, *pitches):
-        root_pitch = self.root.midi()
+        root_pitch = self._root.midi()
 
         black_list = (root_pitch % 12, (root_pitch + 6) % 12, (root_pitch + 10) % 12)
         major_indicators = (root_pitch + 11) % 12, (root_pitch + 7) % 12
@@ -157,7 +163,7 @@ class MajorChord(Chord):
             and len([p for p in pitches if (p % 12) in minor_indicators]) >= 1
 
     def indicates_subdominant(self, *pitches):
-        root_pitch = self.root.midi()
+        root_pitch = self._root.midi()
 
         black_list = ((root_pitch + 4) % 12, (root_pitch + 11) % 12)
         indicators = ((root_pitch + 2) % 12, (root_pitch + 5) % 12, (root_pitch + 9) % 12)
@@ -170,8 +176,8 @@ class MinorChord(Chord):
 
     def __init__(self, root_note, bass_note=None):
         Chord.__init__(self, root_note, bass_note)
-        self.__three = notes.parse(self.root.midi() + 3)
-        self.__five = notes.parse(self.root.midi() + 7)
+        self.__three = notes.parse(self._root.midi() + 3)
+        self.__five = notes.parse(self._root.midi() + 7)
 
     def three(self):
         return self.__three
@@ -179,14 +185,14 @@ class MinorChord(Chord):
     def five(self):
         return self.__five
 
-    def __repr__(self):
-        return str(self.root) + ', ' + str(self.__three) + ', ' + str(self.__five)
+    def string(self):
+        return notes.species(self._root) + '-'
 
     def scale(self):
-        return notes.aeolian(self.root.midi())
+        return notes.aeolian(self._root.midi())
 
     def indicates_dominant(self, *pitches):
-        root_pitch = self.root.midi()
+        root_pitch = self._root.midi()
 
         black_list = (root_pitch % 12, (root_pitch + 10) % 12)
         major_indicators = ((root_pitch + 11) % 12,)
@@ -197,7 +203,7 @@ class MinorChord(Chord):
             and len([p for p in pitches if (p % 12) in minor_indicators]) >= 1
 
     def indicates_subdominant(self, *pitches):
-        root_pitch = self.root.midi()
+        root_pitch = self._root.midi()
 
         black_list = ((root_pitch + 10) % 12, (root_pitch + 11) % 12)
         indicators = ((root_pitch + 2) % 12, (root_pitch + 5) % 12, (root_pitch + 8) % 12)
@@ -210,9 +216,9 @@ class SevenChord(MajorChord):
 
     def __init__(self, root_note, bass_note=None):
         Chord.__init__(self, root_note, bass_note)
-        self.__three = notes.parse(self.root.midi() + 4)
-        self.__five = notes.parse(self.root.midi() + 7)
-        self.__seven = notes.parse(self.root.midi() + 10)
+        self.__three = notes.parse(self._root.midi() + 4)
+        self.__five = notes.parse(self._root.midi() + 7)
+        self.__seven = notes.parse(self._root.midi() + 10)
 
     def __contains__(self, note):
         parsed = None
@@ -231,6 +237,9 @@ class SevenChord(MajorChord):
 
     def five(self):
         return self.__five
+
+    def string(self):
+        return notes.species(self._root) + '7'
 
     def all_degrees(self):
         most = Chord.all_degrees(self)
@@ -242,24 +251,21 @@ class SevenChord(MajorChord):
             return self.__seven.species
 
         if pitch == self.__seven.species:
-            return self.root
+            return self._root
 
         return Chord.__note_above(self, pitch)
 
-    def __repr__(self):
-        return str(self.root) + ', ' + str(self.__three) + ', ' + str(self.__five) + ', ' + str(self.__seven)
-
     def scale(self):
-        return notes.mixolydian(self.root.midi())
+        return notes.mixolydian(self._root.midi())
 
 
 class DiminishedChord(MinorChord):
 
     def __init__(self, root_note, bass_note=None):
         Chord.__init__(self, root_note, bass_note)
-        self.__three = notes.parse(self.root.midi() + 3)
-        self.__five = notes.parse(self.root.midi() + 6)
-        self.__seven = notes.parse(self.root.midi() + 9)
+        self.__three = notes.parse(self._root.midi() + 3)
+        self.__five = notes.parse(self._root.midi() + 6)
+        self.__seven = notes.parse(self._root.midi() + 9)
 
     def __contains__(self, note):
         parsed = None
@@ -278,6 +284,9 @@ class DiminishedChord(MinorChord):
 
     def five(self):
         return self.__five
+
+    def string(self):
+        return notes.species(self._root) + 'dim'
 
     def all_degrees(self):
         most = Chord.all_degrees(self)
@@ -298,15 +307,12 @@ class DiminishedChord(MinorChord):
             return self.__seven.species
 
         if pitch == self.__seven.species:
-            return self.root
+            return self._root
 
         return Chord.__note_above(self, pitch)
 
-    def __repr__(self):
-        return str(self.root) + ', ' + str(self.__three) + ', ' + str(self.__five) + ', ' + str(self.__seven)
-
     def scale(self):
-        return notes.half_whole(self.root.midi())
+        return notes.half_whole(self._root.midi())
 
     def indicates_subdominant(self, *pitches):
         return False
@@ -347,7 +353,7 @@ class ChordProgression(collections.MutableMapping):
         string = ''
 
         for key in self.store:
-            string += '\n' + str(key) + ': ' + (self.store[key].root.species()) + \
+            string += '\n' + str(key) + ': ' + (self.store[key].one.species()) + \
                       self.store[key].three.species() + \
                       self.store[key].five.species()
 
@@ -397,23 +403,21 @@ class ChordProgressionSetter:
 
 def parse(chord, bass_note=None):
     if RE_MAJOR.match(chord):
-        return MajorChord(__get_root(chord), bass_note)
+        return MajorChord(get_root(chord), bass_note)
     elif RE_MINOR.match(chord):
-        return MinorChord(__get_root(chord), bass_note)
+        return MinorChord(get_root(chord), bass_note)
     elif RE_SEVEN.match(chord):
-        return SevenChord(__get_root(chord), bass_note)
+        return SevenChord(get_root(chord), bass_note)
     elif RE_DIMIN.match(chord):
-        return DiminishedChord(__get_root(chord), bass_note)
+        return DiminishedChord(get_root(chord), bass_note)
     elif RE_SLASH.match(chord):
         return parse(chord.split('/')[0], chord.split('/')[1])
 
 
-def __get_root(chord):
+def get_root(chord):
     matches = RE_CHORD_ROOT.match(chord)
     return matches.group()
 
-    # return notes.parse(max(matches).upper())
-
 
 def same(chord1, chord2):
-    return chord1.root.midi() % 12 == chord2.root.midi() % 12
+    return chord1.root().midi() % 12 == chord2.root().midi() % 12

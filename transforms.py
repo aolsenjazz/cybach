@@ -450,9 +450,15 @@ class ApproachTransform(EighthNoteTransform):
         next_pitch = self.sequence[self.position + config.resolution].pitch()
         next_chord = config.chord_progression[self.position + config.resolution]
         next_key = config.key_signatures[self.position + config.resolution]
+        this_key = config.key_signatures[self.position]
 
-        if notes.same_species(next_pitch, next_chord.root):
-            score += vars.APPROACH_KEY_CHANGE if notes.same_species(next_chord.root, next_key.root) \
+        if notes.same_species(next_pitch, next_chord.root()):
+            y = this_key != next_key
+            s = next_chord.root()
+            e = next_key.one()
+            t = notes.same_species(next_chord.root(), next_key.one())
+            score += vars.APPROACH_KEY_CHANGE \
+                if notes.same_species(next_chord.root(), next_key.one()) and this_key != next_key \
                 else vars.APPROACH_NEW_CHORD_ROOT
         else:
             score += vars.APPROACH_DEFAULT_MUSICALITY

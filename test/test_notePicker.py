@@ -46,9 +46,9 @@ class TestNotePicker(TestCase):
     def test__motion_tendency_score(self):
         pattern = read_pattern(constants.TEST_MIDI + 'quarter_arpeg.mid')
 
-        zero_tendency = domain.Sequence(pattern=pattern[0], part=parts.BASS, configuration={'motion_tendency': 0.0})
-        no_tendency = domain.Sequence(pattern=pattern[0], part=parts.BASS, configuration={})
-        max_tendency = domain.Sequence(pattern=pattern[0], part=parts.BASS, configuration={'motion_tendency': 1.0})
+        zero_tendency = domain.Sequence(track=pattern[0], part=parts.BASS, configuration={'motion_tendency': 0.0})
+        no_tendency = domain.Sequence(track=pattern[0], part=parts.BASS, configuration={})
+        max_tendency = domain.Sequence(track=pattern[0], part=parts.BASS, configuration={'motion_tendency': 1.0})
 
         beat_0_pitch = 59
         beat_2_pitch = 62
@@ -67,7 +67,7 @@ class TestNotePicker(TestCase):
 
     def test__linear_motion_score(self):
         pattern = read_pattern(constants.TEST_MIDI + 'quarter_arpeg.mid')
-        sequence = domain.Sequence(pattern=pattern[0], part=parts.BASS, configuration={})
+        sequence = domain.Sequence(track=pattern[0], part=parts.BASS, configuration={})
 
         beat_0_pitch = 59
         motion_pitch = 61
@@ -87,7 +87,7 @@ class TestNotePicker(TestCase):
 
         # sequence isn't very relevant here, just establishes time sig really
         pattern = read_pattern(constants.TEST_MIDI + 'quarter_arpeg.mid')
-        sequence = domain.Sequence(pattern=pattern[0], part=parts.BASS, configuration={})
+        sequence = domain.Sequence(track=pattern[0], part=parts.BASS, configuration={})
 
         key_signatures = ks.KeySignatures()
         key_signatures[0] = chords.parse('C')
@@ -106,13 +106,13 @@ class TestNotePicker(TestCase):
 
     def test__get_motion_score(self):
         pattern = read_pattern(constants.TEST_MIDI + 'parallel1.mid')
-        alto = domain.Sequence(pattern=pattern[0], part=parts.BASS, configuration={})
+        alto = domain.Sequence(track=pattern[0], part=parts.BASS, configuration={})
 
         pattern = read_pattern(constants.TEST_MIDI + 'parallel2.mid')
-        tenor = domain.Sequence(pattern=pattern[0], part=parts.BASS, configuration={})
+        tenor = domain.Sequence(track=pattern[0], part=parts.BASS, configuration={})
 
         pattern = read_pattern(constants.TEST_MIDI + 'quarter_arpeg.mid')
-        bass = domain.Sequence(pattern=pattern[0], part=parts.BASS, configuration={})
+        bass = domain.Sequence(track=pattern[0], part=parts.BASS, configuration={})
 
         irrelevant_pitch = 11
 
@@ -124,7 +124,7 @@ class TestNotePicker(TestCase):
 
     def test__flicker_avoidance_score(self):
         pattern = read_pattern(constants.TEST_MIDI + 'flicker.mid')
-        sequence = domain.Sequence(pattern=pattern[0], part=parts.BASS, configuration={})
+        sequence = domain.Sequence(track=pattern[0], part=parts.BASS, configuration={})
 
         c = notes.MIDI_VALUES['C5']
         e = notes.MIDI_VALUES['E5']

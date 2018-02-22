@@ -19,7 +19,7 @@ class Sequence(list):
     we can iterate over it and insert pitches.
     """
 
-    def __init__(self, pattern=None, seed=None, part=None, configuration={}, ):
+    def __init__(self, track=None, seed=None, part=None, configuration={}):
         """
         Has two initialization processes: Pattern-based and seed-based.
 
@@ -30,7 +30,7 @@ class Sequence(list):
         Seed-based initialization reads another Sequence object and creates empty Samples equal to the length
         of the seed Sequence. Time signature and key signature data are ignored.
 
-        :param pattern: midi.Pattern which we get note, key signature, and time signature info from
+        :param track: midi.Pattern which we get note, key signature, and time signature info from
         :param seed: Sequence object that we get duration info from
         :param part: parts.BASS, parts.TENOR, or parts.ALTO
         :param configuration: Misc configuration
@@ -44,10 +44,8 @@ class Sequence(list):
         # signature data and key signature data. Maybe should be decoupled, but it's much easier this way.
         #
         # Note that 'track' being non-None and any other arg being non-None is mutually exclusive
-        if pattern is not None:
-            self.time_signatures = rhythm.TimeSignatures()
-            self.key_signatures = ks.KeySignatures()
-            self.__build_samples(pattern)
+        if track is not None:
+            self.__build_samples(track)
 
         else:
             if part is None:
@@ -83,7 +81,7 @@ class Sequence(list):
         beats = []
 
         for measure in self.measures():
-            phrasing = config.time_signatures[measure.sample_position()].phrasing
+            phrasing = measure.time_signature.phrasing
             beats.extend([measure.beats()[i].sample_position() for i in phrasing])
 
         return beats
@@ -211,21 +209,9 @@ class Sequence(list):
                                 self.samples.append(Sample(active_event.data[0], Sample.TYPE_SUSTAIN))
                         active_event = None
 
-            elif isinstance(event, midi.TimeSignatureEvent):
-                self.__add_time_signature(event)
-            elif isinstance(event, midi.KeySignatureEvent):
-                self.__add_key_signature(event)
-
     def __build_empty_samples(self, length):
         for i in range(0, length):
             self.samples.append(Sample(-1, None))
-
-    def __add_time_signature(self, event):
-        time_signature = rhythm.TimeSignature(numerator=event.numerator, denominator=event.denominator)
-        self.time_signatures[len(self.samples)] = time_signature
-
-    def __add_key_signature(self, event):
-        pass
 
     def beat_index_in_measure(self, position):
         measure = self.parent_measure(position)
@@ -271,7 +257,7 @@ class Measure(list):
 
     def beats(self):
         beats = []
-        time_signature = config.time_signatures[self.sample_position()]
+        time_signature = self.time_signature
         samples_per_beat = time_signature.samples_per_beat()
 
         j = 0
@@ -284,7 +270,8 @@ class Measure(list):
 
     def phrasing_candidates(self):
         if self.time_signature.numerator <= 4:
-            return {tuple([i for i in range(0, len(self.beats()))]): 1}
+            t = self.beats()
+            return {tuple([i for i in range(0, self.time_signature.numerator)]): 1}
         else:
             phrase_combinations = rhythm.phrase_combinations(self.time_signature.numerator)
             combination_map = {}
@@ -301,7 +288,6 @@ class Measure(list):
             for combination in combination_map.keys():
                 combination_map[combination] = combination_map[combination] + \
                                                self.phrasing_likelihood(combination)
-
 
             return combination_map
 
