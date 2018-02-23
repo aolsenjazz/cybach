@@ -3,6 +3,7 @@ import re
 import config
 import collections
 import itertools
+from rhythm import time
 
 RE_MAJOR = re.compile('^[A-Ga-g]([Bb]|#)?(maj)?$')
 RE_MINOR = re.compile('^[A-Ga-g]([Bb]|#)?(-|m(in)?)?$')
@@ -106,7 +107,7 @@ class Chord:
         raise NotImplementedError
 
     def all_degrees(self):
-        return self._root, self.three(), self.five()
+        return self.root(), self.three(), self.five()
 
     def root(self):
         return self._root
@@ -126,7 +127,13 @@ class Chord:
         raise NotImplementedError
 
     def all_octaves(self):
-        all_notes = list(itertools.chain(*[notes.OCTAVES[note.species()] for note in self.all_degrees()]))
+        degrees = self.all_degrees()
+        try:
+            all_notes = list(itertools.chain(*[notes.OCTAVES[note.species()] for note in self.all_degrees()]))
+        except:
+            d = self.all_degrees()
+            t = 1
+
         all_notes.sort()
 
         return all_notes
@@ -243,8 +250,9 @@ class SevenChord(MajorChord):
 
     def all_degrees(self):
         most = Chord.all_degrees(self)
-        all_deg = [lambda l: most, self.__seven]
-        return all_deg
+        all = list(most)
+        all.append(self.__seven)
+        return all
 
     def __note_above(self, pitch):
         if pitch == self.__five:
@@ -363,8 +371,8 @@ class ChordProgression(collections.MutableMapping):
         return ChordProgressionSetter(self)
 
     def chords_in_measure(self, measure_index):
-        sample_pos = config.time_signatures.sample_position(measure=measure_index)
-        time_signature = config.time_signatures[sample_pos]
+        sample_pos = time.signatures.sample_position(measure=measure_index)
+        time_signature = time.signatures[sample_pos]
         measure_end_pos = sample_pos + time_signature.samples_per_measure()
         chords = {}
 
@@ -397,7 +405,7 @@ class ChordProgressionSetter:
         else:
             raise TypeError
 
-        sample_pos = config.time_signatures.sample_position(measure=self.internal_measure, beat=self.internal_beat)
+        sample_pos = time.signatures.sample_position(measure=self.internal_measure, beat=self.internal_beat)
         self.chord_progression[sample_pos] = parsed
 
 

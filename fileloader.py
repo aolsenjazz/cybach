@@ -10,7 +10,7 @@ import ks_detector
 import parts
 import pat_util
 import phrasing
-import rhythm
+from rhythm import time
 
 REGEX_MIDI = re.compile('.+\.(mid|midi)')
 REGEX_MUSIC_XML = re.compile('.+\\\.(musicxml|xml)')
@@ -26,7 +26,7 @@ def load(file_name, manual_signature_entry):
     """
     if file_name in examples.ALL.keys():
         __load_example(file_name)
-    if REGEX_MIDI.match(file_name):
+    elif REGEX_MIDI.match(file_name):
         __load_midi(file_name)
     else:
         print 'Unsupported file type provided'
@@ -34,9 +34,10 @@ def load(file_name, manual_signature_entry):
 
     if manual_signature_entry:
         __init_manual_signature_entry()
-    else:
         ks_detector.detect_and_set_key_signatures()
         phrasing.detect_and_set_measure_phrasing()
+
+    config.name = file_name
 
 
 def __load_example(file_name):
@@ -48,6 +49,8 @@ def __load_example(file_name):
     example = examples.ALL.get(file_name)
     __load_midi(example.file_name())
     config.chord_progression = example.chord_progression()
+    ks_detector.detect_and_set_key_signatures()
+    phrasing.detect_and_set_measure_phrasing()
 
 
 def __load_midi(file_name):
@@ -66,6 +69,7 @@ def __load_midi(file_name):
         config.alto = domain.Sequence(seed=config.soprano, part=parts.ALTO)
         config.tenor = domain.Sequence(seed=config.soprano, part=parts.TENOR)
         config.bass = domain.Sequence(seed=config.soprano, part=parts.BASS)
+        config.chord_progression = chords.ChordProgression()
     except TypeError:
         print 'Midi file is malformed. Try exporting a new one from any DAW'
         exit(2)
@@ -96,7 +100,7 @@ def __init_key_signature_entry(sequence, pattern):
 
 
 def __init_time_signature_entry(sequence):
-    time_signatures = config.time_signatures
+    time_signatures = time.signatures
 
     if time_signatures:
         __report_time_signature_data()
@@ -112,7 +116,7 @@ def __init_time_signature_entry(sequence):
             measure = int(raw_input('Measure: '))
 
             event = midi.TimeSignatureEvent(data=[numerator, denominator, 36, 8])
-            config.time_signatures[sequence.measure(measure - 1).sample_position()] = event
+            time.signatures[sequence.measure(measure - 1).sample_position()] = event
 
 
 def __verify_measure_count(sequence):
@@ -231,10 +235,9 @@ def __load_time_signature_events(pattern):
 
     :param pattern: pattern retrieved by parsing MIDI
     """
-    config.time_signatures = rhythm.TimeSignatures()
     events = pat_util.get_time_signature_events(pattern)
     for key in events.keys():
-        config.time_signatures[key] = rhythm.TimeSignature(event=events[key])
+        time.signatures[key] = time.TimeSignature(event=events[key])
 
 
 def __enforce_midi_validity(pattern):

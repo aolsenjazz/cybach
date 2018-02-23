@@ -281,7 +281,7 @@ class KeySignatureSetter:
         else:
             raise TypeError
 
-        sample_pos = config.time_signatures.sample_position(measure=self.internal_measure, beat=self.internal_beat)
+        sample_pos = time.signatures.sample_position(measure=self.internal_measure, beat=self.internal_beat)
 
         self.key_signatures[sample_pos] = parsed
 

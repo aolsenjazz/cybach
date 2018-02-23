@@ -1,7 +1,6 @@
 from __future__ import division
 
 import transforms
-import rhythm
 import constants
 import vars
 import domain

@@ -1,11 +1,10 @@
 from __future__ import division
 
 import collections
-import math
-import constants
-import config
-import util
 import itertools
+import math
+
+import config
 
 
 def phrase_combinations(beats_per_bar):
@@ -56,14 +55,17 @@ class TimeSignature:
             self.numerator = numerator
             self.denominator = denominator
 
+        self._samples_per_beat = int(config.resolution / (self.denominator / 4))
+        self._samples_per_measure = int(self.numerator * self._samples_per_beat)
+
     def __repr__(self):
         return 'num: %d || den: %d' % (self.numerator, self.denominator)
 
     def samples_per_measure(self):
-        return int(self.numerator * self.samples_per_beat())
+        return self._samples_per_measure
 
     def samples_per_beat(self):
-        return int(config.resolution / (self.denominator / 4))
+        return self._samples_per_beat
 
 
 class TimeSignatures(collections.MutableMapping):
@@ -114,3 +116,6 @@ class TimeSignatures(collections.MutableMapping):
         position += beat * active_time_signature.samples_per_beat()
 
         return int(position)
+
+
+signatures = TimeSignatures()

@@ -7,7 +7,7 @@ import chords
 import vars
 import constants
 import midi
-import rhythm
+from rhythm import time
 import config
 import parts
 
@@ -116,8 +116,8 @@ class TestNotePicker(TestCase):
 
         irrelevant_pitch = 11
 
-        # [0] = bass, [1] = tenor, [2] = alto
-        candidate = {'bass': irrelevant_pitch, 'tenor': notes.MIDI_VALUES['A5'], 'alto': notes.MIDI_VALUES['D5']}
+        # [0] = alto, [1] = tenor, [2] = bass
+        candidate = notes.MIDI_VALUES['D5'], notes.MIDI_VALUES['A5'], irrelevant_pitch,
 
         self.assertEqual(note_picker.get_motion_score(candidate, 0, alto, tenor, bass), 0.0)
         self.assertEqual(note_picker.get_motion_score(candidate, config.resolution, alto, tenor, bass), vars.PARALLEL_MOVEMENT)
@@ -136,13 +136,13 @@ class TestNotePicker(TestCase):
 
 
 def set_config(soprano, chord_progression, key_signatures):
-    time_signatures = rhythm.TimeSignatures()
-    time_signatures[0] = rhythm.TimeSignature(numerator=4, denominator=4)
+    time_signatures = time.TimeSignatures()
+    time_signatures[0] = time.TimeSignature(numerator=4, denominator=4)
 
     config.soprano = soprano
     config.chord_progression = chord_progression
     config.key_signatures = key_signatures
-    config.time_signatures = time_signatures
+    time.signatures = time_signatures
 
 
 def read_pattern(file_name):

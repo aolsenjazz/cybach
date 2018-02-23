@@ -1,14 +1,5 @@
-import midi
-
 import chords
-import config
 import constants
-import domain
-import ks_detector
-import parts
-import pat_util
-import phrasing
-import rhythm
 
 
 class Example:

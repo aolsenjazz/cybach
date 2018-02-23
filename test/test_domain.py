@@ -11,7 +11,7 @@ import vars
 class TestDomain(TestCase):
 
     def test__Note_contains_linear_motion(self):
-        fileloader.load(constants.TEST_MIDI + 'linear_motion.mid')
+        fileloader.load(constants.TEST_MIDI + 'linear_motion.mid', False)
         sequence = config.soprano
 
         has_linear_motion = sequence.beat_at(config.resolution * 2)
@@ -23,14 +23,14 @@ class TestDomain(TestCase):
         self.assertFalse(has_no_motion.contains_linear_movement())
 
     def test__Beat_contains_motion(self):
-        fileloader.load(constants.TEST_MIDI + 'linear_motion.mid')
+        fileloader.load(constants.TEST_MIDI + 'linear_motion.mid', False)
         sequence = config.soprano
 
         self.assertFalse(sequence.beat_at(0).contains_motion())
         self.assertTrue(sequence.beat_at(config.resolution).contains_motion())
 
     def test__Sequence_note_duration_count(self):
-        fileloader.load(constants.TEST_MIDI + 'linear_motion.mid')
+        fileloader.load(constants.TEST_MIDI + 'linear_motion.mid', False)
         sequence = config.soprano
 
         number_of_sixteenths = 2
@@ -40,7 +40,7 @@ class TestDomain(TestCase):
         self.assertEqual(sequence.note_duration_count().get(constants.EIGHTH_NOTE, 0), number_of_eighths)
 
     def test__Sequence_measures(self):
-        fileloader.load(constants.TEST_MIDI + 'linear_motion.mid')
+        fileloader.load(constants.TEST_MIDI + 'linear_motion.mid', False)
         sequence = config.soprano
 
         number_of_measures = 2
@@ -48,7 +48,7 @@ class TestDomain(TestCase):
         self.assertEqual(number_of_measures, len(sequence.measures()))
 
     def test__Measure_sample_position(self):
-        fileloader.load(constants.TEST_MIDI + 'linear_motion.mid')
+        fileloader.load(constants.TEST_MIDI + 'linear_motion.mid', False)
         sequence = config.soprano
 
         measure_index = 1
@@ -60,7 +60,7 @@ class TestDomain(TestCase):
         self.assertEqual(measures[measure_index].sample_position(), measure_position)
 
     def test__Sequence_beat_index_in_measure(self):
-        fileloader.load(constants.TEST_MIDI + 'linear_motion.mid')
+        fileloader.load(constants.TEST_MIDI + 'linear_motion.mid', False)
         sequence = config.soprano
 
         beat_index_in_composition = 5
@@ -70,7 +70,7 @@ class TestDomain(TestCase):
                          beat_index_in_measure)
 
     def test__Beat_is_first_beat(self):
-        fileloader.load(constants.TEST_MIDI + 'linear_motion.mid')
+        fileloader.load(constants.TEST_MIDI + 'linear_motion.mid', False)
         sequence = config.soprano
 
         first_measure = sequence.measures()[0]
@@ -82,7 +82,7 @@ class TestDomain(TestCase):
         self.assertTrue(beat2.is_last_beat())
 
     def test__Beat_is_note_start(self):
-        fileloader.load(constants.TEST_MIDI + 'linear_motion.mid')
+        fileloader.load(constants.TEST_MIDI + 'linear_motion.mid', False)
         sequence = config.soprano
 
         first_measure = sequence.measures()[0]
@@ -91,7 +91,7 @@ class TestDomain(TestCase):
         self.assertTrue(beat1.is_note_start())
 
     def test__Beat_is_pitch_change(self):
-        fileloader.load(constants.TEST_MIDI + 'linear_motion.mid')
+        fileloader.load(constants.TEST_MIDI + 'linear_motion.mid', False)
         sequence = config.soprano
 
         first_measure = sequence.measures()[0]
@@ -100,7 +100,7 @@ class TestDomain(TestCase):
         self.assertTrue(beat2.is_pitch_change())
 
     def test__Beat_sustain_duration(self):
-        fileloader.load(constants.TEST_MIDI + 'linear_motion.mid')
+        fileloader.load(constants.TEST_MIDI + 'linear_motion.mid', False)
         sequence = config.soprano
 
         first_measure = sequence.measures()[0]
@@ -109,7 +109,7 @@ class TestDomain(TestCase):
         self.assertEqual(config.resolution, beat1.sustain_duration())
 
     def test__Measure_beats_for_phrase(self):
-        fileloader.load(constants.TEST_MIDI + 'six_eight.mid')
+        fileloader.load(constants.TEST_MIDI + 'six_eight.mid', False)
         sequence = config.soprano
 
         phrasing = (2, 2, 2)
@@ -122,7 +122,7 @@ class TestDomain(TestCase):
         self.assertTrue(notes.same_species(beats[2].pitch(), 'D'))
 
     def test__Measure_phrasing_likelihood(self):
-        fileloader.load(constants.TEST_MIDI + 'seven_eight.mid')
+        fileloader.load(constants.TEST_MIDI + 'seven_eight.mid', False)
         sequence = config.soprano
 
         phrasing = (2, 2, 3)
@@ -132,7 +132,7 @@ class TestDomain(TestCase):
         self.assertEqual(score, first_measure.phrasing_likelihood(phrasing))
 
     def test__Measure_chord_based_phrasing_prediction(self):
-        fileloader.load(constants.TEST_MIDI + 'seven_eight.mid')
+        fileloader.load(constants.TEST_MIDI + 'seven_eight.mid', False)
         sequence = config.soprano
 
         config.chord_progression.set().measure(0).beat(2).commit('G')
@@ -144,7 +144,7 @@ class TestDomain(TestCase):
         self.assertEqual(phrasing, first_measure.chord_based_phrasing_prediction())
 
     def test__properly_parse_mixed_meters(self):
-        fileloader.load(constants.TEST_MIDI + 'mixed_meter.mid')
+        fileloader.load(constants.TEST_MIDI + 'mixed_meter.mid', False)
         sequence = config.soprano
 
         number_of_measures = 11
@@ -152,7 +152,7 @@ class TestDomain(TestCase):
         self.assertEqual(number_of_measures, len(sequence.measures()))
 
     def test__Measure_phrasing_candidates(self):
-        fileloader.load(constants.TEST_MIDI + 'mixed_meter.mid')
+        fileloader.load(constants.TEST_MIDI + 'mixed_meter.mid', False)
         sequence = config.soprano
 
         config.chord_progression.set().measure(4).beat(3).commit('F')

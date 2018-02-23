@@ -1,10 +1,10 @@
-import rhythm
+from rhythm import time
 import util
 import config
 
 
 def detect_and_set_measure_phrasing():
-    signatures_plus_end = config.time_signatures.keys()
+    signatures_plus_end = time.signatures.keys()
     signatures_plus_end.append(len(config.soprano))
     signatures_plus_end.sort()
     last_position = signatures_plus_end[0]
@@ -14,13 +14,13 @@ def detect_and_set_measure_phrasing():
 
         winner = get_most_likely_phrasing(measures)
 
-        config.time_signatures[measures[0].sample_position()].phrasing = winner
+        time.signatures[measures[0].sample_position()].phrasing = winner
 
         last_position = signatures_plus_end[i]
 
 
 def get_most_likely_phrasing(measures):
-    all_candidates = rhythm.phrase_combinations(measures[0].time_signature.numerator)
+    all_candidates = time.phrase_combinations(measures[0].time_signature.numerator)
     candidate_map = {}
 
     for candidate in all_candidates:

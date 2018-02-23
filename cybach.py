@@ -57,9 +57,9 @@ for i in range(0, len(strong_beats)):
     end = len(config.soprano) if i == len(strong_beats) - 1 else strong_beats[i + 1]
     pitches = picker.compute(start)
 
-    config.bass.set_pitch(start, end, pitches['bass'])
-    config.tenor.set_pitch(start, end, pitches['tenor'])
-    config.alto.set_pitch(start, end, pitches['alto'])
+    # config.bass.set_pitch(start, end, pitches['bass'])
+    # config.tenor.set_pitch(start, end, pitches['tenor'])
+    # config.alto.set_pitch(start, end, pitches['alto'])
 
 # ~~~~~~~~ Increase or decrease motion by grouping notes together or adding inter-beat motion ~~~~~~~~
 
@@ -75,13 +75,14 @@ for i in range(0, len(strong_beats)):
 #         config.bass.apply_transform(transforms['bass'])
 
 # ~~~~~~~~ Write to file ~~~~~~~~
-folder = constants.OUT_DIR + config.name + '/'
-if not os.path.exists(folder):
-    os.makedirs(folder)
-
-midi.write_midifile(folder + 'soprano.mid', config.soprano.to_pattern())
-midi.write_midifile(folder + 'alto.mid', config.alto.to_pattern())
-midi.write_midifile(folder + 'tenor.mid', config.tenor.to_pattern())
-midi.write_midifile(folder + 'bass.mid', config.bass.to_pattern())
-
-print 'Your arrangement has been written to ', folder, ' :)'
+# folder = constants.OUT_DIR + config.name + '/'
+# if not os.path.exists(folder):
+#     os.makedirs(folder)
+#
+# midi.write_midifile(folder + 'soprano.mid', config.soprano.to_pattern())
+# midi.write_midifile(folder + 'alto.mid', config.alto.to_pattern())
+# midi.write_midifile(folder + 'tenor.mid', config.tenor.to_pattern())
+# midi.write_midifile(folder + 'bass.mid', config.bass.to_pattern())
+#
+# print 'Your arrangement has been written to ', folder, ' :)'
+print 'done'

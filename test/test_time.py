@@ -1,20 +1,15 @@
 from unittest import TestCase
-import notes
-import chords
-import rhythm
-import config
-
-from notes import MIDI_VALUES
+from rhythm import time
 
 
 class TestRhythm(TestCase):
 
     def test__sample_position(self):
-        ts = rhythm.TimeSignatures()
+        ts = time.TimeSignatures()
 
-        four_four = rhythm.TimeSignature(numerator=4, denominator=4)
-        six_eight = rhythm.TimeSignature(numerator=6, denominator=8)
-        three_two = rhythm.TimeSignature(numerator=3, denominator=2)
+        four_four = time.TimeSignature(numerator=4, denominator=4)
+        six_eight = time.TimeSignature(numerator=6, denominator=8)
+        three_two = time.TimeSignature(numerator=3, denominator=2)
 
         ts[0] = four_four
         ts[four_four.samples_per_measure()] = six_eight
@@ -32,4 +27,4 @@ class TestRhythm(TestCase):
         beats_per_bar = 7
         total_combinations = 5
 
-        self.assertEqual(total_combinations, len(rhythm.phrase_combinations(beats_per_bar)))
+        self.assertEqual(total_combinations, len(time.phrase_combinations(beats_per_bar)))

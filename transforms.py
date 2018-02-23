@@ -1,8 +1,6 @@
 from __future__ import division
 
-import abc
-import constants
-import rhythm
+from rhythm import time
 import chords
 import domain
 import config
@@ -64,7 +62,7 @@ class JoinTransform(MotionTransform):
         num_unique_chords = unique_chord_count(self.position, self.duration)
         score += vars.TWO_BEAT_MULTIPLE_CHORDS * num_unique_chords
 
-        time_signature = config.time_signatures[self.position]
+        time_signature = time.signatures[self.position]
         if time_signature.numerator % 3 == 0 and not self.is_syncopation():
             score += vars.JOIN_PREFER_BIG_BEATS
 
@@ -72,15 +70,15 @@ class JoinTransform(MotionTransform):
 
     def crosses_bar_line(self):
         beat_index = self.sequence.beat_index_in_measure(self.position)
-        time_signature = config.time_signatures[self.position]
+        time_signature = time.signatures[self.position]
 
         return beat_index + self.duration > time_signature.numerator
 
     def is_syncopation(self):
         beat_index = self.sequence.beat_index_in_measure(self.position)
-        time_signature = config.time_signatures[self.position]
+        time_signature = time.signatures[self.position]
 
-        return not rhythm.is_big_beat(time_signature, beat_index)
+        return not time.is_big_beat(time_signature, beat_index)
 
     def apply(self):
         for i in range(self.position, self.position + self.duration * config.resolution):

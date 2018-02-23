@@ -7,9 +7,6 @@ import config
 import constants
 import domain
 import ks_detector
-import ks
-import parts
-import rhythm
 import transforms
 import vars
 import fileloader
@@ -19,7 +16,7 @@ from notes import MIDI_VALUES
 class TestMotionTransforms(TestCase):
 
     def test_ApproachTransform_is_applicable(self):
-        fileloader.load(constants.TEST_MIDI + 'approach.mid')
+        fileloader.load(constants.TEST_MIDI + 'approach.mid', False)
         sequence = config.soprano
 
         config.chord_progression[0] = chords.parse('A')
@@ -36,7 +33,7 @@ class TestMotionTransforms(TestCase):
             transforms.ApproachTransform.applicable_at(6 * config.resolution, sequence))
 
     def test_HalfStepNeighborTransform_is_applicable(self):
-        fileloader.load(constants.TEST_MIDI + 'neighbor.mid')
+        fileloader.load(constants.TEST_MIDI + 'neighbor.mid', False)
         sequence = config.soprano
 
         config.chord_progression[0] = chords.parse('C')
@@ -51,7 +48,7 @@ class TestMotionTransforms(TestCase):
             transforms.HalfStepNeighborTransform.applicable_at(4 * config.resolution, sequence))
 
     def test_WholeStepNeighborTransform_is_applicable(self):
-        fileloader.load(constants.TEST_MIDI + 'neighbor.mid')
+        fileloader.load(constants.TEST_MIDI + 'neighbor.mid', False)
         sequence = config.soprano
 
         config.chord_progression[0] = chords.parse('C')
@@ -62,14 +59,14 @@ class TestMotionTransforms(TestCase):
             transforms.WholeStepNeighborTransform.applicable_at(2 * config.resolution, sequence))
 
     def test_MajorThirdScalarTransform_is_applicable(self):
-        fileloader.load(constants.TEST_MIDI + 'maj3_scalar.mid')
+        fileloader.load(constants.TEST_MIDI + 'maj3_scalar.mid', False)
         sequence = config.soprano
 
         self.assertTrue(transforms.MajorThirdScalarTransform.applicable_at(0, sequence))
         self.assertFalse(transforms.MajorThirdScalarTransform.applicable_at(2, sequence))
 
     def test_MinorThirdScalarTransform_is_applicable(self):
-        fileloader.load(constants.TEST_MIDI + 'min3_scalar.mid')
+        fileloader.load(constants.TEST_MIDI + 'min3_scalar.mid', False)
         sequence = config.soprano
 
         config.chord_progression[0] = chords.parse('C-')
@@ -79,7 +76,7 @@ class TestMotionTransforms(TestCase):
         self.assertFalse(transforms.MinorThirdScalarTransform.applicable_at(2, sequence))
 
     def test_ArpeggialTransform_is_applicable(self):
-        fileloader.load(constants.TEST_MIDI + 'arpeggial.mid')
+        fileloader.load(constants.TEST_MIDI + 'arpeggial.mid', False)
         sequence = config.soprano
 
         config.chord_progression[0] = chords.parse('C')
@@ -91,7 +88,7 @@ class TestMotionTransforms(TestCase):
             transforms.ArpeggialTransform.applicable_at(4 * config.resolution, sequence))
 
     def test_MajorThirdScalarTransform_intermediate_pitch(self):
-        fileloader.load(constants.TEST_MIDI + 'maj3_scalar.mid')
+        fileloader.load(constants.TEST_MIDI + 'maj3_scalar.mid', False)
         sequence = config.soprano
 
         config.chord_progression[0] = chords.parse('C')
@@ -103,7 +100,7 @@ class TestMotionTransforms(TestCase):
         self.assertEqual(trans.intermediate_pitch, pitch_should_be)
 
     def test_MinorThirdScalarTransform_intermediate_pitch(self):
-        fileloader.load(constants.TEST_MIDI + 'min3_scalar.mid')
+        fileloader.load(constants.TEST_MIDI + 'min3_scalar.mid', False)
         sequence = config.soprano
 
         config.chord_progression[0] = chords.parse('C-')
@@ -115,7 +112,7 @@ class TestMotionTransforms(TestCase):
         self.assertEqual(trans.intermediate_pitch, pitch_should_be)
 
     def test_ArpeggialTransform_intermediate_pitch(self):
-        fileloader.load(constants.TEST_MIDI + 'arpeggial.mid')
+        fileloader.load(constants.TEST_MIDI + 'arpeggial.mid', False)
         sequence = config.soprano
 
         config.chord_progression[0] = chords.parse('C')
@@ -127,7 +124,7 @@ class TestMotionTransforms(TestCase):
         self.assertEqual(trans.intermediate_pitch, major_third_above)
 
     def test_HalfStepNeighborTransform_intermediate_pitch(self):
-        fileloader.load(constants.TEST_MIDI + 'neighbor.mid')
+        fileloader.load(constants.TEST_MIDI + 'neighbor.mid', False)
         sequence = config.soprano
 
         config.chord_progression[0] = chords.parse('C')
@@ -139,7 +136,7 @@ class TestMotionTransforms(TestCase):
         self.assertEqual(trans.intermediate_pitch, half_step_below)
 
     def test_WholeStepNeighborTransform_intermediate_pitch(self):
-        fileloader.load(constants.TEST_MIDI + 'neighbor.mid')
+        fileloader.load(constants.TEST_MIDI + 'neighbor.mid', False)
         sequence = config.soprano
         
         config.chord_progression[0] = chords.parse('C')
@@ -151,7 +148,7 @@ class TestMotionTransforms(TestCase):
         self.assertEqual(trans.intermediate_pitch, whole_step_above)
 
     def test_ApproachTransform_intermediate_pitch(self):
-        fileloader.load(constants.TEST_MIDI + 'approach.mid')
+        fileloader.load(constants.TEST_MIDI + 'approach.mid', False)
         sequence = config.soprano
         
         config.chord_progression[0] = chords.parse('A')
@@ -164,7 +161,7 @@ class TestMotionTransforms(TestCase):
         self.assertEqual(trans.intermediate_pitch, c_sharp_below)
 
     def test_MajorThirdScalarTransform_Scalar_synergy(self):
-        fileloader.load(constants.TEST_MIDI + 'maj3_scalar.mid')
+        fileloader.load(constants.TEST_MIDI + 'maj3_scalar.mid', False)
         sequence = config.soprano
         
         config.chord_progression[0] = chords.parse('C')
@@ -181,7 +178,7 @@ class TestMotionTransforms(TestCase):
         self.assertEqual(join.synergy(join3), 0.0)
 
     def test_MajorThirdScalarTransform_Neighbor_synergy(self):
-        fileloader.load(constants.TEST_MIDI + 'neighbor.mid')
+        fileloader.load(constants.TEST_MIDI + 'neighbor.mid', False)
         sequence = config.soprano
         scalar_sequence = domain.Sequence(track=read_pattern(constants.TEST_MIDI + 'maj3_scalar.mid')[0])
 
@@ -196,7 +193,7 @@ class TestMotionTransforms(TestCase):
         self.assertEqual(scalar_trans.synergy(subdom_neighbor_trans), vars.EIGHTH_NOTE_SUBDOMINANT)
 
     def test_ApproachTransform_set_musicality(self):
-        fileloader.load(constants.TEST_MIDI + 'approach.mid')
+        fileloader.load(constants.TEST_MIDI + 'approach.mid', False)
         sequence = config.soprano
         
         config.chord_progression[0] = chords.parse('A')
@@ -215,7 +212,7 @@ class TestMotionTransforms(TestCase):
         self.assertEqual(vars.APPROACH_KEY_CHANGE, strong_trans.intrinsic_musicality)
 
     def test_MajorThird_set_musicality(self):
-        fileloader.load(constants.TEST_MIDI + 'linear_motion.mid')
+        fileloader.load(constants.TEST_MIDI + 'linear_motion.mid', False)
         sequence = config.soprano
         
         config.chord_progression[0] = chords.parse('C')
@@ -225,7 +222,7 @@ class TestMotionTransforms(TestCase):
         self.assertEqual(trans.intrinsic_musicality, vars.MAJOR_THIRD_SCALAR_CONTINUES_LINEARITY)
 
     def test_ArpeggialTransform_set_musicality(self):
-        fileloader.load(constants.TEST_MIDI + 'arpeggial.mid')
+        fileloader.load(constants.TEST_MIDI + 'arpeggial.mid', False)
         sequence = config.soprano
         
         config.chord_progression[0] = chords.parse('C')
@@ -257,7 +254,7 @@ class TestMotionTransforms(TestCase):
                                                                  part1_second, part2_second_octave))
 
     def test__is_syncopation(self):
-        fileloader.load(constants.TEST_MIDI + '2beat_join.mid')
+        fileloader.load(constants.TEST_MIDI + '2beat_join.mid', False)
         sequence = config.soprano
 
         config.chord_progression[0] = chords.parse('C')
@@ -270,7 +267,7 @@ class TestMotionTransforms(TestCase):
         self.assertFalse(nonsyncopated.is_syncopation())
 
     def test__JoinTransform_crosses_bar_line(self):
-        fileloader.load(constants.TEST_MIDI + '2beat_join.mid')
+        fileloader.load(constants.TEST_MIDI + '2beat_join.mid', False)
         sequence = config.soprano
         
         config.chord_progression[0] = chords.parse('C')
@@ -283,7 +280,7 @@ class TestMotionTransforms(TestCase):
         self.assertFalse(inside_bar.crosses_bar_line())
 
     def test__EighthNoteTransform_causes_flickering(self):
-        fileloader.load(constants.TEST_MIDI + 'flicker.mid')
+        fileloader.load(constants.TEST_MIDI + 'flicker.mid', False)
         sequence = config.soprano
 
         c = config

@@ -3,11 +3,9 @@ from pprint import pformat
 
 import midi
 import config
-import rhythm
+from rhythm import time
 import math
 import constants
-import ks
-import util
 import vars
 from notes import Note
 
@@ -56,6 +54,9 @@ class Sequence(list):
             self.part = part
             self.__build_empty_samples(len(seed.samples))
 
+        self.__precompute_measures()
+        self._beats = self.__precompute_beats()
+
     def __len__(self):
         return len(self.samples)
 
@@ -76,6 +77,29 @@ class Sequence(list):
 
     def __getslice__(self, i, j):
         return self.samples.__getslice__(i, j)
+
+    def __precompute_measures(self):
+        more_measures = True
+        measures = []
+        sample_position = 0
+        index = 0
+
+        while more_measures:
+            active_time_signature = time.signatures[sample_position]
+            samples = self[sample_position:sample_position + active_time_signature.samples_per_measure()]
+            measures.append(Measure(index, samples, active_time_signature, sample_position, self))
+            sample_position += active_time_signature.samples_per_measure()
+            index += 1
+            more_measures = sample_position < len(self)
+
+        self._measures = measures
+
+    def __precompute_beats(self):
+        self._beats = {}
+
+        for measure in self.measures():
+            for beat in measure.beats():
+                self._beats[beat.sample_position()] = beat
 
     def strong_beat_positions(self):
         beats = []
@@ -103,28 +127,14 @@ class Sequence(list):
             beats.extend(measure.beats())
 
     def beat_at(self, sample_index):
-        time_signature = config.time_signatures[sample_index]
+        time_signature = time.signatures[sample_index]
         samples = self.samples[sample_index:(sample_index + time_signature.samples_per_beat())]
         measure = self.parent_measure(sample_index)
         beat_index = (sample_index - measure.sample_position()) / config.resolution
-
         return Beat(samples, measure, beat_index)
 
     def measures(self):
-        more_measures = True
-        measures = []
-        sample_position = 0
-        index = 0
-
-        while more_measures:
-            active_time_signature = config.time_signatures[sample_position]
-            samples = self[sample_position:sample_position + active_time_signature.samples_per_measure()]
-            measures.append(Measure(index, samples, active_time_signature, self))
-            sample_position += active_time_signature.samples_per_measure()
-            index += 1
-            more_measures = sample_position < len(self)
-
-        return measures
+        return self._measures
 
     def to_pattern(self):
         pattern = midi.Pattern(resolution=config.resolution)
@@ -134,8 +144,8 @@ class Sequence(list):
 
         ticks = 0
         for i in range(0, len(self.samples)):
-            if i in config.time_signatures.keys():
-                time_signature = config.time_signatures[i]
+            if i in time.signatures.keys():
+                time_signature = time.signatures[i]
                 track.append(midi.TimeSignatureEvent(data=[time_signature.numerator,
                                                            int(math.sqrt(time_signature.denominator)),
                                                            36,
@@ -236,12 +246,14 @@ class Sequence(list):
 
 class Measure(list):
 
-    def __init__(self, measure_index, samples, time_signature, parent):
+    def __init__(self, measure_index, samples, time_signature, sample_position, parent):
         super(Measure, self).__init__()
         self.samples = samples
         self.parent = parent
         self.measure_index = measure_index
         self.time_signature = time_signature
+        self._sample_position = sample_position
+        self._beats = self.__precompute_beats()
 
     def __repr__(self):
         return '\nMeasure(samples: %s)' % pformat(self.samples)
@@ -253,9 +265,9 @@ class Measure(list):
         return self.samples[index]
 
     def sample_position(self):
-        return int(config.time_signatures.sample_position(measure=self.measure_index))
+        return self._sample_position
 
-    def beats(self):
+    def __precompute_beats(self):
         beats = []
         time_signature = self.time_signature
         samples_per_beat = time_signature.samples_per_beat()
@@ -268,12 +280,15 @@ class Measure(list):
 
         return beats
 
+    def beats(self):
+        return self._beats
+
     def phrasing_candidates(self):
         if self.time_signature.numerator <= 4:
             t = self.beats()
             return {tuple([i for i in range(0, self.time_signature.numerator)]): 1}
         else:
-            phrase_combinations = rhythm.phrase_combinations(self.time_signature.numerator)
+            phrase_combinations = time.phrase_combinations(self.time_signature.numerator)
             combination_map = {}
 
             for combination in phrase_combinations:
@@ -388,7 +403,7 @@ class Beat(list):
         return i
 
     def sample_position(self):
-        time_signature = config.time_signatures[self.parent.sample_position()]
+        time_signature = time.signatures[self.parent.sample_position()]
         return int(self.parent.sample_position() + time_signature.samples_per_beat() * self.beat_index)
 
     def pitch(self):

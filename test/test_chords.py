@@ -2,7 +2,7 @@ from unittest import TestCase
 import notes
 import chords
 import config
-import rhythm
+from rhythm import time
 from notes import MIDI_VALUES
 
 
@@ -88,8 +88,8 @@ class TestChords(TestCase):
 
 
 def set_config(chord_progression):
-    time_signatures = rhythm.TimeSignatures()
-    time_signatures[0] = rhythm.TimeSignature(numerator=4, denominator=4)
+    time_signatures = time.TimeSignatures()
+    time_signatures[0] = time.TimeSignature(numerator=4, denominator=4)
 
     config.chord_progression = chord_progression
-    config.time_signatures = time_signatures
+    time.signatures = time_signatures

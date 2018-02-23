@@ -93,10 +93,12 @@ def __contains_one_or_five_seven(key_signature, chord_progression_stub):
     return False
 
 
+# TODO: FIX ME. COMMENTED FOR TESTING
 def __time_coef(sample_index, segment_start):
-    if sample_index == 0 or sample_index == segment_start:
-        return vars.FIRST_BEAT_COEF
-
-    beat = config.soprano.beat_at(sample_index)
-
-    return vars.BEAT_ONE_COEF if beat.is_first_beat() else 1.0
+    return 1.0
+    # if sample_index == 0 or sample_index == segment_start:
+    #     return vars.FIRST_BEAT_COEF
+    #
+    # beat = config.soprano.beat_at(sample_index)
+    #
+    # return vars.BEAT_ONE_COEF if beat.is_first_beat() else 1.0

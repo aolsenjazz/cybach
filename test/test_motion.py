@@ -2,20 +2,18 @@ from unittest import TestCase
 
 import midi
 
-import chords, transforms
-import domain
-import ks
-import motion
-import parts
-from notes import MIDI_VALUES
 import constants
+import fileloader
+import motion
+import chords
+import config
 
 
 class TestMotion(TestCase):
 
     def test__note_duration_at_position(self):
-        pattern = read_pattern(constants.TEST_MIDI + '2beat_join.mid')
-        sequence = domain.Sequence(track=pattern[0])
+        fileloader.load(constants.TEST_MIDI + '2beat_join.mid', False)
+        sequence = config.soprano
 
         self.assertEqual(motion.note_duration_at_position(0, sequence), 2)
 

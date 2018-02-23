@@ -1,12 +1,8 @@
 from unittest import TestCase
-import notes
 import chords
-import rhythm
 import vars
-import config
 import ks
 
-from notes import MIDI_VALUES
 
 # if notes.same_species(chord.root, self.five()) and \
 #         isinstance(chord, chords.SevenChord):

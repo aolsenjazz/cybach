@@ -1,11 +1,13 @@
 import notes
 import parts
-import motion
 import transforms
 import config
-import vars
 import chords
-import time
+import vars
+
+ALTO_POSITION = 0
+TENOR_POSITION = 1
+BASS_POSITION = 2
 
 
 class NotePicker:
@@ -19,7 +21,8 @@ class NotePicker:
         candidates = self.get_candidate_matrix(chord)
         winner = self.compute_winner(candidates)
 
-        return winner
+        # return winner
+        return None
 
     def has_next(self):
         return self.position == len(config.soprano)
@@ -42,8 +45,9 @@ class NotePicker:
         sop_pitch = config.soprano[self.position].pitch()
 
         for g in matrix:
-            if (g['bass'] < g['tenor'] < g['alto'] or g['tenor'] == -1 or g['alto'] == -1) \
-                    and (g['alto'] < sop_pitch or sop_pitch == -1):
+            if (g[BASS_POSITION] < g[TENOR_POSITION] < g[ALTO_POSITION]
+                or g[TENOR_POSITION] == -1 or g[ALTO_POSITION] == -1) \
+                    and (g[ALTO_POSITION] < sop_pitch or sop_pitch == -1):
                 filtered.append(g)
 
         return filtered
@@ -56,41 +60,26 @@ class NotePicker:
         current_winner = None
 
         for candidate in candidates:
-            millis = time.time()
-            candidate['soprano'] = (config.soprano[self.position].pitch())
-            # m0 = time.time()
-            # print 'CANDIDATE:', m0 - millis
+            candidate.append(config.soprano[self.position].pitch())
 
-            bass_score = get_bass_score(candidate['bass'], self.position, config.bass)
-            # m1 = time.time()
-            # print 'BASS:', m1 - millis
-            tenor_score = get_tenor_score(candidate['tenor'], self.position, config.tenor)
-            # m2 = time.time()
-            # print 'TENOR:', m2 - m1
-            alto_score = get_alto_score(candidate['alto'], self.position, config.alto)
-            # m3 = time.time()
-            # print 'ALTO:', m3 - m2
-            harmony_score = get_harmony_score(candidate, self.current_chord())
-            # m4 = time.time()
-            # print 'HARMONY:', m4 - m3
-            motion_score = get_motion_score(candidate, self.position, config.alto, config.tenor, config.bass)
-            # m5 = time.time()
-            # print 'MOTION:', m5 - m4
-            rest_penalty = get_rest_penalty(candidate)
-            # m6 = time.time()
-            # print 'REST:', m6 - millis
-
-            score = sum([bass_score, tenor_score, alto_score, harmony_score, motion_score, rest_penalty])
-
-            if score > high_score:
-                high_score = score
-                current_winner = candidate
+            bass_score = get_bass_score(candidate[BASS_POSITION], self.position, config.bass)
+            # tenor_score = get_tenor_score(candidate[TENOR_POSITION], self.position, config.tenor)
+            # alto_score = get_alto_score(candidate[ALTO_POSITION], self.position, config.alto)
+            # harmony_score = get_harmony_score(candidate, self.current_chord())
+            # motion_score = get_motion_score(candidate, self.position, config.alto, config.tenor, config.bass)
+            # rest_penalty = get_rest_penalty(candidate)
+            #
+            # score = sum([bass_score, tenor_score, alto_score, harmony_score, motion_score, rest_penalty])
+            #
+            # if score > high_score:
+            #     high_score = score
+            #     current_winner = candidate
 
         return current_winner
 
 
 def get_rest_penalty(candidate):
-    return len([key for key in candidate.keys() if candidate[key] == -1]) * vars.REST_PENALTY
+    return len([c for c in candidate if c == -1]) * vars.REST_PENALTY
 
 
 def get_motion_score(candidate, position, alto, tenor, bass):
@@ -103,11 +92,14 @@ def get_motion_score(candidate, position, alto, tenor, bass):
 
     score = 0.0
 
-    if transforms.notes_cause_parallel_movement(last_alto, last_tenor, candidate['alto'], candidate['tenor']):
+    if transforms.notes_cause_parallel_movement(last_alto, last_tenor,
+                                                candidate[ALTO_POSITION], candidate[TENOR_POSITION]):
         score += vars.PARALLEL_MOVEMENT
-    if transforms.notes_cause_parallel_movement(last_tenor, last_bass, candidate['tenor'], candidate['bass']):
+    if transforms.notes_cause_parallel_movement(last_tenor, last_bass,
+                                                candidate[TENOR_POSITION], candidate[BASS_POSITION]):
         score += vars.PARALLEL_MOVEMENT
-    if transforms.notes_cause_parallel_movement(last_bass, last_alto, candidate['bass'], candidate['alto']):
+    if transforms.notes_cause_parallel_movement(last_bass, last_alto,
+                                                candidate[BASS_POSITION], candidate[ALTO_POSITION]):
         score += vars.PARALLEL_MOVEMENT
 
     return score
@@ -149,25 +141,25 @@ def get_alto_score(candidate, position, sequence):
     low_thresh = parts.ALTO.max_low
     high_thresh = parts.ALTO.max_high
 
-    millis = time.time()
+    # millis = time.time()
     score += threshold_encroachment_score(candidate, low_thresh, low_thresh + 4)
-    m1 = time.time()
-    print 'thresh1', m1 - millis
+    # m1 = time.time()
+    # print 'thresh1', m1 - millis
     score += threshold_encroachment_score(candidate, high_thresh, high_thresh - 4)
-    m2 = time.time()
-    print 'thresh2', m2 - m1
+    # m2 = time.time()
+    # print 'thresh2', m2 - m1
     score += preferred_register_score(candidate, high_thresh, high_thresh - 7)
-    m3 = time.time()
-    print 'thresh3', m3 - m2
+    # m3 = time.time()
+    # print 'thresh3', m3 - m2
     score += motion_tendency_score(candidate, position, sequence)
-    m4 = time.time()
-    print 'thresh4', m4 - m3
+    # m4 = time.time()
+    # print 'thresh4', m4 - m3
     score += linear_motion_score(candidate, position, sequence)
-    m5 = time.time()
-    print 'thresh5', m5 - m4
+    # m5 = time.time()
+    # print 'thresh5', m5 - m4
     score += flicker_avoidance_score(candidate, position, sequence)
-    m6 = time.time()
-    print 'thresh6', m6 - m5
+    # m6 = time.time()
+    # print 'thresh6', m6 - m5
 
     return score
 
@@ -198,7 +190,7 @@ def flicker_avoidance_score(candidate, position, sequence):
 
 def get_harmony_score(candidate, chord):
     base_position_chord = [notes.OCTAVES[notes.species(n)][0] for n in chord.all_octaves()]
-    base_position_candidate = [candidate[key] % 12 for key in candidate.keys()]
+    base_position_candidate = [c % 12 for c in candidate]
     added = []
     count = 0
 
@@ -221,6 +213,7 @@ def bass_note_tendency_score(candidate, position, sequence):
     last_chord = config.chord_progression[position - config.resolution]
 
     # If beat one, we definitely want to hear the bass note
+    sequence.beat_at(position)
     if sequence.beat_at(position).is_first_beat():
         score += vars.FIRST_BEAT_BASS_NOTE
 
@@ -305,8 +298,4 @@ def combine_pitch_candidates(*args):
                 t.append(i + [y])
         r = t
 
-    candidates = []
-    for group in r:
-        candidates.append({'alto': group[0], 'tenor': group[1], 'bass': group[2]})
-
-    return candidates
+    return r
