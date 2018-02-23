@@ -10,15 +10,7 @@ class Part:
         self.title = title
 
     def available_notes(self, chord):
-        available = []
-
-        for pitch in chord.all_octaves():
-            octaves = notes.OCTAVES[notes.species(pitch)]
-            for octave in octaves:
-                if self.max_low < octave < self.max_high:
-                    available.append(octave)
-
-        return available
+        return [pitch for pitch in chord.all_octaves() if self.max_low < pitch < self.max_high]
 
     def __repr__(self):
         return self.title

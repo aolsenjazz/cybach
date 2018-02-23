@@ -6,18 +6,12 @@ CYBACH
 import os.path
 import re
 import sys
+from itertools import chain
 
-import midi
-import chords
-import instruments
-import ks
-import motion
-import note_picker
-import constants
-import parts
-import config
 import examples
 import fileloader
+import note_picker
+from rhythm import time
 
 # ~~~~~~~~ verify command line arguments ~~~~~~~~
 midi_regex = re.compile('.+\.(midi|mid)')
@@ -51,11 +45,9 @@ fileloader.load(sys.argv[1], False)
 
 print 'Selecting initial accompaniment...'
 picker = note_picker.NotePicker()
-strong_beats = config.soprano.strong_beat_positions()
-for i in range(0, len(strong_beats)):
-    start = strong_beats[i]
-    end = len(config.soprano) if i == len(strong_beats) - 1 else strong_beats[i + 1]
-    pitches = picker.compute(start)
+strong_beats = list(chain.from_iterable([time.measures()[key].strong_beats() for key in time.measures().keys()]))
+for beat1, beat2 in zip(strong_beats, strong_beats[1::]):
+    pitches = picker.compute(beat1)
 
     # config.bass.set_pitch(start, end, pitches['bass'])
     # config.tenor.set_pitch(start, end, pitches['tenor'])

@@ -88,8 +88,6 @@ class TestChords(TestCase):
 
 
 def set_config(chord_progression):
-    time_signatures = time.TimeSignatures()
-    time_signatures[0] = time.TimeSignature(numerator=4, denominator=4)
+    time.add_signature(0, time.TimeSignature(numerator=4, denominator=4))
 
     config.chord_progression = chord_progression
-    time.signatures = time_signatures

@@ -120,7 +120,8 @@ class TestNotePicker(TestCase):
         candidate = notes.MIDI_VALUES['D5'], notes.MIDI_VALUES['A5'], irrelevant_pitch,
 
         self.assertEqual(note_picker.get_motion_score(candidate, 0, alto, tenor, bass), 0.0)
-        self.assertEqual(note_picker.get_motion_score(candidate, config.resolution, alto, tenor, bass), vars.PARALLEL_MOVEMENT)
+        self.assertEqual(note_picker.get_motion_score(candidate, config.resolution, alto, tenor, bass),
+                         vars.PARALLEL_MOVEMENT)
 
     def test__flicker_avoidance_score(self):
         pattern = read_pattern(constants.TEST_MIDI + 'flicker.mid')
@@ -136,13 +137,11 @@ class TestNotePicker(TestCase):
 
 
 def set_config(soprano, chord_progression, key_signatures):
-    time_signatures = time.TimeSignatures()
-    time_signatures[0] = time.TimeSignature(numerator=4, denominator=4)
+    time.add_signature(0, time.TimeSignature(numerator=4, denominator=4))
 
     config.soprano = soprano
     config.chord_progression = chord_progression
     config.key_signatures = key_signatures
-    time.signatures = time_signatures
 
 
 def read_pattern(file_name):

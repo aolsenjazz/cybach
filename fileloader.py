@@ -63,12 +63,14 @@ def __load_midi(file_name):
         pattern = midi.read_midifile(file_name)
         __enforce_midi_validity(pattern)
         config.resolution = pattern.resolution
+
+        config.soprano = domain.RootSequence(pattern[0])
+        config.alto = domain.AccompanimentSequence(config.soprano, parts.ALTO)
+        config.tenor = domain.AccompanimentSequence(config.soprano, parts.TENOR)
+        config.bass = domain.AccompanimentSequence(config.soprano, parts.BASS)
+
         __load_time_signature_events(pattern)
 
-        config.soprano = domain.Sequence(track=pattern[0])
-        config.alto = domain.Sequence(seed=config.soprano, part=parts.ALTO)
-        config.tenor = domain.Sequence(seed=config.soprano, part=parts.TENOR)
-        config.bass = domain.Sequence(seed=config.soprano, part=parts.BASS)
         config.chord_progression = chords.ChordProgression()
     except TypeError:
         print 'Midi file is malformed. Try exporting a new one from any DAW'
@@ -100,7 +102,7 @@ def __init_key_signature_entry(sequence, pattern):
 
 
 def __init_time_signature_entry(sequence):
-    time_signatures = time.signatures
+    time_signatures = time.__signatures
 
     if time_signatures:
         __report_time_signature_data()
@@ -116,7 +118,7 @@ def __init_time_signature_entry(sequence):
             measure = int(raw_input('Measure: '))
 
             event = midi.TimeSignatureEvent(data=[numerator, denominator, 36, 8])
-            time.signatures[sequence.measure(measure - 1).sample_position()] = event
+            time.__signatures[sequence.measure(measure - 1).start()] = event
 
 
 def __verify_measure_count(sequence):
@@ -176,7 +178,7 @@ def __manual_create_key_signatures(sequence):
             signature = raw_input('Enter key: ')
             measure = int(raw_input('Enter measure number: '))
 
-            key_signatures[sequence.measure(measure - 1).sample_position()] = signature
+            key_signatures[sequence.measure(measure - 1).start()] = signature
 
     return key_signatures
 
@@ -197,7 +199,7 @@ def __manual_enter_chords(sequence):
             measure = int(raw_input('Enter measure number: '))
             beat = int(raw_input('Enter beat number: '))
 
-            chord_progression[sequence.measure(measure - 1).sample_position() + (beat - 1) * config.resolution] = chord
+            chord_progression[sequence.measure(measure - 1).start() + (beat - 1) * config.resolution] = chord
 
     return chord_progression
 
@@ -235,9 +237,10 @@ def __load_time_signature_events(pattern):
 
     :param pattern: pattern retrieved by parsing MIDI
     """
+    time.clear()
     events = pat_util.get_time_signature_events(pattern)
     for key in events.keys():
-        time.signatures[key] = time.TimeSignature(event=events[key])
+        time.add_signature(key, time.TimeSignature(event=events[key]))
 
 
 def __enforce_midi_validity(pattern):

@@ -92,9 +92,9 @@ class Motionizer:
         return sum(synergies) / len(synergies)
 
     def __compute_motion_scores(self, trans, alto, tenor, bass):
-        amt = alto.motion_tendency
-        tmt = tenor.motion_tendency
-        bmt = bass.motion_tendency
+        amt = alto.motion_tendency()
+        tmt = tenor.motion_tendency()
+        bmt = bass.motion_tendency()
 
         alto_score = abs(trans['alto'].intrinsic_motion - amt)
         tenor_score = abs(trans['tenor'].intrinsic_motion - tmt)

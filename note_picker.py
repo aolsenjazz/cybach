@@ -12,25 +12,22 @@ BASS_POSITION = 2
 
 class NotePicker:
     def __init__(self):
-        self.position = 0
+        self.beat = None
 
-    def compute(self, position):
-        self.position = position
+    def compute(self, beat):
+        self.beat = beat
 
         chord = self.current_chord()
         candidates = self.get_candidate_matrix(chord)
-        winner = self.compute_winner(candidates)
+        # winner = self.compute_winner(candidates)
 
         # return winner
         return None
 
-    def has_next(self):
-        return self.position == len(config.soprano)
-
     def get_candidate_matrix(self, chord):
-        alto_candidates = config.alto.part.available_notes(chord)
-        tenor_candidates = config.tenor.part.available_notes(chord)
-        bass_candidates = config.bass.part.available_notes(chord)
+        alto_candidates = config.alto.part().available_notes(chord)
+        tenor_candidates = config.tenor.part().available_notes(chord)
+        bass_candidates = config.bass.part().available_notes(chord)
 
         alto_candidates.append(-1)  # -1 represents rest
         tenor_candidates.append(-1)  # -1 represents rest
@@ -42,7 +39,7 @@ class NotePicker:
 
     def filter_candidates(self, matrix):
         filtered = []
-        sop_pitch = config.soprano[self.position].pitch()
+        sop_pitch = config.soprano.pitch(self.beat.start())
 
         for g in matrix:
             if (g[BASS_POSITION] < g[TENOR_POSITION] < g[ALTO_POSITION]
@@ -53,20 +50,20 @@ class NotePicker:
         return filtered
 
     def current_chord(self):
-        return config.chord_progression[self.position]
+        return config.chord_progression[self.beat]
 
     def compute_winner(self, candidates):
         high_score = -9999
         current_winner = None
 
         for candidate in candidates:
-            candidate.append(config.soprano[self.position].pitch())
+            candidate.append(config.soprano[self.beat.start()].pitch())
 
-            bass_score = get_bass_score(candidate[BASS_POSITION], self.position, config.bass)
-            # tenor_score = get_tenor_score(candidate[TENOR_POSITION], self.position, config.tenor)
-            # alto_score = get_alto_score(candidate[ALTO_POSITION], self.position, config.alto)
+            bass_score = get_bass_score(candidate[BASS_POSITION], self.beat, config.bass)
+            # tenor_score = get_tenor_score(candidate[TENOR_POSITION], self.beat, config.tenor)
+            # alto_score = get_alto_score(candidate[ALTO_POSITION], self.beat, config.alto)
             # harmony_score = get_harmony_score(candidate, self.current_chord())
-            # motion_score = get_motion_score(candidate, self.position, config.alto, config.tenor, config.bass)
+            # motion_score = get_motion_score(candidate, self.beat, config.alto, config.tenor, config.bass)
             # rest_penalty = get_rest_penalty(candidate)
             #
             # score = sum([bass_score, tenor_score, alto_score, harmony_score, motion_score, rest_penalty])
@@ -105,7 +102,7 @@ def get_motion_score(candidate, position, alto, tenor, bass):
     return score
 
 
-def get_bass_score(candidate, position, sequence):
+def get_bass_score(candidate, beat, sequence):
     score = 0.0
     low_thresh = parts.BASS.max_low
     high_thresh = parts.BASS.max_high
@@ -113,10 +110,10 @@ def get_bass_score(candidate, position, sequence):
     score += threshold_encroachment_score(candidate, low_thresh, low_thresh + 4)
     score += threshold_encroachment_score(candidate, high_thresh, high_thresh - 4)
     score += preferred_register_score(candidate, high_thresh, high_thresh - 7)
-    score += motion_tendency_score(candidate, position, sequence)
-    score += linear_motion_score(candidate, position, sequence)
-    score += flicker_avoidance_score(candidate, position, sequence)
-    score += bass_note_tendency_score(candidate, position, sequence)
+    score += motion_tendency_score(candidate, beat.start(), sequence)
+    score += linear_motion_score(candidate, beat.start(), sequence)
+    score += flicker_avoidance_score(candidate, beat.start(), sequence)
+    score += bass_note_tendency_score(candidate, beat, sequence)
 
     return score
 
@@ -141,25 +138,12 @@ def get_alto_score(candidate, position, sequence):
     low_thresh = parts.ALTO.max_low
     high_thresh = parts.ALTO.max_high
 
-    # millis = time.time()
     score += threshold_encroachment_score(candidate, low_thresh, low_thresh + 4)
-    # m1 = time.time()
-    # print 'thresh1', m1 - millis
     score += threshold_encroachment_score(candidate, high_thresh, high_thresh - 4)
-    # m2 = time.time()
-    # print 'thresh2', m2 - m1
     score += preferred_register_score(candidate, high_thresh, high_thresh - 7)
-    # m3 = time.time()
-    # print 'thresh3', m3 - m2
     score += motion_tendency_score(candidate, position, sequence)
-    # m4 = time.time()
-    # print 'thresh4', m4 - m3
     score += linear_motion_score(candidate, position, sequence)
-    # m5 = time.time()
-    # print 'thresh5', m5 - m4
     score += flicker_avoidance_score(candidate, position, sequence)
-    # m6 = time.time()
-    # print 'thresh6', m6 - m5
 
     return score
 
@@ -202,19 +186,19 @@ def get_harmony_score(candidate, chord):
     return count * vars.HARMONY
 
 
-def bass_note_tendency_score(candidate, position, sequence):
-    this_chord = config.chord_progression[position]
+def bass_note_tendency_score(candidate, beat, sequence):
+    this_chord = config.chord_progression[beat.start()]
     score = 0.0
 
     # first bass note should definitely be the root
-    if position == 0 and notes.species(candidate) == this_chord.bass_note.species():
+    if beat.start() == 0 and notes.species(candidate) == this_chord.bass_note.species():
         return vars.FIRST_BEAT_BASS_ROOT
 
-    last_chord = config.chord_progression[position - config.resolution]
+    # FIXME - config.resolution is an old artifact
+    last_chord = config.chord_progression[beat.start() - config.resolution]
 
-    # If beat one, we definitely want to hear the bass note
-    sequence.beat_at(position)
-    if sequence.beat_at(position).is_first_beat():
+    # If beat one, we want to hear the bass note
+    if beat.first_beat():
         score += vars.FIRST_BEAT_BASS_NOTE
 
     # Chord is the same as the last chord, and this is root note. Less important as root was likely
@@ -256,14 +240,14 @@ def motion_tendency_score(candidate, position, sequence):
     score = 0.0
 
     if position == 0:
-        return score
+        return 0.0
 
     last_pitch = sequence[position - config.resolution].pitch()
 
     if is_motion(candidate, last_pitch):
-        score += sequence.motion_tendency - 0.5
+        score += sequence.motion_tendency() - 0.5
     else:
-        score += 0.5 - sequence.motion_tendency
+        score += 0.5 - sequence.motion_tendency()
 
     return score / vars.MOTION_TENDENCY_DIVISOR
 
@@ -297,5 +281,4 @@ def combine_pitch_candidates(*args):
             for i in r:
                 t.append(i + [y])
         r = t
-
     return r

@@ -127,15 +127,8 @@ class Chord:
         raise NotImplementedError
 
     def all_octaves(self):
-        degrees = self.all_degrees()
-        try:
-            all_notes = list(itertools.chain(*[notes.OCTAVES[note.species()] for note in self.all_degrees()]))
-        except:
-            d = self.all_degrees()
-            t = 1
-
+        all_notes = list(itertools.chain(*[notes.OCTAVES[note.species()] for note in self.all_degrees()]))
         all_notes.sort()
-
         return all_notes
 
 
@@ -297,18 +290,12 @@ class DiminishedChord(MinorChord):
         return notes.species(self._root) + 'dim'
 
     def all_degrees(self):
-        most = Chord.all_degrees(self)
-        all_deg = [lambda l: most, self.__seven]
-        return all_deg
+        return Chord.all_degrees(self) + self.__seven
 
     def all_octaves(self):
-        all_sevenths = notes.OCTAVES[self.__seven.species()]
-
-        most = Chord.all_octaves(self)
-        most.extend(all_sevenths)
-        most.sort()
-
-        return most
+        all_of_em = Chord.all_octaves(self) + notes.OCTAVES[self.__seven.species()]
+        all_of_em.sort()
+        return all_of_em
 
     def __note_above(self, pitch):
         if pitch == self.__five:
@@ -370,31 +357,23 @@ class ChordProgression(collections.MutableMapping):
     def set(self):
         return ChordProgressionSetter(self)
 
-    def chords_in_measure(self, measure_index):
-        sample_pos = time.signatures.sample_position(measure=measure_index)
-        time_signature = time.signatures[sample_pos]
-        measure_end_pos = sample_pos + time_signature.samples_per_measure()
-        chords = {}
-
-        for key in [k for k in config.chord_progression.keys() if sample_pos <= k < measure_end_pos]:
-            chords[key] = self[key]
-
-        return chords
+    def chords(self, measure):
+        return {key: self[key] for key in self.keys() if measure.start() <= key < measure.end()}
 
 
 class ChordProgressionSetter:
 
     def __init__(self, chord_progression):
         self.chord_progression = chord_progression
-        self.internal_measure = 0
-        self.internal_beat = 0
+        self._measure = 0
+        self._beat = 0
 
     def measure(self, measure):
-        self.internal_measure = measure
+        self._measure = measure
         return self
 
     def beat(self, beat):
-        self.internal_beat = beat
+        self._beat = beat
         return self
 
     def commit(self, chord):
@@ -405,7 +384,7 @@ class ChordProgressionSetter:
         else:
             raise TypeError
 
-        sample_pos = time.signatures.sample_position(measure=self.internal_measure, beat=self.internal_beat)
+        sample_pos = time.measure(self._measure).beat(self._beat).start()
         self.chord_progression[sample_pos] = parsed
 
 

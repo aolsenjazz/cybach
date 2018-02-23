@@ -1,30 +1,69 @@
 from unittest import TestCase
 from rhythm import time
+import config
+import fileloader
+import constants
 
 
-class TestRhythm(TestCase):
+class TestTime(TestCase):
 
     def test__sample_position(self):
-        ts = time.TimeSignatures()
+        config.soprano = [1] * 2000
 
-        four_four = time.TimeSignature(numerator=4, denominator=4)
-        six_eight = time.TimeSignature(numerator=6, denominator=8)
-        three_two = time.TimeSignature(numerator=3, denominator=2)
-
-        ts[0] = four_four
-        ts[four_four.samples_per_measure()] = six_eight
-        ts[four_four.samples_per_measure() + six_eight.samples_per_measure()] = three_two
+        time.add_signature(0, time.TimeSignature(numerator=4, denominator=4))
+        time.add_signature(384, time.TimeSignature(numerator=6, denominator=8))
+        time.add_signature(672, time.TimeSignature(numerator=3, denominator=2))
 
         measure_index = 3
         beat_index = 1
         sample_position = 1440
 
-        ts.sample_position(measure_index, beat_index)
+        should_be_1440 = time.measure(measure_index).beat(beat_index).start()
 
-        self.assertEqual(sample_position, ts.sample_position(measure_index, beat_index))
+        self.assertEqual(sample_position, should_be_1440)
+        time.clear()
 
     def test__phrase_combinations(self):
         beats_per_bar = 7
         total_combinations = 5
 
         self.assertEqual(total_combinations, len(time.phrase_combinations(beats_per_bar)))
+        time.clear()
+
+    def test__Beat_first_beat(self):
+        config.soprano = [1] * 2000
+
+        time.add_signature(0, time.TimeSignature(numerator=4, denominator=4))
+        time.add_signature(384, time.TimeSignature(numerator=6, denominator=8))
+        time.add_signature(672, time.TimeSignature(numerator=3, denominator=2))
+
+        third_measure = 2
+        first_beat = 0
+        second_beat = 1
+
+        self.assertTrue(time.measure(third_measure).beat(first_beat).first_beat())
+        self.assertFalse(time.measure(third_measure).beat(second_beat).first_beat())
+        time.clear()
+
+    def test__Beat_last_beat(self):
+        config.soprano = [1] * 2000
+
+        time.add_signature(0, time.TimeSignature(numerator=4, denominator=4))
+        time.add_signature(384, time.TimeSignature(numerator=6, denominator=8))
+        time.add_signature(672, time.TimeSignature(numerator=3, denominator=2))
+
+        third_measure = 2
+        last_beat = 2
+        second_beat = 1
+
+        self.assertTrue(time.measure(third_measure).beat(last_beat).last_beat())
+        self.assertFalse(time.measure(third_measure).beat(second_beat).last_beat())
+        time.clear()
+
+    def test__Sequence_measures(self):
+        fileloader.load(constants.TEST_MIDI + 'mixed_meter.mid', False)
+
+        number_of_measures = 11
+
+        self.assertEqual(number_of_measures, len(time.measures().keys()))
+        time.clear()
