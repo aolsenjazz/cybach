@@ -1,4 +1,4 @@
-import notes
+import pitches
 
 
 class Part:

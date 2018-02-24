@@ -91,10 +91,12 @@ OCTAVES = {
 
 
 def species(value):
-    parsed_value = parse(value).midi()
+    int_value = value
+    if isinstance(value, str):
+        int_value = __midi_value(value)
 
     for key in MIDI_VALUES:
-        remainder = parsed_value % 12
+        remainder = int_value % 12
 
         if MIDI_VALUES[key] % 12 == remainder:
             return key[0:len(key) - 2] if '10' in key else key[0:len(key) - 1]
@@ -121,7 +123,7 @@ def is_perfect_interval(first, second):
 
 
 def ionian(pitch):
-    notes = \
+    pitches = \
         species(pitch), \
         species(pitch + 2), \
         species(pitch + 4), \
@@ -130,14 +132,14 @@ def ionian(pitch):
         species(pitch + 9), \
         species(pitch + 11)
 
-    all_pitches = list(itertools.chain.from_iterable([OCTAVES[note] for note in notes]))
+    all_pitches = list(itertools.chain.from_iterable([OCTAVES[p] for p in pitches]))
     all_pitches.sort()
 
     return all_pitches
 
 
 def dorian(pitch):
-    notes = \
+    pitches = \
         species(pitch), \
         species(pitch + 2), \
         species(pitch + 3), \
@@ -146,14 +148,14 @@ def dorian(pitch):
         species(pitch + 9), \
         species(pitch + 10)
 
-    all_pitches = list(itertools.chain.from_iterable([OCTAVES[note] for note in notes]))
+    all_pitches = list(itertools.chain.from_iterable([OCTAVES[p] for p in pitches]))
     all_pitches.sort()
 
     return all_pitches
 
 
 def phrygian(pitch):
-    notes = \
+    pitches = \
         species(pitch), \
         species(pitch + 1), \
         species(pitch + 3), \
@@ -162,14 +164,14 @@ def phrygian(pitch):
         species(pitch + 8), \
         species(pitch + 10)
 
-    all_pitches = list(itertools.chain.from_iterable([OCTAVES[note] for note in notes]))
+    all_pitches = list(itertools.chain.from_iterable([OCTAVES[p] for p in pitches]))
     all_pitches.sort()
 
     return all_pitches
 
 
 def lydian(pitch):
-    notes = \
+    pitches = \
         species(pitch), \
         species(pitch + 2), \
         species(pitch + 4), \
@@ -178,14 +180,14 @@ def lydian(pitch):
         species(pitch + 9), \
         species(pitch + 11)
 
-    all_pitches = list(itertools.chain.from_iterable([OCTAVES[note] for note in notes]))
+    all_pitches = list(itertools.chain.from_iterable([OCTAVES[p] for p in pitches]))
     all_pitches.sort()
 
     return all_pitches
 
 
 def mixolydian(pitch):
-    notes = \
+    pitches = \
         species(pitch), \
         species(pitch + 2), \
         species(pitch + 4), \
@@ -194,14 +196,14 @@ def mixolydian(pitch):
         species(pitch + 9), \
         species(pitch + 10)
 
-    all_pitches = list(itertools.chain.from_iterable([OCTAVES[note] for note in notes]))
+    all_pitches = list(itertools.chain.from_iterable([OCTAVES[p] for p in pitches]))
     all_pitches.sort()
 
     return all_pitches
 
 
 def aeolian(pitch):
-    notes = \
+    pitches = \
         species(pitch), \
         species(pitch + 2), \
         species(pitch + 3), \
@@ -210,14 +212,14 @@ def aeolian(pitch):
         species(pitch + 8), \
         species(pitch + 10)
 
-    all_pitches = list(itertools.chain.from_iterable([OCTAVES[note] for note in notes]))
+    all_pitches = list(itertools.chain.from_iterable([OCTAVES[p] for p in pitches]))
     all_pitches.sort()
 
     return all_pitches
 
 
 def locrian(pitch):
-    notes = \
+    pitches = \
         species(pitch), \
         species(pitch + 1), \
         species(pitch + 3), \
@@ -226,14 +228,14 @@ def locrian(pitch):
         species(pitch + 8), \
         species(pitch + 10)
 
-    all_pitches = list(itertools.chain.from_iterable([OCTAVES[note] for note in notes]))
+    all_pitches = list(itertools.chain.from_iterable([OCTAVES[p] for p in pitches]))
     all_pitches.sort()
 
     return all_pitches
 
 
 def half_whole(pitch):
-    notes = \
+    pitches = \
         species(pitch), \
         species(pitch + 1), \
         species(pitch + 3), \
@@ -244,14 +246,14 @@ def half_whole(pitch):
         species(pitch + 9), \
         species(pitch + 11)
 
-    all_pitches = list(itertools.chain.from_iterable([OCTAVES[note] for note in notes]))
+    all_pitches = list(itertools.chain.from_iterable([OCTAVES[p] for p in pitches]))
     all_pitches.sort()
 
     return all_pitches
 
 
 def whole_half(pitch):
-    notes = \
+    pitches = \
         species(pitch), \
         species(pitch + 2), \
         species(pitch + 3), \
@@ -261,13 +263,13 @@ def whole_half(pitch):
         species(pitch + 9), \
         species(pitch + 11)
 
-    all_pitches = list(itertools.chain.from_iterable([OCTAVES[note] for note in notes]))
+    all_pitches = list(itertools.chain.from_iterable([OCTAVES[p] for p in pitches]))
     all_pitches.sort()
 
     return all_pitches
 
 
-def midi_value(string):
+def __midi_value(string):
     if TEXT_WITH_OCTAVE.match(string):
         value_with_octave = string
     elif TEXT_WITHOUT_OCTAVE.match(string):
@@ -275,39 +277,40 @@ def midi_value(string):
     else:
         raise ValueError('Invalid string value ' + value + ' submitted')
 
-    note_without_octave = ''.join(c for c in value_with_octave if not c.isdigit())
+    pitch_without_octave = ''.join(c for c in value_with_octave if not c.isdigit())
     octave = int(''.join(c for c in value_with_octave if c.isdigit()))
-    coef = PITCH_COEFS[[key for key in PITCH_COEFS.keys() if key.lower() == note_without_octave.lower()][0]]
+    coef = PITCH_COEFS[[key for key in PITCH_COEFS.keys() if key.lower() == pitch_without_octave.lower()][0]]
     return 12 * octave + coef
 
 
 def parse(value):
     if isinstance(value, int):
-        if -1 <= value <= 127:
-            return Note(value)
+        if 0 <= value <= 127:
+            return Pitch(value)
         else:
             raise ValueError('value ' + str(value) + ' is out of midi range')
     elif isinstance(value, str):
-        return Note(midi_value(value))
-    elif isinstance(value, Note):
+        return Pitch(__midi_value(value))
+    elif isinstance(value, Pitch):
         return value
     else:
-        raise TypeError(str(value) + ' is not a valid Note, int or string')
+        raise TypeError(str(value) + ' is not a valid Pitch, int or string')
 
 
-class Note:
+class Pitch:
 
     def __init__(self, value):
+        if not isinstance(value, int) or 0 > value > 127:
+            raise TypeError('Must submit a valid int between 0 and 128 (inclusive)')
+
         self._midi_value = value
+        self._species = species(self.midi())
 
     def midi(self):
         return self._midi_value
 
     def species(self):
-        return species(self.midi())
-
-    def is_empty(self):
-        return self._midi_value == -1
+        return self._species
 
     def __repr__(self):
-        return '\n%s' % self._midi_value
+        return '%s' % self._midi_value

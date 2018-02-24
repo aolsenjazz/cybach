@@ -1,7 +1,7 @@
 import collections
 import config
 import chords
-import notes
+import pitches
 import vars
 
 
@@ -73,13 +73,13 @@ class _KeySignature:
         raise NotImplementedError
 
     def harmonic_relevance(self, chord):
-        if notes.same_species(chord.root(), self.five()) and \
+        if pitches.same_species(chord.root(), self.five()) and \
                 isinstance(chord, chords.SevenChord):
             return vars.FIVE_DOMINANT_HARMONY
-        elif notes.same_species(chord.root(), self.five()) and \
+        elif pitches.same_species(chord.root(), self.five()) and \
                 isinstance(chord, chords.MajorChord):
             return vars.FIVE_MAJOR_HARMONY
-        elif notes.same_species(chord.root(), self.seven()) and \
+        elif pitches.same_species(chord.root(), self.seven()) and \
                 isinstance(chord, chords.DiminishedChord):
             return vars.MAJOR_SEVEN_DIMINISHED_HARMONY
 
@@ -93,20 +93,20 @@ class _KeySignature:
 
         if self.is_functional(c1) and self.is_functional(c2):
             # Dominant five chords in functional relationship are more valuable than just major fives
-            if (notes.same_species(c1.root(), self.five()) and isinstance(c1, chords.SevenChord)) or \
-                    (notes.same_species(c2.root(), self.five()) and isinstance(c2, chords.SevenChord)):
+            if (pitches.same_species(c1.root(), self.five()) and isinstance(c1, chords.SevenChord)) or \
+                    (pitches.same_species(c2.root(), self.five()) and isinstance(c2, chords.SevenChord)):
                 score += vars.DOMINANT_FIVE_IN_FUNCTIONAL_RELEVANCE
-            elif (notes.same_species(c1.root(), self.five()) and isinstance(c1, chords.MajorChord)) or \
-                    (notes.same_species(c2.root(), self.five()) and isinstance(c2, chords.MajorChord)):
+            elif (pitches.same_species(c1.root(), self.five()) and isinstance(c1, chords.MajorChord)) or \
+                    (pitches.same_species(c2.root(), self.five()) and isinstance(c2, chords.MajorChord)):
                 score += vars.MAJOR_FIVE_IN_FUNCTIONAL_RELEVANCE
 
-            if notes.same_species(c1._root, self.five()) and notes.same_species(c2._root, self.one()):
+            if pitches.same_species(c1._root, self.five()) and pitches.same_species(c2._root, self.one()):
                 score += vars.FIVE_ONE_FUNCTIONALITY
-            elif notes.same_species(c1._root, self.seven()) and notes.same_species(c2._root, self.one()):
+            elif pitches.same_species(c1._root, self.seven()) and pitches.same_species(c2._root, self.one()):
                 score += vars.SEVEN_ONE_FUNCTIONALITY
-            elif notes.same_species(c1._root, self.two()) and notes.same_species(c2._root, self.five()):
+            elif pitches.same_species(c1._root, self.two()) and pitches.same_species(c2._root, self.five()):
                 score += vars.TWO_FIVE_FUNCTIONALITY
-            elif notes.same_species(c1._root, self.fourth()) and notes.same_species(c2._root, self.five()):
+            elif pitches.same_species(c1._root, self.fourth()) and pitches.same_species(c2._root, self.five()):
                 score += vars.FOUR_FIVE_FUNCTIONALITY
 
         return score
@@ -115,28 +115,28 @@ class _KeySignature:
         return self.root_chord.root()
 
     def two(self):
-        return notes.parse(self.one().midi() + 2)
+        return pitches.parse(self.one().midi() + 2)
 
     def three(self):
         return self.root_chord.three()
 
     def fourth(self):
-        return notes.parse(self.one().midi() + 5)
+        return pitches.parse(self.one().midi() + 5)
 
     def five(self):
         return self.root_chord.five()
 
     def flat_six(self):
-        return notes.parse(self.one().midi() + 8)
+        return pitches.parse(self.one().midi() + 8)
 
     def six(self):
-        return notes.parse(self.one().midi() + 9)
+        return pitches.parse(self.one().midi() + 9)
 
     def flat_seventh(self):
-        return notes.parse(self.one().midi() + 10)
+        return pitches.parse(self.one().midi() + 10)
 
     def seven(self):
-        return notes.parse(self.one().midi() + 11)
+        return pitches.parse(self.one().midi() + 11)
 
 
 class MajorKeySignature(_KeySignature):
@@ -144,47 +144,47 @@ class MajorKeySignature(_KeySignature):
     def __init__(self, root_note):
         _KeySignature.__init__(self)
 
-        self.root_chord = chords.MajorChord(notes.parse(root_note))
+        self.root_chord = chords.MajorChord(pitches.parse(root_note))
 
     def is_functional(self, chord):
         chord_root = chord.root()
 
-        if (notes.same_species(chord_root, self.one()) or
-            notes.same_species(chord_root, self.fourth()) or
-            notes.same_species(chord_root, self.five())) and \
+        if (pitches.same_species(chord_root, self.one()) or
+            pitches.same_species(chord_root, self.fourth()) or
+            pitches.same_species(chord_root, self.five())) and \
                 isinstance(chord, chords.MajorChord):
             return True
-        elif (notes.same_species(chord_root, self.five())) \
+        elif (pitches.same_species(chord_root, self.five())) \
                 and isinstance(chord, chords.SevenChord):
             return True
-        elif (notes.same_species(chord_root, self.two()) or
-              notes.same_species(chord_root, self.three()) or
-              notes.same_species(chord_root, self.six())) and \
+        elif (pitches.same_species(chord_root, self.two()) or
+              pitches.same_species(chord_root, self.three()) or
+              pitches.same_species(chord_root, self.six())) and \
                 isinstance(chord, chords.MinorChord):
             return True
-        elif (notes.same_species(chord_root, self.seven()) and
+        elif (pitches.same_species(chord_root, self.seven()) and
               isinstance(chord, chords.DiminishedChord)):
             return True
 
         return False
 
     def harmonic_relevance(self, chord):
-        if notes.same_species(chord.root(), self.one()) and \
+        if pitches.same_species(chord.root(), self.one()) and \
                 isinstance(chord, chords.MajorChord):
             return vars.ONE_CHORD_HARMONY
 
-        elif notes.same_species(chord.root(), self.two()) and \
+        elif pitches.same_species(chord.root(), self.two()) and \
                 isinstance(chord, chords.MinorChord):
             return vars.TWO_CHORD_HARMONY
-        elif notes.same_species(chord.root(), self.three()) and \
+        elif pitches.same_species(chord.root(), self.three()) and \
                 isinstance(chord, chords.MinorChord):
             return vars.THREE_CHORD_HARMONY
 
-        elif notes.same_species(chord.root(), self.fourth()) and \
+        elif pitches.same_species(chord.root(), self.fourth()) and \
                 isinstance(chord, chords.MajorChord):
             return vars.FOUR_CHORD_HARMONY
 
-        elif notes.same_species(chord.root(), self.six()) and \
+        elif pitches.same_species(chord.root(), self.six()) and \
                 isinstance(chord, chords.MinorChord):
             return vars.SIX_CHORD_HARMONY
 
@@ -194,7 +194,7 @@ class MajorKeySignature(_KeySignature):
         score = _KeySignature.functional_relevance(self, c1, c2)
 
         if self.is_functional(c1) and self.is_functional(c2) and \
-                notes.same_species(c1.root(), self.five()) and notes.same_species(c2.root(), self.six()):
+                pitches.same_species(c1.root(), self.five()) and pitches.same_species(c2.root(), self.six()):
             score += vars.FIVE_SIX_FUNCTIONALITY
 
         return score
@@ -205,44 +205,44 @@ class MinorKeySignature(_KeySignature):
     def __init__(self, root_note):
         _KeySignature.__init__(self)
 
-        self.root_chord = chords.MinorChord(notes.parse(root_note))
+        self.root_chord = chords.MinorChord(pitches.parse(root_note))
 
     def is_functional(self, chord):
         chord_root = chord.root()
 
-        if (notes.same_species(chord_root, self.three()) or
-            notes.same_species(chord_root, self.flat_six()) or
-            notes.same_species(chord_root, self.five())) and \
+        if (pitches.same_species(chord_root, self.three()) or
+            pitches.same_species(chord_root, self.flat_six()) or
+            pitches.same_species(chord_root, self.five())) and \
                 isinstance(chord, chords.MajorChord):
             return True
-        elif (notes.same_species(chord_root, self.five())) \
+        elif (pitches.same_species(chord_root, self.five())) \
                 and isinstance(chord, chords.SevenChord):
             return True
-        elif (notes.same_species(chord_root, self.one()) or
-              notes.same_species(chord_root, self.fourth())) and \
+        elif (pitches.same_species(chord_root, self.one()) or
+              pitches.same_species(chord_root, self.fourth())) and \
                 isinstance(chord, chords.MinorChord):
             return True
-        elif (notes.same_species(chord_root, self.seven() or
-              notes.same_species(chord_root, self.two())) and
+        elif (pitches.same_species(chord_root, self.seven() or
+                                               pitches.same_species(chord_root, self.two())) and
               isinstance(chord_root, chords.DiminishedChord)):
             return True
 
         return False
 
     def harmonic_relevance(self, chord):
-        if notes.same_species(chord.root(), self.one()) and \
+        if pitches.same_species(chord.root(), self.one()) and \
                 isinstance(chord, chords.MinorChord):
             return vars.ONE_CHORD_HARMONY
-        elif notes.same_species(chord.root(), self.two()) and \
+        elif pitches.same_species(chord.root(), self.two()) and \
                 isinstance(chord, chords.DiminishedChord):
             return vars.TWO_CHORD_HARMONY
-        elif notes.same_species(chord.root(), self.three()) and \
+        elif pitches.same_species(chord.root(), self.three()) and \
                 isinstance(chord, chords.MajorChord):
             return vars.THREE_CHORD_HARMONY
-        elif notes.same_species(chord.root(), self.fourth()) and \
+        elif pitches.same_species(chord.root(), self.fourth()) and \
                 isinstance(chord, chords.MinorChord):
             return vars.FOUR_CHORD_HARMONY
-        elif notes.same_species(chord.root(), self.flat_six()) and \
+        elif pitches.same_species(chord.root(), self.flat_six()) and \
                 isinstance(chord, chords.MajorChord):
             return vars.SIX_CHORD_HARMONY
 
@@ -252,7 +252,7 @@ class MinorKeySignature(_KeySignature):
         score = _KeySignature.functional_relevance(self, c1, c2)
 
         if self.is_functional(c1) and self.is_functional(c2) and \
-                notes.same_species(c1.root(), self.five()) and notes.same_species(c2.root(), self.flat_six()):
+                pitches.same_species(c1.root(), self.five()) and pitches.same_species(c2.root(), self.flat_six()):
             score += vars.FIVE_SIX_FUNCTIONALITY
 
         return score

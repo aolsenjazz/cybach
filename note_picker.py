@@ -1,4 +1,4 @@
-import notes
+import pitches
 import parts
 import transforms
 import config
@@ -19,10 +19,9 @@ class NotePicker:
 
         chord = self.current_chord()
         candidates = self.get_candidate_matrix(chord)
-        # winner = self.compute_winner(candidates)
+        winner = self.compute_winner(candidates)
 
-        # return winner
-        return None
+        return winner
 
     def get_candidate_matrix(self, chord):
         alto_candidates = config.alto.part().available_notes(chord)
@@ -39,7 +38,7 @@ class NotePicker:
 
     def filter_candidates(self, matrix):
         filtered = []
-        sop_pitch = config.soprano.pitch(self.beat.start())
+        sop_pitch = config.soprano.midi(self.beat.start())
 
         for g in matrix:
             if (g[BASS_POSITION] < g[TENOR_POSITION] < g[ALTO_POSITION]
@@ -57,7 +56,7 @@ class NotePicker:
         current_winner = None
 
         for candidate in candidates:
-            candidate.append(config.soprano[self.beat.start()].pitch())
+            candidate.append(config.soprano[self.beat.start()].midi())
 
             bass_score = get_bass_score(candidate[BASS_POSITION], self.beat, config.bass)
             # tenor_score = get_tenor_score(candidate[TENOR_POSITION], self.beat, config.tenor)
@@ -83,9 +82,10 @@ def get_motion_score(candidate, position, alto, tenor, bass):
     if position == 0:
         return 0.0
 
-    last_alto = alto[position - config.resolution].pitch()
-    last_tenor = tenor[position - config.resolution].pitch()
-    last_bass = bass[position - config.resolution].pitch()
+    # FIXME: using resolution again :)
+    last_alto = alto[position - config.resolution].midi()
+    last_tenor = tenor[position - config.resolution].midi()
+    last_bass = bass[position - config.resolution].midi()
 
     score = 0.0
 
@@ -113,7 +113,7 @@ def get_bass_score(candidate, beat, sequence):
     score += motion_tendency_score(candidate, beat.start(), sequence)
     score += linear_motion_score(candidate, beat.start(), sequence)
     score += flicker_avoidance_score(candidate, beat.start(), sequence)
-    score += bass_note_tendency_score(candidate, beat, sequence)
+    score += bass_note_tendency_score(candidate, beat)
 
     return score
 
@@ -153,19 +153,20 @@ def flicker_avoidance_score(candidate, position, sequence):
     last_note = None
     two_notes_ago = None
 
+    # FIXME: still using resolution
     if position >= config.resolution:
         last_note = sequence[position - config.resolution]
 
     if position >= config.resolution * 2:
         two_notes_ago = sequence[position - config.resolution * 2]
 
-        if candidate == two_notes_ago.pitch() and candidate != last_note.pitch():
+        if candidate == two_notes_ago.midi() and candidate != last_note.pitch():
             score += vars.SAME_PITCH_AS_TWO_BEATS_AGO
 
     if position >= config.resolution * 3:
         three_notes_ago = sequence[position - config.resolution * 3]
 
-        if candidate == two_notes_ago.pitch() and last_note.pitch() == three_notes_ago.pitch() \
+        if candidate == two_notes_ago.pitch() and last_note.pitch() == three_notes_ago.midi() \
                 and candidate != last_note.pitch():
             score = vars.TWO_BEATS_REPEATED
 
@@ -173,7 +174,7 @@ def flicker_avoidance_score(candidate, position, sequence):
 
 
 def get_harmony_score(candidate, chord):
-    base_position_chord = [notes.OCTAVES[notes.species(n)][0] for n in chord.all_octaves()]
+    base_position_chord = [pitches.OCTAVES[pitches.species(n)][0] for n in chord.all_octaves()]
     base_position_candidate = [c % 12 for c in candidate]
     added = []
     count = 0
@@ -186,12 +187,12 @@ def get_harmony_score(candidate, chord):
     return count * vars.HARMONY
 
 
-def bass_note_tendency_score(candidate, beat, sequence):
+def bass_note_tendency_score(candidate, beat):
     this_chord = config.chord_progression[beat.start()]
     score = 0.0
 
     # first bass note should definitely be the root
-    if beat.start() == 0 and notes.species(candidate) == this_chord.bass_note.species():
+    if beat.start() == 0 and pitches.species(candidate) == this_chord.bass_note.species():
         return vars.FIRST_BEAT_BASS_ROOT
 
     # FIXME - config.resolution is an old artifact
@@ -203,16 +204,16 @@ def bass_note_tendency_score(candidate, beat, sequence):
 
     # Chord is the same as the last chord, and this is root note. Less important as root was likely
     # already established
-    if chords.same(last_chord, this_chord) and notes.same_species(candidate, this_chord.bass_note) and \
+    if chords.same(last_chord, this_chord) and pitches.same_species(candidate, this_chord.bass_note) and \
             this_chord.root_in_bass():
         score += vars.BASS_ROOT_SAME_CHORD
 
     # Bass note does not equal root note, therefore it is especially important
-    if notes.same_species(candidate, this_chord.bass_note) and not this_chord.root_in_bass():
+    if pitches.same_species(candidate, this_chord.bass_note) and not this_chord.root_in_bass():
         score += vars.NON_ROOT_BASS_NOTE
 
     # new chord, we definitely want to hear the bass_note
-    if not chords.same(last_chord, this_chord) and notes.same_species(candidate, this_chord.bass_note):
+    if not chords.same(last_chord, this_chord) and pitches.same_species(candidate, this_chord.bass_note):
         score += vars.BASS_NOTE_NEW_CHORD
 
     return score
@@ -242,7 +243,8 @@ def motion_tendency_score(candidate, position, sequence):
     if position == 0:
         return 0.0
 
-    last_pitch = sequence[position - config.resolution].pitch()
+    # Fixme - using resolution
+    last_pitch = sequence[position - config.resolution].midi()
 
     if is_motion(candidate, last_pitch):
         score += sequence.motion_tendency() - 0.5
@@ -257,7 +259,8 @@ def linear_motion_score(candidate, position, sequence):
 
     if position == 0:
         return score
-    last_pitch = sequence[position - config.resolution].pitch()
+    # Fixme - using resolution
+    last_pitch = sequence[position - config.resolution].midi()
 
     if is_linear_motion(candidate, last_pitch):
         score += vars.LINEAR_MOTION

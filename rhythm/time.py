@@ -176,6 +176,15 @@ class Beat:
     def last_beat(self):
         return self.index_in_measure() == self.time_signature().numerator - 1
 
+    def previous(self):
+        if self.start() == 0:
+            return None
+
+        keys = __beats.keys()
+        keys.sort()
+
+        return __beats[keys.index(self.start()) - 1]
+
     def on_beat(self):
         numerator = self.time_signature().numerator
 
@@ -196,6 +205,26 @@ def measure(index):
     keys = __measures.keys()
     keys.sort()
     return __measures[keys[index]]
+
+
+def beat_at_index(index):
+    keys = __beats.keys()
+    keys.sort()
+    return __beats[keys[index]]
+
+
+def beat_at_position(position):
+    beat_or_none = __beats.get(position, None)
+
+    if beat_or_none is None:
+        keys = __beats.keys()
+        keys.sort()
+
+        for key in keys:
+            if position > key:
+                return __beats[key]
+
+    return beat_or_none
 
 
 def signatures():

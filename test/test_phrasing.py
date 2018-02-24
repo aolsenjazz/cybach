@@ -15,7 +15,7 @@ class TestPhrasing(TestCase):
 
     def test__chord_based_strong_beat_prediction(self):
         pattern = read_pattern(constants.TEST_MIDI + 'mixed_meter.mid')
-        sequence = domain.Sequence(track=pattern[0], part=parts.BASS)
+        sequence = domain.RootSequence(pattern[0])
 
         config.soprano = sequence
         time.add_signature(0, time.TimeSignature(numerator=4, denominator=4))
@@ -36,6 +36,22 @@ class TestPhrasing(TestCase):
 
         self.assertEqual({(0, 1, 2, 3),}, four_four_combinations)
         self.assertEqual({(2, 4), (4, 2), (3, 3), (2, 2, 2)}, six_eight_combinations)
+
+    def test__potential_strong_beat_permutations(self):
+        beats_per_bar = 7
+        total_combinations = 5
+
+        self.assertEqual(total_combinations, len(phrasing.potential_strong_beat_permutations(beats_per_bar)))
+        time.clear()
+
+    def test__phrasing_likelihood(self):
+        fileloader.load(constants.TEST_MIDI + 'seven_eight.mid', False)
+
+        phrasing = (0, 2, 4)
+        score = 2 * vars.RHYTHM_PHRASING_COEF + 3 * vars.RHYTHM_PHRASING_COEF
+        first_measure = time.measures()[0]
+
+        self.assertEqual(score, first_measure.phrasing_likelihood(phrasing))
 
 
 def read_pattern(file_name):

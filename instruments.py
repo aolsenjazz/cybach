@@ -1,4 +1,4 @@
-import notes
+import pitches
 
 
 class Instrument:
@@ -15,7 +15,7 @@ class Instrument:
 
     def lowest_comfy(self, note):
         text = note.species()
-        octaves = notes.OCTAVES[text]
+        octaves = pitches.OCTAVES[text]
 
         for pitch in octaves:
             if pitch > self.comfy_low_pitch:
@@ -23,7 +23,7 @@ class Instrument:
 
     def lowest_max(self, note):
         text = note.species()
-        octaves = notes.OCTAVES[text]
+        octaves = pitches.OCTAVES[text]
 
         for pitch in octaves:
             if pitch > self.max_low_pitch:
@@ -31,7 +31,7 @@ class Instrument:
 
     def highest_comfy(self, note):
         text = note.species()
-        octaves = notes.OCTAVES[text]
+        octaves = pitches.OCTAVES[text]
 
         last_pitch = octaves[0]
         for pitch in octaves:
@@ -41,7 +41,7 @@ class Instrument:
 
     def highest_max(self, note):
         text = note.species()
-        octaves = notes.OCTAVES[text]
+        octaves = pitches.OCTAVES[text]
 
         last_pitch = octaves[0]
         for pitch in octaves:
@@ -50,25 +50,25 @@ class Instrument:
             last_pitch = pitch
 
 
-PICCOLO = Instrument(notes.MIDI_VALUES['D4'], notes.MIDI_VALUES['C7'])
-FLUTE = Instrument(notes.MIDI_VALUES['C4'], notes.MIDI_VALUES['D7'])
-OBOE = Instrument(notes.MIDI_VALUES['D#4'], notes.MIDI_VALUES['C7'])
-ENGLISH_HORN = Instrument(notes.MIDI_VALUES['B3'], notes.MIDI_VALUES['G6'])
-CLARINET = Instrument(notes.MIDI_VALUES['E3'], notes.MIDI_VALUES['C7'])
-BASS_CLARINET = Instrument(notes.MIDI_VALUES['D#3'], notes.MIDI_VALUES['G6'])
-BASSOON = Instrument(notes.MIDI_VALUES['A#1'], notes.MIDI_VALUES['D#5'])
-CONTRABASSOON = Instrument(notes.MIDI_VALUES['A#1'], notes.MIDI_VALUES['A#4'])
-SAXOPHONE = Instrument(notes.MIDI_VALUES['A#3'], notes.MIDI_VALUES['G6'])
+PICCOLO = Instrument(pitches.MIDI_VALUES['D4'], pitches.MIDI_VALUES['C7'])
+FLUTE = Instrument(pitches.MIDI_VALUES['C4'], pitches.MIDI_VALUES['D7'])
+OBOE = Instrument(pitches.MIDI_VALUES['D#4'], pitches.MIDI_VALUES['C7'])
+ENGLISH_HORN = Instrument(pitches.MIDI_VALUES['B3'], pitches.MIDI_VALUES['G6'])
+CLARINET = Instrument(pitches.MIDI_VALUES['E3'], pitches.MIDI_VALUES['C7'])
+BASS_CLARINET = Instrument(pitches.MIDI_VALUES['D#3'], pitches.MIDI_VALUES['G6'])
+BASSOON = Instrument(pitches.MIDI_VALUES['A#1'], pitches.MIDI_VALUES['D#5'])
+CONTRABASSOON = Instrument(pitches.MIDI_VALUES['A#1'], pitches.MIDI_VALUES['A#4'])
+SAXOPHONE = Instrument(pitches.MIDI_VALUES['A#3'], pitches.MIDI_VALUES['G6'])
 
-TRUMPET = Instrument(notes.MIDI_VALUES['F#3'], notes.MIDI_VALUES['D6'])
-PICCOLO_TRUMPET = Instrument(notes.MIDI_VALUES['F#3'], notes.MIDI_VALUES['G5'])
-TROMBONE = Instrument(notes.MIDI_VALUES['E2'], notes.MIDI_VALUES['F5'])
-TUBA = Instrument(notes.MIDI_VALUES['D1'], notes.MIDI_VALUES['F4'])
+TRUMPET = Instrument(pitches.MIDI_VALUES['F#3'], pitches.MIDI_VALUES['D6'])
+PICCOLO_TRUMPET = Instrument(pitches.MIDI_VALUES['F#3'], pitches.MIDI_VALUES['G5'])
+TROMBONE = Instrument(pitches.MIDI_VALUES['E2'], pitches.MIDI_VALUES['F5'])
+TUBA = Instrument(pitches.MIDI_VALUES['D1'], pitches.MIDI_VALUES['F4'])
 
-VIOLIN = Instrument(notes.MIDI_VALUES['G3'], notes.MIDI_VALUES['A7'])
-VIOLA = Instrument(notes.MIDI_VALUES['C3'], notes.MIDI_VALUES['E6'])
-CELLO = Instrument(notes.MIDI_VALUES['C2'], notes.MIDI_VALUES['C6'])
-BASS = Instrument(notes.MIDI_VALUES['E1'], notes.MIDI_VALUES['C5'])
+VIOLIN = Instrument(pitches.MIDI_VALUES['G3'], pitches.MIDI_VALUES['A7'])
+VIOLA = Instrument(pitches.MIDI_VALUES['C3'], pitches.MIDI_VALUES['E6'])
+CELLO = Instrument(pitches.MIDI_VALUES['C2'], pitches.MIDI_VALUES['C6'])
+BASS = Instrument(pitches.MIDI_VALUES['E1'], pitches.MIDI_VALUES['C5'])
 
 INSTRUMENTS = {
     'piccolo': PICCOLO,

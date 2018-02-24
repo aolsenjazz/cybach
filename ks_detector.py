@@ -2,7 +2,7 @@ import config
 import ks
 import util
 import vars
-import notes
+import pitches
 import domain
 
 
@@ -88,7 +88,7 @@ def __most_likely_key(potential_key_signatures, chord_segment):
 def __contains_one_or_five_seven(key_signature, chord_progression_stub):
     for key in chord_progression_stub.keys():
         chord = chord_progression_stub[key]
-        if key_signature.is_functional(chord) and notes.same_species(key_signature.one(), chord.root()):
+        if key_signature.is_functional(chord) and pitches.same_species(key_signature.one(), chord.root()):
             return True
     return False
 

@@ -53,7 +53,7 @@ class Motionizer:
         return score
 
     def __compute_soprano_synergies(self, candidates, soprano, position):
-        soprano_pitch = soprano[int(position + config.resolution / 2)].pitch()
+        soprano_pitch = soprano[int(position + config.resolution / 2)].midi()
         scores = []
 
         for key in candidates.keys():
@@ -120,7 +120,7 @@ class Motionizer:
     def __all_transformations(self, position, sequence, soprano):
         trans = [transforms.NoneTransform(sequence)]
 
-        if sequence[position].pitch() != -1:
+        if sequence[position].midi() != -1:
             trans.extend(self.__join_transforms(position, sequence))
 
             if constants.EIGHTH_NOTE in soprano.note_duration_count().keys():
@@ -168,11 +168,11 @@ class Motionizer:
 def note_duration_at_position(position, sequence):
     duration = 0
 
-    pitch = sequence[position].pitch()
+    pitch = sequence[position].midi()
     for i in range(position, len(sequence)):
-        if i % config.resolution == 0 and sequence[i].pitch() == pitch:
+        if i % config.resolution == 0 and sequence[i].midi() == pitch:
             duration += 1
-        elif i % config.resolution == 0 and sequence[i].pitch() != pitch:
+        elif i % config.resolution == 0 and sequence[i].midi() != pitch:
             break
 
     return duration

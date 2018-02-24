@@ -1,9 +1,12 @@
 from unittest import TestCase
-import notes
+
 import chords
 import config
+import fileloader
+import pitches
+import constants
+from pitches import MIDI_VALUES
 from rhythm import time
-from notes import MIDI_VALUES
 
 
 class TestChords(TestCase):
@@ -32,7 +35,7 @@ class TestChords(TestCase):
     def test_note_above(self):
         chord = chords.MajorChord(MIDI_VALUES['C1'])
         above = chord.note_above(MIDI_VALUES['E1'])
-        above_with_note_object = chord.note_above(notes.parse(MIDI_VALUES['E1']))
+        above_with_note_object = chord.note_above(pitches.parse(MIDI_VALUES['E1']))
 
         self.assertEqual(MIDI_VALUES['G1'], above)
         self.assertEqual(MIDI_VALUES['G1'], above_with_note_object)
@@ -62,20 +65,22 @@ class TestChords(TestCase):
         self.assertFalse(chord.indicates_subdominant(MIDI_VALUES['D0'], MIDI_VALUES['B0'], MIDI_VALUES['F0']))
 
     def test__ChordProgression_chords_in_measure(self):
-        chord_progression = chords.ChordProgression()
+        fileloader.load(constants.TEST_MIDI + 'mixed_meter.mid', False)
 
-        set_config(chord_progression)
+        measure_0 = time.measure(0)
+        measure_1 = time.measure(1)
+        measure_3 = time.measure(3)
 
-        chord_progression.set().measure(0).beat(0).commit('C')
-        chord_progression.set().measure(0).beat(1).commit('A-')
-        chord_progression.set().measure(0).beat(2).commit('E-')
-        chord_progression.set().measure(0).beat(3).commit('G')
-        chord_progression.set().measure(3).beat(0).commit('G')
-        chord_progression.set().measure(3).beat(2).commit('C')
+        config.chord_progression.set().measure(0).beat(0).commit('C')
+        config.chord_progression.set().measure(0).beat(1).commit('A-')
+        config.chord_progression.set().measure(0).beat(2).commit('E-')
+        config.chord_progression.set().measure(0).beat(3).commit('G')
+        config.chord_progression.set().measure(3).beat(0).commit('G')
+        config.chord_progression.set().measure(3).beat(3).commit('C')
 
-        self.assertEqual(4, len(chord_progression.chords_in_measure(0)))
-        self.assertEqual(0, len(chord_progression.chords_in_measure(1)))
-        self.assertEqual(2, len(chord_progression.chords_in_measure(3)))
+        self.assertEqual(4, len(config.chord_progression.chords(measure_0)))
+        self.assertEqual(0, len(config.chord_progression.chords(measure_1)))
+        self.assertEqual(2, len(config.chord_progression.chords(measure_3)))
 
     def test__ChordProgression_root_in_bass(self):
         root_in_bass = chords.parse('C')

@@ -10,7 +10,7 @@ import ks_detector
 import transforms
 import vars
 import fileloader
-from notes import MIDI_VALUES
+from pitches import MIDI_VALUES
 
 
 class TestMotionTransforms(TestCase):
@@ -95,7 +95,7 @@ class TestMotionTransforms(TestCase):
         ks_detector.detect_and_set_key_signatures()
 
         trans = transforms.MajorThirdScalarTransform(0, sequence)
-        pitch_should_be = sequence[0].pitch() + 2
+        pitch_should_be = sequence[0].midi() + 2
 
         self.assertEqual(trans.intermediate_pitch, pitch_should_be)
 
@@ -107,7 +107,7 @@ class TestMotionTransforms(TestCase):
         ks_detector.detect_and_set_key_signatures()
 
         trans = transforms.MinorThirdScalarTransform(0, sequence)
-        pitch_should_be = sequence[0].pitch() + 2
+        pitch_should_be = sequence[0].midi() + 2
 
         self.assertEqual(trans.intermediate_pitch, pitch_should_be)
 
@@ -119,7 +119,7 @@ class TestMotionTransforms(TestCase):
         ks_detector.detect_and_set_key_signatures()
 
         trans = transforms.ArpeggialTransform(0, sequence)
-        major_third_above = sequence[0].pitch() + 4
+        major_third_above = sequence[0].midi() + 4
 
         self.assertEqual(trans.intermediate_pitch, major_third_above)
 
@@ -131,7 +131,7 @@ class TestMotionTransforms(TestCase):
         ks_detector.detect_and_set_key_signatures()
 
         trans = transforms.HalfStepNeighborTransform(0, sequence)
-        half_step_below = sequence[0].pitch() - 1
+        half_step_below = sequence[0].midi() - 1
 
         self.assertEqual(trans.intermediate_pitch, half_step_below)
 
@@ -143,7 +143,7 @@ class TestMotionTransforms(TestCase):
         ks_detector.detect_and_set_key_signatures()
 
         trans = transforms.WholeStepNeighborTransform(0, sequence)
-        whole_step_above = sequence[0].pitch() + 2
+        whole_step_above = sequence[0].midi() + 2
 
         self.assertEqual(trans.intermediate_pitch, whole_step_above)
 
@@ -156,7 +156,7 @@ class TestMotionTransforms(TestCase):
         ks_detector.detect_and_set_key_signatures()
 
         trans = transforms.ApproachTransform(0, sequence)
-        c_sharp_below = sequence[0].pitch() - 8
+        c_sharp_below = sequence[0].midi() - 8
 
         self.assertEqual(trans.intermediate_pitch, c_sharp_below)
 
@@ -180,7 +180,7 @@ class TestMotionTransforms(TestCase):
     def test_MajorThirdScalarTransform_Neighbor_synergy(self):
         fileloader.load(constants.TEST_MIDI + 'neighbor.mid', False)
         sequence = config.soprano
-        scalar_sequence = domain.Sequence(track=read_pattern(constants.TEST_MIDI + 'maj3_scalar.mid')[0])
+        scalar_sequence = domain.RootSequence(read_pattern(constants.TEST_MIDI + 'maj3_scalar.mid')[0])
 
         config.chord_progression[0] = chords.parse('C')
         ks_detector.detect_and_set_key_signatures()

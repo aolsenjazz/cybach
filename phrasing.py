@@ -3,6 +3,7 @@ import math
 
 import config
 import util
+import vars
 from rhythm import time
 
 
@@ -18,10 +19,12 @@ def detect_and_set_measure_phrasing():
 
 
 def get_most_likely_phrasing(measures):
-    all_candidates = potential_strong_beat_permutations(measures[0].time_signature().numerator)
+    permutations = potential_strong_beat_permutations(measures[0].time_signature().numerator)
+    candidates = {p: 0.0 for p in permutations}
 
-    measure_candidates = set(chord_based_strong_beat_prediction(measure) for measure in measures)
-    candidate_scores = {candidate: 0.0 for candidate in all_candidates}
+    for permutation in [chord_based_strong_beat_prediction(measure) for measure in measures]:
+        if permutation in candidates.keys():
+            candidates[permutation] += vars.CHORD_PHRASING
 
     for candidate in measure_candidates:
         if candidate in candidate_scores.keys():
@@ -37,9 +40,10 @@ def potential_strong_beat_permutations(numerator):
         max_phrases = int(math.floor(numerator / 2))
 
         potential_combinations = [[0, 2, 3, 4] for i in range(max_phrases)]
-        return {tuple(j for j in unfiltered_sublist if j != 0)
-                   for unfiltered_sublist
-                   in [i for i in itertools.product(*potential_combinations) if sum(i) == numerator]}
+        parsed = {tuple(j for j in unfiltered_sublist if j != 0)
+                  for unfiltered_sublist
+                  in [i for i in itertools.product(*potential_combinations) if sum(i) == numerator]}
+        return [tuple([0] + [sublist[i] + sum(sublist[:i]) for i in range(len(sublist[:-1]))]) for sublist in parsed]
 
 
 def chord_based_strong_beat_prediction(measure):
@@ -67,3 +71,23 @@ def __no_chord_before_or_after(beat):
     return beat.start() in config.chord_progression.keys() and \
            beat.start() - beat.length() not in config.chord_progression.keys() and \
            beat.end() not in config.chord_progression.keys()
+
+
+def phrasing_likelihood(measure, phrase_combination):
+    likelihood_score = 0.0
+    position = 0
+    sequence = config.soprano
+
+    for value in phrase_combination:
+        beat = measure.beats()[position]
+        target_duration = value * beat.length()
+
+        if beat.is_start() and sequence.note_duration(beat.start()) == target_duration:
+
+            if sequence.is_rest(beat.start()) and not sequence.is_rest(beat.previous().start()) and \
+                    not sequence.is_rest(beat.start() + target_duration):
+                likelihood_score += vars.RHYTHM_PHRASING_COEF * value
+
+        position += value
+
+    return likelihood_score

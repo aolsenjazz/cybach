@@ -23,13 +23,6 @@ class TestTime(TestCase):
         self.assertEqual(sample_position, should_be_1440)
         time.clear()
 
-    def test__phrase_combinations(self):
-        beats_per_bar = 7
-        total_combinations = 5
-
-        self.assertEqual(total_combinations, len(time.phrase_combinations(beats_per_bar)))
-        time.clear()
-
     def test__Beat_first_beat(self):
         config.soprano = [1] * 2000
 
