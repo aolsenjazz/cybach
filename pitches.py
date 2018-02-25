@@ -1,7 +1,5 @@
-import re
-import math
 import itertools
-from pprint import pformat
+import re
 
 TEXT_WITH_OCTAVE = re.compile('[A-G]#?[0-9]+')
 TEXT_WITHOUT_OCTAVE = re.compile('[A-G]#?')

@@ -1,7 +1,6 @@
 from __future__ import division
 
 import math
-from pprint import pformat
 
 import midi
 
@@ -25,7 +24,7 @@ class Sequence(list):
         self._samples[i] = v
 
     def __repr__(self):
-        return 'Sequence(samples: %s)' % pformat(self._samples)
+        return 'Sequence(samples: %s)' % self._samples
 
     def __getitem__(self, item):
         return self._samples[item]
@@ -38,6 +37,9 @@ class Sequence(list):
 
     def __getslice__(self, i, j):
         return self._samples.__getslice__(i, j)
+
+    def pitch(self, position):
+        return self[position].pitch()
 
     def entity(self, position):
         if position < 0:
@@ -245,6 +247,9 @@ class Entity:
     def is_rest(self):
         raise NotImplementedError
 
+    def is_note(self):
+        raise NotImplementedError
+
     def length(self):
         raise NotImplementedError
 
@@ -269,6 +274,9 @@ class TimedEntity(Entity):
     def is_rest(self):
         raise NotImplementedError
 
+    def is_note(self):
+        raise NotImplementedError
+
     def start(self):
         return self._start
 
@@ -284,6 +292,9 @@ class Rest(TimedEntity):
     def is_rest(self):
         return True
 
+    def is_note(self):
+        return False
+
 
 class Note(TimedEntity):
 
@@ -294,6 +305,9 @@ class Note(TimedEntity):
 
     def is_rest(self):
         return False
+
+    def is_note(self):
+        return True
 
 
 class TrackStart(Entity):
@@ -313,6 +327,9 @@ class TrackStart(Entity):
     def length(self):
         return 0
 
+    def is_note(self):
+        return False
+
 
 class TrackEnd(Entity):
 
@@ -330,6 +347,9 @@ class TrackEnd(Entity):
 
     def length(self):
         return 0
+
+    def is_note(self):
+        return False
 
 
 class Sample:

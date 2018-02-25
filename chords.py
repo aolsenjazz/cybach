@@ -1,8 +1,8 @@
-import pitches
-import re
-import config
 import collections
 import itertools
+import re
+
+import pitches
 from rhythm import time
 
 RE_MAJOR = re.compile('^[A-Ga-g]([Bb]|#)?(maj)?$')
@@ -127,7 +127,10 @@ class Chord:
         raise NotImplementedError
 
     def all_octaves(self):
-        all_notes = list(itertools.chain(*[pitches.OCTAVES[note.species()] for note in self.all_degrees()]))
+        all_notes = list(itertools.chain(
+            *[[i for i in range(128)[pitch.midi() % 12::12]]
+              for pitch
+              in self.all_degrees()]))
         all_notes.sort()
         return all_notes
 
@@ -290,10 +293,10 @@ class DiminishedChord(MinorChord):
         return pitches.species(self._root) + 'dim'
 
     def all_degrees(self):
-        return Chord.all_degrees(self) + self.__seven
+        return Chord.all_degrees(self) + (self.__seven, )
 
     def all_octaves(self):
-        all_of_em = Chord.all_octaves(self) + pitches.OCTAVES[self.__seven.species()]
+        all_of_em = Chord.all_octaves(self) + [i for i in range(128)[self.__seven.midi() % 12::12]]
         all_of_em.sort()
         return all_of_em
 

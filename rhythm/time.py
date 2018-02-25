@@ -183,10 +183,10 @@ class Beat:
         if self.start() == 0:
             return None
 
-        keys = __beats.keys()
+        keys = beats().keys()
         keys.sort()
 
-        return __beats[keys.index(self.start()) - 1]
+        return beats()[keys[keys.index(self.start()) - 1]]
 
     def on_beat(self):
         numerator = self.time_signature().numerator
@@ -208,6 +208,10 @@ def measure(index):
     keys = __measures.keys()
     keys.sort()
     return __measures[keys[index]]
+
+
+def beats():
+    return __beats
 
 
 def beat_at_index(index):

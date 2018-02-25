@@ -16,6 +16,6 @@ class Part:
         return self.title
 
 
-ALTO = Part(54, 72, 'alto')
-TENOR = Part(48, 65, 'tenor')
-BASS = Part(38, 60, 'bass')
+ALTO = Part(pitches.MIDI_VALUES['F#4'], pitches.MIDI_VALUES['C6'], 'alto')
+TENOR = Part(pitches.MIDI_VALUES['C4'], pitches.MIDI_VALUES['F5'], 'tenor')
+BASS = Part(pitches.MIDI_VALUES['D3'], pitches.MIDI_VALUES['C5'], 'bass')

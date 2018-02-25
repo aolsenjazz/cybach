@@ -2,7 +2,6 @@ import itertools
 import math
 
 import config
-import domain
 import util
 import vars
 from rhythm import time
