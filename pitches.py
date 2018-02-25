@@ -93,7 +93,9 @@ OCTAVES = {
 def species(value):
     int_value = value
     if isinstance(value, str):
-        int_value = __midi_value(value)
+        int_value = midi_value(value)
+    elif isinstance(value, Pitch):
+        int_value = value.midi()
 
     for key in MIDI_VALUES:
         remainder = int_value % 12
@@ -269,7 +271,7 @@ def whole_half(pitch):
     return all_pitches
 
 
-def __midi_value(string):
+def midi_value(string):
     if TEXT_WITH_OCTAVE.match(string):
         value_with_octave = string
     elif TEXT_WITHOUT_OCTAVE.match(string):
@@ -290,7 +292,7 @@ def parse(value):
         else:
             raise ValueError('value ' + str(value) + ' is out of midi range')
     elif isinstance(value, str):
-        return Pitch(__midi_value(value))
+        return Pitch(midi_value(value))
     elif isinstance(value, Pitch):
         return value
     else:

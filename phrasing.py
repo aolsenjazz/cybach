@@ -2,6 +2,7 @@ import itertools
 import math
 
 import config
+import domain
 import util
 import vars
 from rhythm import time
@@ -20,22 +21,26 @@ def detect_and_set_measure_phrasing():
 
 def get_most_likely_phrasing(measures):
     permutations = potential_strong_beat_permutations(measures[0].time_signature().numerator)
+
+    if len(permutations) == 1:
+        return permutations[0]
+
     candidates = {p: 0.0 for p in permutations}
 
     for permutation in [chord_based_strong_beat_prediction(measure) for measure in measures]:
         if permutation in candidates.keys():
             candidates[permutation] += vars.CHORD_PHRASING
 
-    for candidate in measure_candidates:
-        if candidate in candidate_scores.keys():
-            candidate_scores[candidate] = candidate_scores[candidate] + measure_candidates[candidate]
+    for permutation in permutations:
+        for score in [rhythm_based_strong_beat_score(measure, permutation) for measure in measures]:
+            candidates[permutation] += score
 
-    return util.key_for_highest_value(candidate_scores)
+    return util.key_for_highest_value(candidates)
 
 
 def potential_strong_beat_permutations(numerator):
     if numerator <= 4:
-        return {tuple(i for i in range(0, numerator))}
+        return [tuple(i for i in range(0, numerator))]
     else:
         max_phrases = int(math.floor(numerator / 2))
 
@@ -73,21 +78,26 @@ def __no_chord_before_or_after(beat):
            beat.end() not in config.chord_progression.keys()
 
 
-def phrasing_likelihood(measure, phrase_combination):
+def rhythm_based_strong_beat_score(measure, pattern):
+    """
+    Returns the likelihood that a measure's strong beat pattern is the given pattern
+
+    :param measure: time.Measure that we're testing
+    :param pattern: tuple with the pattern, e.g. (0, 2, 4) or (3, 2, 2) in 7
+    :return: likelihood score
+    """
     likelihood_score = 0.0
     position = 0
     sequence = config.soprano
 
-    for value in phrase_combination:
-        beat = measure.beats()[position]
-        target_duration = value * beat.length()
+    for i in range(len(pattern)):
+        value = pattern[i]
+        target_duration = ((pattern + (len(measure.beats()), ))[i + 1] - pattern[i]) * measure.beat_length()
+        entity = sequence.entity(measure.beats()[value].start())
 
-        if beat.is_start() and sequence.note_duration(beat.start()) == target_duration:
+        if entity.length() == target_duration and entity.start() == position:
+            likelihood_score += vars.RHYTHM_PHRASING_COEF * ((pattern + (len(measure.beats()), ))[i + 1] - pattern[i])
 
-            if sequence.is_rest(beat.start()) and not sequence.is_rest(beat.previous().start()) and \
-                    not sequence.is_rest(beat.start() + target_duration):
-                likelihood_score += vars.RHYTHM_PHRASING_COEF * value
-
-        position += value
+        position += target_duration
 
     return likelihood_score

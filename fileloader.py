@@ -102,7 +102,7 @@ def __init_key_signature_entry(sequence, pattern):
 
 
 def __init_time_signature_entry(sequence):
-    time_signatures = time.__signatures
+    time_signatures = time.signatures()
 
     if time_signatures:
         __report_time_signature_data()
@@ -118,7 +118,7 @@ def __init_time_signature_entry(sequence):
             measure = int(raw_input('Measure: '))
 
             event = midi.TimeSignatureEvent(data=[numerator, denominator, 36, 8])
-            time.__signatures[sequence.measure(measure - 1).start()] = event
+            time.signatures()[sequence.measure(measure - 1).start()] = event
 
 
 def __verify_measure_count(sequence):

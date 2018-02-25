@@ -70,13 +70,13 @@ class JoinTransform(MotionTransform):
 
     def crosses_bar_line(self):
         beat_index = self.sequence.beat_index_in_measure(self.position)
-        time_signature = time.__signatures[self.position]
+        time_signature = time.signatures()[self.position]
 
         return beat_index + self.duration > time_signature.numerator
 
     def is_syncopation(self):
         beat_index = self.sequence.beat_index_in_measure(self.position)
-        time_signature = time.__signatures[self.position]
+        time_signature = time.signatures()[self.position]
 
         return not time.is_big_beat(time_signature, beat_index)
 
@@ -382,7 +382,7 @@ class HalfStepNeighborTransform(EighthNoteTransform):
 
         this_sig = config.key_signatures[position]
 
-        return this_note.pitch.midi() == next_note.pitch.midi() \
+        return this_note.pitch().midi() == next_note.pitch().midi() \
                and (this_note.type == domain.Sample.TYPE_START and next_note.type == domain.Sample.TYPE_START) \
                and (this_note.pitch.midi() - 1 in this_sig.scale() or this_note.pitch.midi() + 1 in this_sig.scale())
 

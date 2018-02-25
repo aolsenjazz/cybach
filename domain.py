@@ -74,9 +74,9 @@ class Sequence(list):
         entity_start = position
         while True:
             sample = self[entity_start]
+            measure = beat.parent()
 
-            if base_sample.is_rest() and (not sample.is_rest() or entity_start == beat.parent().start()):
-                entity_start += 1
+            if base_sample.is_rest() and (entity_start == measure.start() or not self[entity_start - 1].is_rest()):
                 break
             elif sample.is_start():
                 break
@@ -242,6 +242,12 @@ class Entity:
     def next_entity(self):
         raise NotImplementedError
 
+    def is_rest(self):
+        raise NotImplementedError
+
+    def length(self):
+        raise NotImplementedError
+
 
 class TimedEntity(Entity):
 
@@ -260,6 +266,9 @@ class TimedEntity(Entity):
     def length(self):
         return self._length
 
+    def is_rest(self):
+        raise NotImplementedError
+
     def start(self):
         return self._start
 
@@ -272,6 +281,9 @@ class Rest(TimedEntity):
     def __init__(self, sequence, start, length):
         TimedEntity.__init__(self, sequence, start, length)
 
+    def is_rest(self):
+        return True
+
 
 class Note(TimedEntity):
 
@@ -279,6 +291,9 @@ class Note(TimedEntity):
         TimedEntity.__init__(self, sequence, start, length)
 
         self._pitch = pitch
+
+    def is_rest(self):
+        return False
 
 
 class TrackStart(Entity):
@@ -292,6 +307,12 @@ class TrackStart(Entity):
     def next_entity(self):
         return self._sequence.entity(0)
 
+    def is_rest(self):
+        return False
+
+    def length(self):
+        return 0
+
 
 class TrackEnd(Entity):
 
@@ -303,6 +324,12 @@ class TrackEnd(Entity):
 
     def next_entity(self):
         return self
+
+    def is_rest(self):
+        return False
+
+    def length(self):
+        return 0
 
 
 class Sample:

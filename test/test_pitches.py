@@ -166,5 +166,5 @@ class TestPitches(TestCase):
         string_c0 = 'C'
         string_c2 = 'C2'
 
-        self.assertEqual(c0, pitches.__midi_value(string_c0))
-        self.assertEqual(c2, pitches.__midi_value(string_c2))
+        self.assertEqual(c0, pitches.midi_value(string_c0))
+        self.assertEqual(c2, pitches.midi_value(string_c2))

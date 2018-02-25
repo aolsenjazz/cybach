@@ -2,10 +2,12 @@ from unittest import TestCase
 
 import midi
 
+import fileloader
 import chords
 import config
 import constants
 import domain
+import vars
 import parts
 import phrasing
 from rhythm import time
@@ -35,7 +37,7 @@ class TestPhrasing(TestCase):
         six_eight_combinations = phrasing.potential_strong_beat_permutations(6)
 
         self.assertEqual({(0, 1, 2, 3),}, four_four_combinations)
-        self.assertEqual({(2, 4), (4, 2), (3, 3), (2, 2, 2)}, six_eight_combinations)
+        self.assertEqual([(0, 4), (0, 2, 4), (0, 2), (0, 3)], six_eight_combinations)
 
     def test__potential_strong_beat_permutations(self):
         beats_per_bar = 7
@@ -47,11 +49,11 @@ class TestPhrasing(TestCase):
     def test__phrasing_likelihood(self):
         fileloader.load(constants.TEST_MIDI + 'seven_eight.mid', False)
 
-        phrasing = (0, 2, 4)
+        p = (0, 2, 4)
         score = 2 * vars.RHYTHM_PHRASING_COEF + 3 * vars.RHYTHM_PHRASING_COEF
         first_measure = time.measures()[0]
 
-        self.assertEqual(score, first_measure.phrasing_likelihood(phrasing))
+        self.assertEqual(score, phrasing.rhythm_based_strong_beat_score(first_measure, p))
 
 
 def read_pattern(file_name):

@@ -93,7 +93,7 @@ class TimeSignatures(collections.MutableMapping):
             position += active_time_signature.samples_per_measure()
 
         active_time_signature = self[position]
-        position += beat * active_time_signature.samples_per_beat()
+        position += beat * active_time_signature.beat_length()
 
         return int(position)
 
@@ -112,7 +112,10 @@ class Measure:
     def end(self):
         return self.start() + self._samples_per_beat * self._time_signature.numerator
 
-    def samples_per_beat(self):
+    def length(self):
+        return self.start() - self.end()
+
+    def beat_length(self):
         return self._samples_per_beat
 
     def time_signature(self):
@@ -131,7 +134,7 @@ class Measure:
         beats = []
 
         for i in range(0, self._time_signature.numerator):
-            sample_position = self.start() + i * self.samples_per_beat()
+            sample_position = self.start() + i * self.beat_length()
             beats.append(Beat(sample_position, i, self))
 
         return beats
@@ -145,7 +148,7 @@ class Beat:
     def __init__(self, position, index_in_measure, parent):
         self._start = position
         self._time_signature = signatures()[position]
-        self._end = position + parent.samples_per_beat()
+        self._end = position + parent.beat_length()
         self._index_in_measure = index_in_measure
         self._parent = parent
 
