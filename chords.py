@@ -14,6 +14,74 @@ RE_SLASH = re.compile('^[A-Ga-g]([Bb]|#)?(7|-|m(in)?|dim|maj)?/[A-Ga-g]([Bb]|#)?
 RE_CHORD_ROOT = re.compile('[A-Ga-g]([Bb]|#)?')
 
 
+def __init():
+    global __progression
+
+    __progression = ChordProgression()
+
+
+def write(chord, measure=0, beat=0):
+    if isinstance(chord, str):
+        parsed = parse(chord)
+    elif isinstance(chord, Chord):
+        parsed = chord
+    else:
+        raise TypeError
+
+    sample_pos = time.measure(measure).beat(beat).start()
+    __progression[sample_pos] = parsed
+
+
+def keys():
+    return __progression.keys()
+
+
+def get(position):
+    chord_or_none = __progression[position]
+
+    if chord_or_none is None:
+        keys = __progression.keys()
+        keys.sort()
+        for key in keys:
+            if position > key:
+                return __progression[key]
+
+    return chord_or_none
+
+
+def in_measure(measure):
+    return {key: __progression[key] for key in __progression.keys() if measure.start() <= key < measure.end()}
+
+
+def progression():
+    return __progression
+
+
+def parse(chord, bass_note=None):
+    if RE_MAJOR.match(chord):
+        return MajorChord(get_root(chord), bass_note)
+    elif RE_MINOR.match(chord):
+        return MinorChord(get_root(chord), bass_note)
+    elif RE_SEVEN.match(chord):
+        return SevenChord(get_root(chord), bass_note)
+    elif RE_DIMIN.match(chord):
+        return DiminishedChord(get_root(chord), bass_note)
+    elif RE_SLASH.match(chord):
+        return parse(chord.split('/')[0], chord.split('/')[1])
+
+
+def get_root(chord):
+    if not isinstance(chord, str):
+        raise ValueError('must submit a string')
+
+    matches = RE_CHORD_ROOT.match(chord)
+    return matches.group()
+
+
+def same(chord1, chord2):
+    return chord1.root().midi() % 12 == chord2.root().midi() % 12
+
+
 class Chord:
 
     def __init__(self, root, bass_note=None):
@@ -233,7 +301,7 @@ class SevenChord(MajorChord):
 
         if parsed.species() == self.__seven.species():
             return True
-        return Chord.__contains__(self, parsed)
+        return __Chord.__contains__(self, parsed)
 
     def three(self):
         return self.__three
@@ -245,7 +313,7 @@ class SevenChord(MajorChord):
         return pitches.species(self._root) + '7'
 
     def all_degrees(self):
-        most = Chord.all_degrees(self)
+        most = __Chord.all_degrees(self)
         all = list(most)
         all.append(self.__seven)
         return all
@@ -257,7 +325,7 @@ class SevenChord(MajorChord):
         if pitch == self.__seven.species:
             return self._root
 
-        return Chord.__note_above(self, pitch)
+        return __Chord.__note_above(self, pitch)
 
     def scale(self):
         return pitches.mixolydian(self._root.midi())
@@ -281,7 +349,7 @@ class DiminishedChord(MinorChord):
 
         if parsed.species() == self.__seven.species():
             return True
-        return Chord.__contains__(self, parsed)
+        return __Chord.__contains__(self, parsed)
 
     def three(self):
         return self.__three
@@ -293,10 +361,10 @@ class DiminishedChord(MinorChord):
         return pitches.species(self._root) + 'dim'
 
     def all_degrees(self):
-        return Chord.all_degrees(self) + (self.__seven, )
+        return __Chord.all_degrees(self) + (self.__seven,)
 
     def all_octaves(self):
-        all_of_em = Chord.all_octaves(self) + [i for i in range(128)[self.__seven.midi() % 12::12]]
+        all_of_em = __Chord.all_octaves(self) + [i for i in range(128)[self.__seven.midi() % 12::12]]
         all_of_em.sort()
         return all_of_em
 
@@ -307,7 +375,7 @@ class DiminishedChord(MinorChord):
         if pitch == self.__seven.species:
             return self._root
 
-        return Chord.__note_above(self, pitch)
+        return __Chord.__note_above(self, pitch)
 
     def scale(self):
         return pitches.half_whole(self._root.midi())
@@ -357,57 +425,5 @@ class ChordProgression(collections.MutableMapping):
 
         return string
 
-    def set(self):
-        return ChordProgressionSetter(self)
 
-    def chords(self, measure):
-        return {key: self[key] for key in self.keys() if measure.start() <= key < measure.end()}
-
-
-class ChordProgressionSetter:
-
-    def __init__(self, chord_progression):
-        self.chord_progression = chord_progression
-        self._measure = 0
-        self._beat = 0
-
-    def measure(self, measure):
-        self._measure = measure
-        return self
-
-    def beat(self, beat):
-        self._beat = beat
-        return self
-
-    def commit(self, chord):
-        if isinstance(chord, str):
-            parsed = parse(chord)
-        elif isinstance(chord, Chord):
-            parsed = chord
-        else:
-            raise TypeError
-
-        sample_pos = time.measure(self._measure).beat(self._beat).start()
-        self.chord_progression[sample_pos] = parsed
-
-
-def parse(chord, bass_note=None):
-    if RE_MAJOR.match(chord):
-        return MajorChord(get_root(chord), bass_note)
-    elif RE_MINOR.match(chord):
-        return MinorChord(get_root(chord), bass_note)
-    elif RE_SEVEN.match(chord):
-        return SevenChord(get_root(chord), bass_note)
-    elif RE_DIMIN.match(chord):
-        return DiminishedChord(get_root(chord), bass_note)
-    elif RE_SLASH.match(chord):
-        return parse(chord.split('/')[0], chord.split('/')[1])
-
-
-def get_root(chord):
-    matches = RE_CHORD_ROOT.match(chord)
-    return matches.group()
-
-
-def same(chord1, chord2):
-    return chord1.root().midi() % 12 == chord2.root().midi() % 12
+__init()

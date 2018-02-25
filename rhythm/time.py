@@ -7,6 +7,87 @@ import math
 import config
 
 
+def __init():
+    global __signatures
+    global __measures
+    global __beats
+
+    __signatures = TimeSignatures()
+    __measures = {}
+    __beats = {}
+
+
+def measure(index):
+    keys = __measures.keys()
+    keys.sort()
+    return __measures[keys[index]]
+
+
+def beats():
+    return __beats
+
+
+def beat_at_index(index):
+    keys = __beats.keys()
+    keys.sort()
+    return __beats[keys[index]]
+
+
+def beat_at_position(position):
+    beat_or_none = __beats.get(position, None)
+
+    if beat_or_none is None:
+        keys = __beats.keys()
+        keys.sort()
+
+        for key in keys:
+            if position > key:
+                return __beats[key]
+
+    return beat_or_none
+
+
+def signatures():
+    return __signatures
+
+
+def measures():
+    return __measures
+
+
+def clear():
+    global __signatures
+    __signatures = TimeSignatures()
+
+
+def add_signature(sample_position, signature):
+    __signatures[sample_position] = signature
+    __compute_time_increments()
+
+
+def delete_signature(sample_position):
+    del __signatures[sample_position]
+    __compute_time_increments()
+
+
+def __compute_time_increments():
+    global __measures, __beats
+    __measures = {}
+    __beats = {}
+
+    song_length = len(config.soprano)
+    signature_positions_plus_end = __signatures.keys() + [song_length]
+    signature_positions_plus_end.sort()
+
+    for pos1, pos2 in zip(signature_positions_plus_end, signature_positions_plus_end[1::]):
+        sig1 = __signatures[pos1]
+
+        measure_group = {position: Measure(position) for position in range(pos1, pos2)[::sig1.samples_per_measure()]}
+        __measures.update(measure_group)
+        beat_group = [beat for k in measure_group.keys() for beat in measure_group[k].beats()]
+        __beats.update({beat.start(): beat for beat in beat_group})
+
+
 # TODO: this has to go
 def is_big_beat(time_signature, beat_base_zero):
     numerator = time_signature.numerator
@@ -198,78 +279,4 @@ class Beat:
 
         return self.strong_beat()
 
-
-__signatures = TimeSignatures()
-__measures = {}
-__beats = {}
-
-
-def measure(index):
-    keys = __measures.keys()
-    keys.sort()
-    return __measures[keys[index]]
-
-
-def beats():
-    return __beats
-
-
-def beat_at_index(index):
-    keys = __beats.keys()
-    keys.sort()
-    return __beats[keys[index]]
-
-
-def beat_at_position(position):
-    beat_or_none = __beats.get(position, None)
-
-    if beat_or_none is None:
-        keys = __beats.keys()
-        keys.sort()
-
-        for key in keys:
-            if position > key:
-                return __beats[key]
-
-    return beat_or_none
-
-
-def signatures():
-    return __signatures
-
-
-def measures():
-    return __measures
-
-
-def clear():
-    global __signatures
-    __signatures = TimeSignatures()
-
-
-def add_signature(sample_position, signature):
-    __signatures[sample_position] = signature
-    __compute_time_increments()
-
-
-def delete_signature(sample_position):
-    del __signatures[sample_position]
-    __compute_time_increments()
-
-
-def __compute_time_increments():
-    global __measures, __beats
-    __measures = {}
-    __beats = {}
-
-    song_length = len(config.soprano)
-    signature_positions_plus_end = __signatures.keys() + [song_length]
-    signature_positions_plus_end.sort()
-
-    for pos1, pos2 in zip(signature_positions_plus_end, signature_positions_plus_end[1::]):
-        sig1 = __signatures[pos1]
-
-        measure_group = {position: Measure(position) for position in range(pos1, pos2)[::sig1.samples_per_measure()]}
-        __measures.update(measure_group)
-        beat_group = [beat for k in measure_group.keys() for beat in measure_group[k].beats()]
-        __beats.update({beat.start(): beat for beat in beat_group})
+__init()

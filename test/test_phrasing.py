@@ -23,10 +23,9 @@ class TestPhrasing(TestCase):
         time.add_signature(0, time.TimeSignature(numerator=4, denominator=4))
         time.add_signature(768, time.TimeSignature(numerator=6, denominator=8))
 
-        config.chord_progression = chords.ChordProgression()
-        config.chord_progression.set().measure(0).commit('C')
-        config.chord_progression.set().measure(2).commit('F')
-        config.chord_progression.set().measure(2).beat(3).commit('G7')
+        chords.write('C')
+        chords.write('F', measure=2)
+        chords.write('G7', measure=2, beat=3)
 
         prediction = phrasing.chord_based_strong_beat_prediction(time.measure(2))
 
@@ -36,7 +35,7 @@ class TestPhrasing(TestCase):
         four_four_combinations = phrasing.potential_strong_beat_permutations(4)
         six_eight_combinations = phrasing.potential_strong_beat_permutations(6)
 
-        self.assertEqual({(0, 1, 2, 3),}, four_four_combinations)
+        self.assertEqual([(0, 1, 2, 3)], four_four_combinations)
         self.assertEqual([(0, 4), (0, 2, 4), (0, 2), (0, 3)], six_eight_combinations)
 
     def test__potential_strong_beat_permutations(self):

@@ -1,6 +1,7 @@
 import itertools
 import math
 
+import chords
 import config
 import util
 import vars
@@ -72,9 +73,9 @@ def __no_chord_before_or_after(beat):
     :param beat: time.Beat object
     :return: True if no other chords nearby
     """
-    return beat.start() in config.chord_progression.keys() and \
-           beat.start() - beat.length() not in config.chord_progression.keys() and \
-           beat.end() not in config.chord_progression.keys()
+    return beat.start() in chords.keys() and \
+           beat.start() - beat.length() not in chords.keys() and \
+           beat.end() not in chords.keys()
 
 
 def rhythm_based_strong_beat_score(measure, pattern):

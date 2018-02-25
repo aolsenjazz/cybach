@@ -5,6 +5,8 @@ import math
 import midi
 
 import config
+
+import chords
 import constants
 from pitches import Pitch
 from rhythm import time
