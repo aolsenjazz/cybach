@@ -3,8 +3,8 @@ import math
 
 import chords
 import config
-import util
 import sequences
+import util
 import vars
 from rhythm import time
 
@@ -21,6 +21,12 @@ def detect_and_set_measure_phrasing():
 
 
 def get_most_likely_phrasing(measures):
+    """
+    Returns the phrasing permutation which is most likely present.
+
+    :param measures: list of time.Measure
+    :return: a tuple representing phrasing. see potential_strong_beat_permutations() for more
+    """
     permutations = potential_strong_beat_permutations(measures[0].time_signature().numerator)
 
     if len(permutations) == 1:
@@ -40,6 +46,15 @@ def get_most_likely_phrasing(measures):
 
 
 def potential_strong_beat_permutations(numerator):
+    """
+    Returns a tuple of all possible strong beat permutations for a given time signature numerator. Permutations
+    are groups of 2, 3, and occasionally 4. Each number represents a phrase grouping.
+
+    E.g. 4/4 would receive (0, 1, 2, 3), 3/4 would receive (0, 1, 2), and 5/4 would receive (0, 2), (0, 3)
+
+    :param numerator:
+    :return:
+    """
     if numerator <= 4:
         return [tuple(i for i in range(0, numerator))]
     else:

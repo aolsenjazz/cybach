@@ -4,12 +4,11 @@ import midi
 
 import chords
 import config
-import sequences
 import examples
 import ks_detector
-import parts
 import pat_util
 import phrasing
+import sequences
 from rhythm import time
 
 REGEX_MIDI = re.compile('.+\.(mid|midi)')

@@ -1,13 +1,9 @@
 from unittest import TestCase
 
-import config
 import constants
 import fileloader
-import sequences
 import pitches
-import util
-import vars
-from rhythm import time
+import sequences
 
 
 class TestDomain(TestCase):
@@ -74,7 +70,6 @@ class TestDomain(TestCase):
 
         note = sequences.Note(sequence, new_entity_start, new_entity_end, pitches.Pitch(61))
         sequence.add_entities(note)
-        t = sequence.timed_entities()
 
         self.assertEqual(new_entity_start, sequence.timed_entities()[1].end())
         self.assertEqual(new_entity_end, sequence.timed_entities()[3].start())

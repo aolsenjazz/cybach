@@ -53,6 +53,7 @@ def get(position):
 
 
 class _KeySignature:
+
     def __init__(self):
         pass
 
@@ -77,9 +78,23 @@ class _KeySignature:
         return hash((self.root_chord.root().midi(), self.root_chord.three().midi()))
 
     def is_functional(self, chord):
+        """
+        Returns True if the chord submitted is function within the key.
+
+        :param chord: chords.Chord object
+        :return: True or False
+        """
+
         raise NotImplementedError
 
     def harmonic_relevance(self, chord):
+        """
+        Some chords are more indicative of a certain key than other. E.g. in C, the chords C and G7 strongly
+        indicate that we're in the key of C. Returns a score based on harmonic relevance to the key
+
+        :param chord: chords.Chords object
+        :return: Harmony relevance score
+        """
         if pitches.same_species(chord.root(), self.five()) and \
                 isinstance(chord, chords.SevenChord):
             return vars.FIVE_DOMINANT_HARMONY
@@ -92,10 +107,23 @@ class _KeySignature:
 
         return 0.0
 
-    def scale(self):
-        return self.root_chord.scale()
-
     def functional_relevance(self, c1, c2):
+        """
+        Some functional relationships are more indicative of some key sigantures. E.g. A7 -> D is strongly
+        indicative of the key of D. Returns a score based on how functionally relevant the two chords are in this key.
+
+        * Not currently implemented: The dimension of time needs to be included within the scoring mechanism.
+        The following example illustrates why. Assume we're in 4/4 and the actual key signature is A
+
+        | A |   |   |   || D |   |   |   || F- |   |   |  ||
+
+        Why humans can deduce that this relationship is indicative of A, the computer just see A -> D, which is
+        more indicative of the key of D. The F- could be any chord that would force a key change to be registered.
+
+        :param c1: first chord
+        :param c2: second chord
+        :return: functionality score based on the chords
+        """
         score = 0.0
 
         if self.is_functional(c1) and self.is_functional(c2):
@@ -113,10 +141,13 @@ class _KeySignature:
                 score += vars.SEVEN_ONE_FUNCTIONALITY
             elif pitches.same_species(c1._root, self.two()) and pitches.same_species(c2._root, self.five()):
                 score += vars.TWO_FIVE_FUNCTIONALITY
-            elif pitches.same_species(c1._root, self.fourth()) and pitches.same_species(c2._root, self.five()):
+            elif pitches.same_species(c1._root, self.four()) and pitches.same_species(c2._root, self.five()):
                 score += vars.FOUR_FIVE_FUNCTIONALITY
 
         return score
+
+    def scale(self):
+        return self.root_chord.scale()
 
     def one(self):
         return self.root_chord.root()
@@ -127,7 +158,7 @@ class _KeySignature:
     def three(self):
         return self.root_chord.three()
 
-    def fourth(self):
+    def four(self):
         return pitches.parse(self.one().midi() + 5)
 
     def five(self):
@@ -139,7 +170,7 @@ class _KeySignature:
     def six(self):
         return pitches.parse(self.one().midi() + 9)
 
-    def flat_seventh(self):
+    def flat_seven(self):
         return pitches.parse(self.one().midi() + 10)
 
     def seven(self):
@@ -157,7 +188,7 @@ class MajorKeySignature(_KeySignature):
         chord_root = chord.root()
 
         if (pitches.same_species(chord_root, self.one()) or
-            pitches.same_species(chord_root, self.fourth()) or
+            pitches.same_species(chord_root, self.four()) or
             pitches.same_species(chord_root, self.five())) and \
                 isinstance(chord, chords.MajorChord):
             return True
@@ -176,6 +207,7 @@ class MajorKeySignature(_KeySignature):
         return False
 
     def harmonic_relevance(self, chord):
+
         if pitches.same_species(chord.root(), self.one()) and \
                 isinstance(chord, chords.MajorChord):
             return vars.ONE_CHORD_HARMONY
@@ -187,7 +219,7 @@ class MajorKeySignature(_KeySignature):
                 isinstance(chord, chords.MinorChord):
             return vars.THREE_CHORD_HARMONY
 
-        elif pitches.same_species(chord.root(), self.fourth()) and \
+        elif pitches.same_species(chord.root(), self.four()) and \
                 isinstance(chord, chords.MajorChord):
             return vars.FOUR_CHORD_HARMONY
 
@@ -226,7 +258,7 @@ class MinorKeySignature(_KeySignature):
                 and isinstance(chord, chords.SevenChord):
             return True
         elif (pitches.same_species(chord_root, self.one()) or
-              pitches.same_species(chord_root, self.fourth())) and \
+              pitches.same_species(chord_root, self.four())) and \
                 isinstance(chord, chords.MinorChord):
             return True
         elif (pitches.same_species(chord_root, self.seven() or
@@ -246,7 +278,7 @@ class MinorKeySignature(_KeySignature):
         elif pitches.same_species(chord.root(), self.three()) and \
                 isinstance(chord, chords.MajorChord):
             return vars.THREE_CHORD_HARMONY
-        elif pitches.same_species(chord.root(), self.fourth()) and \
+        elif pitches.same_species(chord.root(), self.four()) and \
                 isinstance(chord, chords.MinorChord):
             return vars.FOUR_CHORD_HARMONY
         elif pitches.same_species(chord.root(), self.flat_six()) and \

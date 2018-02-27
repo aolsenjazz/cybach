@@ -50,13 +50,31 @@ class Sequence:
         self._entities = {}
 
     def pitch(self, position):
+        """
+        Returns the pitches.Pitch object of the entity at the given position. Be careful to check whether
+        entity at the position is a timed entity, otherwise will throw.
+
+        :param position: sample_position
+        :return: pitches.Pitch object
+        """
         return self.entity(position).pitch()
 
     def add_entities(self, *args):
+        """
+        Wrapper around add_entity to add multiple
+
+        :param args: Entity objects, probably Note or Rest entities
+        """
         for arg in args:
             self.add_entity(arg)
 
     def add_entity(self, new_entity):
+        """
+        Adds an entity into the map, using entity's internal location variables. Adjusts preexisting
+        entity positions or delete overwritten entities
+
+        :param new_entity: Entity object, probably a Note or Rest
+        """
         current_entity_at_start = self.entity(new_entity.start())
         current_entity_at_end = self.entity(new_entity.end())
 
@@ -83,6 +101,11 @@ class Sequence:
             del self._entities[key]
 
     def entity(self, position):
+        """
+        Gets the Entity at the given sample position
+        :param position: sample position
+        :return: Entity object
+        """
         if position < 0:
             return TrackStart(self)
         elif position >= self._length:
@@ -131,6 +154,10 @@ class RootSequence(Sequence):
         self.__build_entities(track)
 
     def __build_entities(self, track):
+        """
+        Parses a midi.Track object and builds Entities
+        :param track: midi.Track object
+        """
         note_events = [event for event in track
                        if isinstance(event, midi.NoteOffEvent) or isinstance(event, midi.NoteOnEvent)]
 

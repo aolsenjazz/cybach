@@ -67,6 +67,12 @@ def contains_harmony(pattern):
 
 
 def get_time_signature_events(pattern):
+    """
+    Returns a map of time signature events and their position in the first track
+
+    :param pattern: midi.Pattern
+    :return: Map of time sig events, eg {0: time.TimeSignature, 384: time.TimeSignature}
+    """
     time_signature_events = {}
 
     position = 0
@@ -79,6 +85,12 @@ def get_time_signature_events(pattern):
 
 
 def contains_time_signature_data(pattern):
+    """
+    Returns True if the first track of the pattern contains at least one time signature event.
+
+    :param pattern: midi.Pattern
+    :return: True or False
+    """
     for event in pattern[0]:
         if isinstance(event, midi.TimeSignatureEvent):
             return True
@@ -86,13 +98,25 @@ def contains_time_signature_data(pattern):
 
 
 def contains_key_signature_data(pattern):
+    """
+    Returns True if the first track of the pattern contains at least one key signature event
+
+    :param pattern: midi.Pattern
+    :return: True or False
+    """
     for event in pattern[0]:
-        if isinstance(event, midi.KeySignature_Event):
+        if isinstance(event, midi.KeySignatureEvent):
             return True
     return False
 
 
 def sample_length(pattern):
+    """
+    Returns the sample length of the first track of the Pattern
+
+    :param pattern: midi.Pattern
+    :return: Length of the first track of the pattern
+    """
     if isinstance(pattern, midi.Track):
         track = pattern
     elif isinstance(pattern, midi.Pattern):
@@ -103,6 +127,12 @@ def sample_length(pattern):
 
 
 def sort(pattern):
+    """
+    Some patterns have gnarly ordering of NoteOn and NoteOff event, which, while valid, are a pain in the
+    ass to parse. Correct it here.
+
+    :param pattern: midi.Pattern
+    """
     track = pattern[0]
 
     sort_again = True
@@ -111,7 +141,7 @@ def sort(pattern):
 
         swap = [i for i, (current, last)
                 in enumerate(zip(track, track[1:]))
-                if __are_note_events(current, last) and current.__class__ == last.__class__]
+                if __are_note_on_events(current, last) and current.__class__ == last.__class__]
 
         for i in swap:
             track[i + 2].tick, track[i + 1].tick = track[i + 1].tick, track[i + 2].tick
@@ -119,7 +149,12 @@ def sort(pattern):
             sort_again = True
 
 
-def __are_note_events(*args):
+def __are_note_on_events(*args):
+    """
+    Convenience method to check if object is a midi.NoteOnEvent
+    :param args: series of Objects
+    :return: True or False
+    """
     for item in args:
         if isinstance(item, midi.NoteOnEvent):
             return True
