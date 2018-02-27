@@ -17,7 +17,7 @@ __tenor = None
 __bass = None
 
 
-def init(track, alto_config={}, tenor_config={}, bass_config={}):
+def init(track, alto_config={}, tenor_config={}, bass_config={'motion_tendency': 0.4}):
     global __soprano
     global __alto
     global __tenor
@@ -171,6 +171,10 @@ class Sequence:
         track.append(midi.EndOfTrackEvent(tick=0))
 
         return pattern
+
+    def length(self):
+        return self._length
+
 
 class RootSequence(Sequence):
 

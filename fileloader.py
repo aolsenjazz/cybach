@@ -49,7 +49,6 @@ def __load_example(file_name):
     __load_midi(example.file_name())
     example.load_chord_progression()
     ks_detector.detect_and_set_key_signatures()
-    m = time.__measures
     phrasing.detect_and_set_measure_phrasing()
 
 
@@ -67,11 +66,12 @@ def __load_midi(file_name):
         exit(2)
 
     __enforce_midi_validity(pattern)
-    pat_util.sort(pattern)
     config.resolution = pattern.resolution
     config.song_length = pat_util.sample_length(pattern)
+    print config.song_length
     __load_time_signature_events(pattern)
-    sequences.init(pattern[0])
+    track = pat_util.sorted_note_events(pattern)
+    sequences.init(track)
 
 
 def __load_music_xml(file_name):

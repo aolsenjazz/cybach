@@ -121,19 +121,21 @@ def sample_length(pattern):
         track = pattern
     elif isinstance(pattern, midi.Pattern):
         track = pattern[0]
+    elif isinstance(pattern, list):
+        track = pattern
     else:
         raise ValueError
     return sum([event.tick for event in track])
 
 
-def sort(pattern):
+def sorted_note_events(pattern):
     """
     Some patterns have gnarly ordering of NoteOn and NoteOff event, which, while valid, are a pain in the
     ass to parse. Correct it here.
 
     :param pattern: midi.Pattern
     """
-    track = pattern[0]
+    track = [e for e in pattern[0] if isinstance(e, midi.NoteOnEvent) or isinstance(e, midi.NoteOffEvent)]
 
     sort_again = True
     while sort_again:
@@ -147,6 +149,8 @@ def sort(pattern):
             track[i + 2].tick, track[i + 1].tick = track[i + 1].tick, track[i + 2].tick
             track[i + 2], track[i + 1] = track[i + 1], track[i + 2]
             sort_again = True
+
+    return track
 
 
 def __are_note_on_events(*args):

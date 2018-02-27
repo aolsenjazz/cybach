@@ -7,6 +7,7 @@ import os.path
 import re
 import sys
 import midi
+import pat_util
 from itertools import chain
 
 import examples
@@ -49,15 +50,20 @@ fileloader.load(sys.argv[1], False)
 
 print 'Selecting initial accompaniment...'
 picker = note_picker.NotePicker()
+
 keys = time.measures().keys()
 keys.sort()
 strong_beats = list(chain.from_iterable([time.measures()[key].strong_beats() for key in keys]))
-for beat in strong_beats:
-    pitches = picker.compute(beat)
 
-    bass_note = sequences.Note(sequences.bass(), beat.start(), beat.end(), pitches[note_picker.BASS_POSITION])
-    tenor_note = sequences.Note(sequences.tenor(), beat.start(), beat.end(), pitches[note_picker.TENOR_POSITION])
-    alto_note = sequences.Note(sequences.alto(), beat.start(), beat.end(), pitches[note_picker.ALTO_POSITION])
+for i in range(len(strong_beats)):
+    beat = strong_beats[i]
+    pitches = picker.compute(beat)
+    start = beat.start()
+    end = config.song_length if beat.end() == config.song_length else strong_beats[i + 1].start()
+
+    bass_note = sequences.Note(sequences.bass(), start, end, pitches[note_picker.BASS_POSITION])
+    tenor_note = sequences.Note(sequences.tenor(), start, end, pitches[note_picker.TENOR_POSITION])
+    alto_note = sequences.Note(sequences.alto(), start, end, pitches[note_picker.ALTO_POSITION])
 
     sequences.bass().add_entities(bass_note)
     sequences.tenor().add_entities(tenor_note)
@@ -77,6 +83,9 @@ for beat in strong_beats:
 #         sequences.bass().apply_transform(transforms['bass'])
 
 # ~~~~~~~~ Write to file ~~~~~~~~
+
+# print(pat_util.sample_length(sequences.soprano().to_pattern()))
+
 folder = constants.OUT_DIR + config.name + '/'
 if not os.path.exists(folder):
     os.makedirs(folder)
