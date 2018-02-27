@@ -5,6 +5,7 @@ import copy
 import midi
 
 import config
+import constants
 import parts
 import pat_util
 from pitches import Pitch
@@ -146,8 +147,30 @@ class Sequence:
         return note_count
 
     def to_pattern(self):
-        pass
+        track = midi.Track()
+        pattern = midi.Pattern([track], resolution=config.resolution)
 
+        time_signatures = time.signatures()
+
+        rest_length = 0
+        for i in range(self._length):
+            if time_signatures.get(i, None) is not None:
+                sig = time_signatures[i]
+                track.append(midi.TimeSignatureEvent(data=[sig.numerator, sig.denominator, 36, 8]))
+
+            if self._entities.get(i, None) is not None:
+                entity = self._entities[i]
+                if entity.is_note():
+                    midi_val = entity.pitch().midi()
+                    track.append(midi.NoteOnEvent(tick=rest_length, data=[midi_val, constants.DEFAULT_VELOCITY]))
+                    track.append(midi.NoteOffEvent(tick=entity.length(), data=[midi_val, constants.DEFAULT_VELOCITY]))
+                    rest_length = 0
+                if entity.is_rest():
+                    rest_length = entity.length()
+
+        track.append(midi.EndOfTrackEvent(tick=0))
+
+        return pattern
 
 class RootSequence(Sequence):
 

@@ -6,11 +6,14 @@ CYBACH
 import os.path
 import re
 import sys
+import midi
 from itertools import chain
 
 import examples
+import constants
 import fileloader
 import note_picker
+import config
 import sequences
 from rhythm import time
 
@@ -54,10 +57,9 @@ for beat1, beat2 in zip(strong_beats, strong_beats[1::]):
     tenor_note = sequences.Note(sequences.tenor(), beat1.start(), beat1.end(), pitches[note_picker.TENOR_POSITION])
     alto_note = sequences.Note(sequences.alto(), beat1.start(), beat1.end(), pitches[note_picker.ALTO_POSITION])
 
-    sequences.bass().add_entities(bass_note, tenor_note, alto_note)
-    # sequences.bass().set_pitch(beat1.start(), beat1.end(), pitches[note_picker.BASS_POSITION], True)
-    # sequences.tenor().set_pitch(beat1.start(), beat1.end(), pitches[note_picker.TENOR_POSITION], True)
-    # sequences.alto().set_pitch(beat1.start(), beat1.end(), pitches[note_picker.ALTO_POSITION], True)
+    sequences.bass().add_entities(bass_note)
+    sequences.tenor().add_entities(tenor_note)
+    sequences.alto().add_entities(alto_note)
 
 # ~~~~~~~~ Increase or decrease motion by grouping notes together or adding inter-beat motion ~~~~~~~~
 
@@ -73,14 +75,13 @@ for beat1, beat2 in zip(strong_beats, strong_beats[1::]):
 #         sequences.bass().apply_transform(transforms['bass'])
 
 # ~~~~~~~~ Write to file ~~~~~~~~
-# folder = constants.OUT_DIR + config.name + '/'
-# if not os.path.exists(folder):
-#     os.makedirs(folder)
-#
-# midi.write_midifile(folder + 'soprano.mid', sequences.soprano.to_pattern())
-# midi.write_midifile(folder + 'alto.mid', sequences.alto().to_pattern())
-# midi.write_midifile(folder + 'tenor.mid', sequences.tenor().to_pattern())
-# midi.write_midifile(folder + 'bass.mid', sequences.bass().to_pattern())
-#
-# print 'Your arrangement has been written to ', folder, ' :)'
-print 'done'
+folder = constants.OUT_DIR + config.name + '/'
+if not os.path.exists(folder):
+    os.makedirs(folder)
+
+midi.write_midifile(folder + 'soprano.mid', sequences.soprano().to_pattern())
+midi.write_midifile(folder + 'alto.mid', sequences.alto().to_pattern())
+midi.write_midifile(folder + 'tenor.mid', sequences.tenor().to_pattern())
+midi.write_midifile(folder + 'bass.mid', sequences.bass().to_pattern())
+
+print 'Your arrangement has been written to ', folder, ' :)'
