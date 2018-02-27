@@ -49,13 +49,15 @@ fileloader.load(sys.argv[1], False)
 
 print 'Selecting initial accompaniment...'
 picker = note_picker.NotePicker()
-strong_beats = list(chain.from_iterable([time.__measures[key].strong_beats() for key in time.__measures.keys()]))
-for beat1, beat2 in zip(strong_beats, strong_beats[1::]):
-    pitches = picker.compute(beat1)
+keys = time.measures().keys()
+keys.sort()
+strong_beats = list(chain.from_iterable([time.measures()[key].strong_beats() for key in keys]))
+for beat in strong_beats:
+    pitches = picker.compute(beat)
 
-    bass_note = sequences.Note(sequences.bass(), beat1.start(), beat1.end(), pitches[note_picker.BASS_POSITION])
-    tenor_note = sequences.Note(sequences.tenor(), beat1.start(), beat1.end(), pitches[note_picker.TENOR_POSITION])
-    alto_note = sequences.Note(sequences.alto(), beat1.start(), beat1.end(), pitches[note_picker.ALTO_POSITION])
+    bass_note = sequences.Note(sequences.bass(), beat.start(), beat.end(), pitches[note_picker.BASS_POSITION])
+    tenor_note = sequences.Note(sequences.tenor(), beat.start(), beat.end(), pitches[note_picker.TENOR_POSITION])
+    alto_note = sequences.Note(sequences.alto(), beat.start(), beat.end(), pitches[note_picker.ALTO_POSITION])
 
     sequences.bass().add_entities(bass_note)
     sequences.tenor().add_entities(tenor_note)

@@ -1,3 +1,5 @@
+from __future__ import division
+
 # Algorithm variables
 
 
@@ -87,17 +89,36 @@ PARALLEL_MOVEMENT = -0.20
 
 # Award 0.05 for each line that is in harmony with another one. Is not applied to harmony formed with
 # the soprano line. Can be awarded up to 3 times per beat.
-HARMONY = 0.05
+HARMONY_COEF = 0.6
+
+
+def unique_pitch_score(unique_pitches):
+    return ((2 ** unique_pitches) / 100) * HARMONY_COEF
+
+
+# We're allowed to have some duplicates, but more than one every once in a while is too much.
+DUPLICATE_COEF = 0.1
+
+
+def duplicate(duplicate_count):
+    return 0 - duplicate_count * DUPLICATE_COEF
+
+
+# We don't want the bass to play the root of the next chord right before we hear the next chord
+PREEMPTION = -0.1
 
 # Prefer to have the bass play the root note on the first beat of the piece.
 FIRST_BEAT_BASS_ROOT = 0.10
 
 # Prefer to have the bass play the bass note on the beat 1
-FIRST_BEAT_BASS_NOTE = 0.05
+FIRST_BEAT_BASS_NOTE = 0.10
 
 # Slight preference for the bass to choose the root. Comes into play when the same chord that is active
 # on any given beat is the same chord as the previous beat and the bass note isn't the root.
-BASS_ROOT_SAME_CHORD = 0.03
+BASS_ROOT_SAME_CHORD = 0.12
+
+# For any given dominant seven chord, give a slight preference to voicing with the third.
+THIRD_PREFERENCE = 0.05
 
 # If there's a different note in the bass than the root, we should always choose it.
 NON_ROOT_BASS_NOTE = 0.5

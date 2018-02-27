@@ -1,4 +1,5 @@
 import chords
+import config
 import entity_util
 import parts
 import pitches
@@ -33,11 +34,16 @@ class NotePicker:
         tenor_score = get_tenor_score(candidate[TENOR_POSITION], beat)
         alto_score = get_alto_score(candidate[ALTO_POSITION], beat)
         harmony_score = get_harmony_score(candidate, beat)
+        duplicate_penalty = get_duplicate_penalty(candidate)
         rest_penalty = get_rest_penalty(candidate)
         motion_score = parallel_motion_score(candidate, beat, sequences.soprano(), sequences.alto(),
                                              sequences.tenor(), sequences.bass())
 
-        return sum([bass_score, tenor_score, alto_score, harmony_score, motion_score, rest_penalty])
+        return sum([bass_score, tenor_score, alto_score, harmony_score, motion_score, rest_penalty, duplicate_penalty])
+
+
+def get_duplicate_penalty(candidate):
+    return vars.duplicate(len(candidate) - len(set(candidate)))
 
 
 def get_rest_penalty(candidate):
@@ -82,20 +88,21 @@ def parallel_motion_score(candidate, beat, soprano, alto, tenor, bass):
 
 
 def get_bass_score(candidate, beat):
-    score = 0.0
     low_thresh = parts.BASS.max_low
     high_thresh = parts.BASS.max_high
 
-    score += threshold_encroachment_score(candidate, low_thresh, low_thresh + 4)
-    score += threshold_encroachment_score(candidate, high_thresh, high_thresh - 4)
-    score += preferred_register_score(candidate, high_thresh, high_thresh - 7)
-    score += bass_note_tendency_score(candidate, beat)
+    bottom_encroachment = threshold_encroachment_score(candidate, low_thresh, low_thresh + 4)
+    top_encroachment =  threshold_encroachment_score(candidate, high_thresh, high_thresh - 4)
+    preferred_register = preferred_register_score(candidate, high_thresh, high_thresh - 7)
+    bass_note_tendency = bass_note_tendency_score(candidate, beat)
+    preemption = preemption_penalty(candidate, beat)
 
-    score += motion_tendency_score(candidate, beat, sequences.bass())
-    score += linear_motion_score(candidate, beat, sequences.bass())
-    score += flicker_avoidance_score(candidate, beat, sequences.bass())
+    motion_tendency = motion_tendency_score(candidate, beat, sequences.bass())
+    linear_motion = linear_motion_score(candidate, beat, sequences.bass())
+    flicker_avoidance = flicker_avoidance_score(candidate, beat, sequences.bass())
 
-    return score
+    return sum((bottom_encroachment, top_encroachment, preferred_register, bass_note_tendency, preemption,
+                motion_tendency, linear_motion, flicker_avoidance))
 
 
 def get_tenor_score(candidate, beat):
@@ -130,6 +137,19 @@ def get_alto_score(candidate, beat):
     return score
 
 
+def preemption_penalty(candidate, beat):
+    if beat.end() == config.song_length:
+        return 0.0
+
+    this_chord = chords.get(beat.start())
+    next_chord = chords.get(beat.next().start())
+
+    if pitches.same_species(candidate, next_chord.root()) and this_chord != next_chord:
+        return vars.PREEMPTION
+
+    return 0.0
+
+
 def flicker_avoidance_score(candidate, beat, sequence):
     candidate_entity = sequences.Note(sequence, beat.start(), beat.end(), candidate)
 
@@ -145,8 +165,25 @@ def flicker_avoidance_score(candidate, beat, sequence):
 
 
 def get_harmony_score(candidate, beat):
+    unique_pitches_score = unique_pitch_score(candidate, beat)
+    third_preference = third_preference_score(candidate, beat)
+
+    return sum((unique_pitches_score, third_preference))
+
+
+def unique_pitch_score(candidate, beat):
     chord = chords.get(beat.start())
-    return len(set([pitch % 12 for pitch in candidate if pitch in chord.all_octaves()])) * vars.HARMONY
+    unique_pitches = len(set([pitch % 12 for pitch in candidate if pitch in chord.all_octaves()]))
+    return vars.unique_pitch_score(unique_pitches)
+
+
+def third_preference_score(candidate, beat):
+    chord = chords.get(beat.start())
+    if isinstance(chord, chords.SevenChord):
+        if [pitch for pitch in candidate if pitches.same_species(pitch, chord.three())]:
+            return vars.THIRD_PREFERENCE
+
+    return 0.0
 
 
 def bass_note_tendency_score(candidate, beat):
@@ -160,7 +197,7 @@ def bass_note_tendency_score(candidate, beat):
     last_chord = chords.get(0 if beat.start() == 0 else beat.previous().start())
 
     # If beat one, we want to hear the bass note
-    if beat.first_beat():
+    if beat.first_beat() and pitches.same_species(candidate, this_chord.bass_note):
         score += vars.FIRST_BEAT_BASS_NOTE
 
     # Chord is the same as the last chord, and this is root note. Less important as root was likely

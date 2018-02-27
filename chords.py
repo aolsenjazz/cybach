@@ -128,10 +128,7 @@ class Chord:
         return pitches.same_species(other.bass_note, self.bass_note) and pitches.same_species(other._root, self._root)
 
     def __ne__(self, other):
-        if isinstance(other, self.__class__):
-            return False
-
-        return not (pitches.same_species(other.bass_note, self.bass_note) and pitches.same_species(other.one, self._root))
+        return not self.__eq__(other)
 
     def __hash__(self):
         return hash((self.bass_note, self._root))

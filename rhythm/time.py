@@ -226,6 +226,15 @@ class Beat:
 
         return beats()[keys[keys.index(self.start()) - 1]]
 
+    def next(self):
+        if self.start() == config.song_length - self.length():
+            return None
+
+        keys = beats().keys()
+        keys.sort()
+
+        return beats()[keys[keys.index(self.start()) + 1]]
+
     def on_beat(self):
         numerator = self.time_signature().numerator
 

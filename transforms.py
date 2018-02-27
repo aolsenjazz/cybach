@@ -503,9 +503,9 @@ def transforms_cause_parallel_movement(transform1, transform2):
 
 
 def notes_cause_parallel_movement(part1_first, part2_first, part1_second, part2_second):
-    first_difference = abs(part1_first - part2_first)
-    second_difference = abs(part1_second - part2_second)
+    first_difference = part1_first - part2_first
+    second_difference = part1_second - part2_second
 
     return first_difference == second_difference \
-            and (first_difference == 0 or first_difference == 5 or first_difference == 7 or first_difference == 12)
+            and (first_difference % 12 == 0 or first_difference % 12 == 5 or first_difference % 12 == 7)
 
