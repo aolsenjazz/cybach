@@ -4,19 +4,20 @@ import math
 import chords
 import config
 import util
+import sequences
 import vars
 from rhythm import time
 
 
 def detect_and_set_measure_phrasing():
-    signatures_plus_end = time.signatures().keys() + [len(config.soprano)]
+    signatures_plus_end = time.__signatures.keys() + [config.song_length]
     signatures_plus_end.sort()
     for pos1, pos2 in zip(signatures_plus_end, signatures_plus_end[1::]):
-        measures = [time.measures()[key] for key in time.measures().keys() if pos1 <= key < pos2]
+        measures = [time.__measures[key] for key in time.__measures.keys() if pos1 <= key < pos2]
 
         winner = get_most_likely_phrasing(measures)
 
-        time.signatures()[pos1].set_strong_beat_pattern(winner)
+        time.__signatures[pos1].set_strong_beat_pattern(winner)
 
 
 def get_most_likely_phrasing(measures):
@@ -88,7 +89,7 @@ def rhythm_based_strong_beat_score(measure, pattern):
     """
     likelihood_score = 0.0
     position = 0
-    sequence = config.soprano
+    sequence = sequences.soprano()
 
     for i in range(len(pattern)):
         value = pattern[i]

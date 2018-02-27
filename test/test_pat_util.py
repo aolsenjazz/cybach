@@ -2,12 +2,7 @@ from unittest import TestCase
 
 import midi
 
-import chords, transforms
-import domain
 import constants
-import ks
-import parts
-
 import pat_util
 
 

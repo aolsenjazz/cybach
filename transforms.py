@@ -1,12 +1,11 @@
 from __future__ import division
 
-from rhythm import time
 import chords
-import domain
 import config
-import vars
+import sequences
 import pitches
-
+import vars
+from rhythm import time
 
 
 class MotionTransform:
@@ -62,7 +61,7 @@ class JoinTransform(MotionTransform):
         num_unique_chords = unique_chord_count(self.position, self.duration)
         score += vars.TWO_BEAT_MULTIPLE_CHORDS * num_unique_chords
 
-        time_signature = time.signatures()[self.position]
+        time_signature = time.signature(self.position)
         if time_signature.numerator % 3 == 0 and not self.is_syncopation():
             score += vars.JOIN_PREFER_BIG_BEATS
 
@@ -70,13 +69,13 @@ class JoinTransform(MotionTransform):
 
     def crosses_bar_line(self):
         beat_index = self.sequence.beat_index_in_measure(self.position)
-        time_signature = time.signatures()[self.position]
+        time_signature = time.__signatures(self.position)
 
         return beat_index + self.duration > time_signature.numerator
 
     def is_syncopation(self):
         beat_index = self.sequence.beat_index_in_measure(self.position)
-        time_signature = time.signatures()[self.position]
+        time_signature = time.__signatures(self.position)
 
         return not time.is_big_beat(time_signature, beat_index)
 
@@ -85,9 +84,9 @@ class JoinTransform(MotionTransform):
             if i == self.position:
                 continue
             elif i == self.position + (self.duration * config.resolution) - 1:
-                self.sequence[i].type = domain.Sample.TYPE_END
+                self.sequence[i].type = sequences.Sample.TYPE_END
             else:
-                self.sequence[i].type = domain.Sample.TYPE_SUSTAIN
+                self.sequence[i].type = sequences.Sample.TYPE_SUSTAIN
 
         return self.sequence.samples
 
@@ -135,12 +134,12 @@ class EighthNoteTransform(MotionTransform):
 
         for i in range(half_way, self.position + config.resolution):
             if i == half_way:
-                self.sequence[i - 1] = domain.Sample(self.sequence[i - 1].midi(), domain.Sample.TYPE_END)
-                self.sequence[i] = domain.Sample(self.intermediate_pitch, domain.Sample.TYPE_START)
+                self.sequence[i - 1] = sequences.Sample(self.sequence[i - 1].midi(), sequences.Sample.TYPE_END)
+                self.sequence[i] = sequences.Sample(self.intermediate_pitch, sequences.Sample.TYPE_START)
             elif i == self.position + config.resolution - 1:
-                self.sequence[i] = domain.Sample(self.intermediate_pitch, domain.Sample.TYPE_END)
+                self.sequence[i] = sequences.Sample(self.intermediate_pitch, sequences.Sample.TYPE_END)
             else:
-                self.sequence[i] = domain.Sample(self.intermediate_pitch, domain.Sample.TYPE_SUSTAIN)
+                self.sequence[i] = sequences.Sample(self.intermediate_pitch, sequences.Sample.TYPE_SUSTAIN)
 
         return self.sequence.samples
 
@@ -223,7 +222,7 @@ class MajorThirdScalarTransform(EighthNoteTransform):
 
         this_signature = config.key_signatures[position]
 
-        return this_note.type == domain.Sample.TYPE_START and next_note.type == domain.Sample.TYPE_START \
+        return this_note.type == sequences.Sample.TYPE_START and next_note.type == sequences.Sample.TYPE_START \
                and abs(this_note.midi() - next_note.midi()) == 4 and intermediate_pitch in this_signature.scale()
 
 
@@ -273,7 +272,7 @@ class MinorThirdScalarTransform(EighthNoteTransform):
 
         this_signature = config.key_signatures[position + config.resolution]
 
-        if this_note.type == domain.Sample.TYPE_START and next_note.type == domain.Sample.TYPE_START \
+        if this_note.type == sequences.Sample.TYPE_START and next_note.type == sequences.Sample.TYPE_START \
                 and abs(this_note.midi() - next_note.midi()) == 3:
 
             for note in intermediary_notes:
@@ -335,10 +334,10 @@ class ArpeggialTransform(EighthNoteTransform):
         next_chord = config.chord_progression[position + config.resolution]
 
         if this_chord == next_chord:
-            return this_note.type == domain.Sample.TYPE_START and next_note.type == domain.Sample.TYPE_START \
+            return this_note.type == sequences.Sample.TYPE_START and next_note.type == sequences.Sample.TYPE_START \
                    and next_note.midi() == this_chord.note_above(this_chord.note_above(this_note.midi()))
         else:
-            if this_note.type == domain.Sample.TYPE_START and next_note.type == domain.Sample.TYPE_START:
+            if this_note.type == sequences.Sample.TYPE_START and next_note.type == sequences.Sample.TYPE_START:
                 for i in intermediary_notes:
                     if i in this_chord and i in next_chord:
                         return True
@@ -383,7 +382,7 @@ class HalfStepNeighborTransform(EighthNoteTransform):
         this_sig = config.key_signatures[position]
 
         return this_note.pitch().midi() == next_note.pitch().midi() \
-               and (this_note.type == domain.Sample.TYPE_START and next_note.type == domain.Sample.TYPE_START) \
+               and (this_note.type == sequences.Sample.TYPE_START and next_note.type == sequences.Sample.TYPE_START) \
                and (this_note.pitch.midi() - 1 in this_sig.scale() or this_note.pitch.midi() + 1 in this_sig.scale())
 
 
@@ -426,7 +425,7 @@ class WholeStepNeighborTransform(EighthNoteTransform):
         this_sig = config.key_signatures[position]
 
         return this_note.pitch.midi() == next_note.pitch.midi() \
-               and (this_note.type == domain.Sample.TYPE_START and next_note.type == domain.Sample.TYPE_START) \
+               and (this_note.type == sequences.Sample.TYPE_START and next_note.type == sequences.Sample.TYPE_START) \
                and (this_note.midi() - 2 in this_sig.scale() or this_note.midi() + 2 in this_sig.scale())
 
 

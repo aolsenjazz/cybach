@@ -4,7 +4,7 @@ import midi
 
 import chords
 import config
-import domain
+import sequences
 import examples
 import ks_detector
 import parts
@@ -13,7 +13,7 @@ import phrasing
 from rhythm import time
 
 REGEX_MIDI = re.compile('.+\.(mid|midi)')
-REGEX_MUSIC_XML = re.compile('.+\\\.(musicxml|xml)')
+REGEX_MUSIC_XML = re.compile('.+\.(musicxml|xml)')
 
 
 def load(file_name, manual_signature_entry):
@@ -48,8 +48,9 @@ def __load_example(file_name):
     """
     example = examples.ALL.get(file_name)
     __load_midi(example.file_name())
-    config.chord_progression = example.chord_progression()
+    example.load_chord_progression()
     ks_detector.detect_and_set_key_signatures()
+    m = time.__measures
     phrasing.detect_and_set_measure_phrasing()
 
 
@@ -59,22 +60,19 @@ def __load_midi(file_name):
 
     :param file_name: name of the MIDI file
     """
+    pattern = None
     try:
         pattern = midi.read_midifile(file_name)
-        __enforce_midi_validity(pattern)
-        config.resolution = pattern.resolution
-
-        config.soprano = domain.RootSequence(pattern[0])
-        config.alto = domain.AccompanimentSequence(config.soprano, parts.ALTO)
-        config.tenor = domain.AccompanimentSequence(config.soprano, parts.TENOR)
-        config.bass = domain.AccompanimentSequence(config.soprano, parts.BASS)
-
-        __load_time_signature_events(pattern)
-
-        config.chord_progression = chords.ChordProgression()
     except TypeError:
         print 'Midi file is malformed. Try exporting a new one from any DAW'
         exit(2)
+
+    __enforce_midi_validity(pattern)
+    pat_util.sort(pattern)
+    config.resolution = pattern.resolution
+    config.song_length = pat_util.sample_length(pattern)
+    __load_time_signature_events(pattern)
+    sequences.init(pattern[0])
 
 
 def __load_music_xml(file_name):
@@ -102,9 +100,7 @@ def __init_key_signature_entry(sequence, pattern):
 
 
 def __init_time_signature_entry(sequence):
-    time_signatures = time.signatures()
-
-    if time_signatures:
+    if time.__signatures:
         __report_time_signature_data()
         __manual_delete_time_signatures()
 
@@ -118,11 +114,11 @@ def __init_time_signature_entry(sequence):
             measure = int(raw_input('Measure: '))
 
             event = midi.TimeSignatureEvent(data=[numerator, denominator, 36, 8])
-            time.signatures()[sequence.measure(measure - 1).start()] = event
+            time.__signatures[sequence.measure(measure - 1).start()] = event
 
 
 def __verify_measure_count(sequence):
-    measure_count = len(sequence.measures())
+    measure_count = len(sequence.measures)
 
     correct = raw_input('It looks like the midi has %d measures. Is this correct? y/n ' % measure_count)
     while not (correct == 'y' or correct == 'n'):
@@ -237,7 +233,6 @@ def __load_time_signature_events(pattern):
 
     :param pattern: pattern retrieved by parsing MIDI
     """
-    time.clear()
     events = pat_util.get_time_signature_events(pattern)
     for key in events.keys():
         time.add_signature(key, time.TimeSignature(event=events[key]))

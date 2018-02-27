@@ -9,6 +9,7 @@ import sys
 from itertools import chain
 
 import examples
+import sequences
 import fileloader
 import note_picker
 from rhythm import time
@@ -45,36 +46,41 @@ fileloader.load(sys.argv[1], False)
 
 print 'Selecting initial accompaniment...'
 picker = note_picker.NotePicker()
-strong_beats = list(chain.from_iterable([time.measures()[key].strong_beats() for key in time.measures().keys()]))
+strong_beats = list(chain.from_iterable([time.__measures[key].strong_beats() for key in time.__measures.keys()]))
 for beat1, beat2 in zip(strong_beats, strong_beats[1::]):
     pitches = picker.compute(beat1)
 
-    # config.bass.set_pitch(start, end, pitches['bass'])
-    # config.tenor.set_pitch(start, end, pitches['tenor'])
-    # config.alto.set_pitch(start, end, pitches['alto'])
+    bass_note = sequences.Note(sequences.bass(), beat1.start(), beat1.end(), pitches[note_picker.BASS_POSITION])
+    tenor_note = sequences.Note(sequences.tenor(), beat1.start(), beat1.end(), pitches[note_picker.TENOR_POSITION])
+    alto_note = sequences.Note(sequences.alto(), beat1.start(), beat1.end(), pitches[note_picker.ALTO_POSITION])
+
+    sequences.bass().add_entities(bass_note, tenor_note, alto_note)
+    # sequences.bass().set_pitch(beat1.start(), beat1.end(), pitches[note_picker.BASS_POSITION], True)
+    # sequences.tenor().set_pitch(beat1.start(), beat1.end(), pitches[note_picker.TENOR_POSITION], True)
+    # sequences.alto().set_pitch(beat1.start(), beat1.end(), pitches[note_picker.ALTO_POSITION], True)
 
 # ~~~~~~~~ Increase or decrease motion by grouping notes together or adding inter-beat motion ~~~~~~~~
 
 # motionizer = motion.Motionizer()
-# for measure in config.bass.measures():
+# for measure in sequences.bass().measures():
 #     for beat in measure.beats():
 #         position = measure.sample_position() + beat.beat_index * config.resolution
 #
-#         transforms = motionizer.compute_next(config.soprano, config.alto, config.tenor, config.bass)
+#         transforms = motionizer.compute_next(sequences.soprano, sequences.alto(), sequences.tenor(), sequences.bass())
 #
-#         config.alto.apply_transform(transforms['alto'])
-#         config.tenor.apply_transform(transforms['tenor'])
-#         config.bass.apply_transform(transforms['bass'])
+#         sequences.alto().apply_transform(transforms['alto'])
+#         sequences.tenor().apply_transform(transforms['tenor'])
+#         sequences.bass().apply_transform(transforms['bass'])
 
 # ~~~~~~~~ Write to file ~~~~~~~~
 # folder = constants.OUT_DIR + config.name + '/'
 # if not os.path.exists(folder):
 #     os.makedirs(folder)
 #
-# midi.write_midifile(folder + 'soprano.mid', config.soprano.to_pattern())
-# midi.write_midifile(folder + 'alto.mid', config.alto.to_pattern())
-# midi.write_midifile(folder + 'tenor.mid', config.tenor.to_pattern())
-# midi.write_midifile(folder + 'bass.mid', config.bass.to_pattern())
+# midi.write_midifile(folder + 'soprano.mid', sequences.soprano.to_pattern())
+# midi.write_midifile(folder + 'alto.mid', sequences.alto().to_pattern())
+# midi.write_midifile(folder + 'tenor.mid', sequences.tenor().to_pattern())
+# midi.write_midifile(folder + 'bass.mid', sequences.bass().to_pattern())
 #
 # print 'Your arrangement has been written to ', folder, ' :)'
 print 'done'

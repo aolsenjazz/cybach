@@ -5,7 +5,7 @@ import midi
 import chords
 import config
 import constants
-import domain
+import sequences
 import fileloader
 import ks
 import note_picker
@@ -47,11 +47,11 @@ class TestNotePicker(TestCase):
 
     def test__motion_tendency_score(self):
         pattern = read_pattern(constants.TEST_MIDI + 'quarter_arpeg.mid')
-        root = domain.RootSequence(pattern[0])
+        root = sequences.RootSequence(pattern[0])
 
-        zero_tendency = domain.AccompanimentSequence(root, part=parts.BASS, configuration={'motion_tendency': 0.0})
-        no_tendency = domain.AccompanimentSequence(root, part=parts.BASS, configuration={})
-        max_tendency = domain.AccompanimentSequence(root, part=parts.BASS, configuration={'motion_tendency': 1.0})
+        zero_tendency = sequences.AccompanimentSequence(root, part=parts.BASS, configuration={'motion_tendency': 0.0})
+        no_tendency = sequences.AccompanimentSequence(root, part=parts.BASS, configuration={})
+        max_tendency = sequences.AccompanimentSequence(root, part=parts.BASS, configuration={'motion_tendency': 1.0})
 
         beat_0_pitch = 59
         beat_2_pitch = 62
@@ -70,7 +70,7 @@ class TestNotePicker(TestCase):
 
     def test__linear_motion_score(self):
         pattern = read_pattern(constants.TEST_MIDI + 'quarter_arpeg.mid')
-        sequence = domain.RootSequence(pattern[0])
+        sequence = sequences.RootSequence(pattern[0])
 
         beat_0_pitch = 59
         motion_pitch = 61
@@ -98,7 +98,7 @@ class TestNotePicker(TestCase):
         chord_progression[0] = chords.parse('G')
         chord_progression[2 * config.resolution] = chords.parse('E-')
 
-        set_config(config.soprano, chord_progression, key_signatures)
+        set_config(sequences.soprano, chord_progression, key_signatures)
 
         beat1 = time.measure(0).beats()[0]
         beat2 = time.measure(0).beats()[1]
@@ -110,13 +110,13 @@ class TestNotePicker(TestCase):
 
     def test__get_motion_score(self):
         pattern = read_pattern(constants.TEST_MIDI + 'parallel1.mid')
-        alto = domain.RootSequence(pattern[0])
+        alto = sequences.RootSequence(pattern[0])
 
         pattern = read_pattern(constants.TEST_MIDI + 'parallel2.mid')
-        tenor = domain.RootSequence(pattern[0])
+        tenor = sequences.RootSequence(pattern[0])
 
         pattern = read_pattern(constants.TEST_MIDI + 'quarter_arpeg.mid')
-        bass = domain.RootSequence(pattern[0])
+        bass = sequences.RootSequence(pattern[0])
 
         irrelevant_pitch = 11
 
@@ -129,7 +129,7 @@ class TestNotePicker(TestCase):
 
     def test__flicker_avoidance_score(self):
         pattern = read_pattern(constants.TEST_MIDI + 'flicker.mid')
-        sequence = domain.RootSequence(pattern[0])
+        sequence = sequences.RootSequence(pattern[0])
 
         c = pitches.MIDI_VALUES['C5']
         e = pitches.MIDI_VALUES['E5']
@@ -143,7 +143,7 @@ class TestNotePicker(TestCase):
 def set_config(soprano, chord_progression, key_signatures):
     time.add_signature(0, time.TimeSignature(numerator=4, denominator=4))
 
-    config.soprano = soprano
+    sequences.soprano = soprano
     config.chord_progression = chord_progression
     config.key_signatures = key_signatures
 

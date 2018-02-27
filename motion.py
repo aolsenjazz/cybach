@@ -1,10 +1,10 @@
 from __future__ import division
 
-import transforms
-import constants
-import vars
-import domain
 import config
+import constants
+import sequences
+import transforms
+import vars
 
 
 class Motionizer:
@@ -152,7 +152,7 @@ class Motionizer:
         return trans
 
     def __join_transforms(self, position, sequence):
-        if sequence[self.position].type != domain.Sample.TYPE_START:
+        if sequence[self.position].type != sequences.Sample.TYPE_START:
             return []
 
         trans = []

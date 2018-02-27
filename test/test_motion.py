@@ -13,7 +13,7 @@ class TestMotion(TestCase):
 
     def test__note_duration_at_position(self):
         fileloader.load(constants.TEST_MIDI + '2beat_join.mid', False)
-        sequence = config.soprano
+        sequence = sequences.soprano
 
         self.assertEqual(motion.note_duration_at_position(0, sequence), 2)
 

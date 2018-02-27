@@ -6,6 +6,7 @@ Utility methods for dealing with midi.Pattern objects
 from __future__ import division
 
 import midi
+
 import constants
 
 
@@ -88,4 +89,39 @@ def contains_key_signature_data(pattern):
     for event in pattern[0]:
         if isinstance(event, midi.KeySignature_Event):
             return True
+    return False
+
+
+def sample_length(pattern):
+    if isinstance(pattern, midi.Track):
+        track = pattern
+    elif isinstance(pattern, midi.Pattern):
+        track = pattern[0]
+    else:
+        raise ValueError
+    return sum([event.tick for event in track])
+
+
+def sort(pattern):
+    track = pattern[0]
+
+    sort_again = True
+    while sort_again:
+        sort_again = False
+
+        swap = [i for i, (current, last)
+                in enumerate(zip(track, track[1:]))
+                if __are_note_events(current, last) and current.__class__ == last.__class__]
+
+        for i in swap:
+            track[i + 2].tick, track[i + 1].tick = track[i + 1].tick, track[i + 2].tick
+            track[i + 2], track[i + 1] = track[i + 1], track[i + 2]
+            sort_again = True
+
+
+def __are_note_events(*args):
+    for item in args:
+        if isinstance(item, midi.NoteOnEvent):
+            return True
+
     return False

@@ -1,8 +1,10 @@
-import pitches
-import parts
-import transforms
-import config
 import chords
+import config
+import parts
+import sequences
+import pitches
+import util
+import transforms
 import vars
 
 ALTO_POSITION = 0
@@ -16,48 +18,39 @@ class NotePicker:
         self.beat = None
 
     def compute(self, beat):
-        candidates = get_candidate_matrix(beat, config.soprano.pitch(beat.start()).midi())
-        print len(candidates)
-        winner = self.compute_winner(beat, candidates)
+        if sequences.soprano().is_rest(beat.start()):
+            soprano_pitch = -1
+        else:
+            soprano_pitch = sequences.soprano().pitch(beat.start()).midi()
 
-        return winner
+        candidates = get_candidate_matrix(beat, soprano_pitch)
+        scored = {tuple(candidate): self.score(beat, candidate) for candidate in candidates}
 
-    def current_chord(self):
-        return config.chord_progression[self.beat]
+        return util.key_for_highest_value(scored)
 
-    def compute_winner(self, beat, candidates):
-        high_score = -9999
-        current_winner = None
+    def score(self, beat, candidate):
+        bass_score = get_bass_score(candidate[BASS_POSITION], beat)
+        tenor_score = get_tenor_score(candidate[TENOR_POSITION], beat)
+        alto_score = get_alto_score(candidate[ALTO_POSITION], beat)
+        harmony_score = get_harmony_score(candidate, beat)
+        motion_score = get_motion_score(candidate, beat)
+        rest_penalty = get_rest_penalty(candidate)
 
-        for candidate in candidates:
-            bass_score = get_bass_score(candidate[BASS_POSITION], beat, config.bass)
-            # tenor_score = get_tenor_score(candidate[TENOR_POSITION], beat, config.tenor)
-            # alto_score = get_alto_score(candidate[ALTO_POSITION], beat, config.alto)
-            # harmony_score = get_harmony_score(candidate, self.current_chord())
-            # motion_score = get_motion_score(candidate, self.beat, config.alto, config.tenor, config.bass)
-            # rest_penalty = get_rest_penalty(candidate)
-            #
-            # score = sum([bass_score, tenor_score, alto_score, harmony_score, motion_score, rest_penalty])
-            #
-            # if score > high_score:
-            #     high_score = score
-            #     current_winner = candidate
-
-        return current_winner
+        return sum([bass_score, tenor_score, alto_score, harmony_score, motion_score, rest_penalty])
 
 
 def get_rest_penalty(candidate):
     return len([c for c in candidate if c == -1]) * vars.REST_PENALTY
 
 
-def get_motion_score(candidate, position, alto, tenor, bass):
-    if position == 0:
+def get_motion_score(candidate, beat):
+    last_beat = beat.previous()
+    if last_beat is None:
         return 0.0
 
-    # FIXME: using resolution again :)
-    last_alto = alto[position - config.resolution].midi()
-    last_tenor = tenor[position - config.resolution].midi()
-    last_bass = bass[position - config.resolution].midi()
+    last_alto = sequences.alto().pitch(last_beat.start()).midi()
+    last_tenor = sequences.tenor().pitch(last_beat.start()).midi()
+    last_bass = sequences.bass().pitch(last_beat.start()).midi()
 
     score = 0.0
 
@@ -74,25 +67,24 @@ def get_motion_score(candidate, position, alto, tenor, bass):
     return score
 
 
-def get_bass_score(candidate, beat, sequence):
+def get_bass_score(candidate, beat):
     score = 0.0
     low_thresh = parts.BASS.max_low
     high_thresh = parts.BASS.max_high
-    # last_entity = sequence.entity(beat.start() - 1)
-    # TODO: creating entities every time i need to calculate a score is killing the program now. precompute
+
     score += threshold_encroachment_score(candidate, low_thresh, low_thresh + 4)
     score += threshold_encroachment_score(candidate, high_thresh, high_thresh - 4)
     score += preferred_register_score(candidate, high_thresh, high_thresh - 7)
     score += bass_note_tendency_score(candidate, beat)
 
-    # score += motion_tendency_score(candidate, beat, sequence)
-    # score += linear_motion_score(candidate, last_entity, sequence)
-    # score += flicker_avoidance_score(candidate, beat, sequence)
+    score += motion_tendency_score(candidate, beat, sequences.bass())
+    score += linear_motion_score(candidate, beat, sequences.bass())
+    score += flicker_avoidance_score(candidate, beat, sequences.bass())
 
     return score
 
 
-def get_tenor_score(candidate, beat, sequence):
+def get_tenor_score(candidate, beat):
     score = 0.0
     low_thresh = parts.TENOR.max_low
     high_thresh = parts.TENOR.max_high
@@ -101,14 +93,14 @@ def get_tenor_score(candidate, beat, sequence):
     score += threshold_encroachment_score(candidate, high_thresh, high_thresh - 4)
     score += preferred_register_score(candidate, low_thresh, low_thresh + 7)
 
-    score += motion_tendency_score(candidate, beat, sequence)
-    score += linear_motion_score(candidate, beat, sequence)
-    # score += flicker_avoidance_score(candidate, beat, sequence)
+    score += motion_tendency_score(candidate, beat, sequences.tenor())
+    score += linear_motion_score(candidate, beat, sequences.tenor())
+    score += flicker_avoidance_score(candidate, beat, sequences.tenor())
 
     return score
 
 
-def get_alto_score(candidate, beat, sequence):
+def get_alto_score(candidate, beat):
     score = 0.0
     low_thresh = parts.ALTO.max_low
     high_thresh = parts.ALTO.max_high
@@ -117,9 +109,9 @@ def get_alto_score(candidate, beat, sequence):
     score += threshold_encroachment_score(candidate, high_thresh, high_thresh - 4)
     score += preferred_register_score(candidate, high_thresh, high_thresh - 7)
 
-    score += motion_tendency_score(candidate, beat, sequence)
-    score += linear_motion_score(candidate, beat, sequence)
-    # score += flicker_avoidance_score(candidate, beat, sequence)
+    score += motion_tendency_score(candidate, beat, sequences.alto())
+    score += linear_motion_score(candidate, beat, sequences.alto())
+    score += flicker_avoidance_score(candidate, beat, sequences.alto())
 
     return score
 
@@ -149,29 +141,20 @@ def flicker_avoidance_score(candidate, position, sequence):
     return score
 
 
-def get_harmony_score(candidate, chord):
-    base_position_chord = [pitches.OCTAVES[pitches.species(n)][0] for n in chord.all_octaves()]
-    base_position_candidate = [c % 12 for c in candidate]
-    added = []
-    count = 0
-
-    for pitch in base_position_candidate:
-        if pitch % 12 in base_position_chord and pitch not in added:
-            count += 1
-            added.append(pitch)
-
-    return count * vars.HARMONY
+def get_harmony_score(candidate, beat):
+    chord = chords.get(beat.start())
+    return len(set([pitch % 12 for pitch in candidate if pitch in chord.all_octaves()])) * vars.HARMONY
 
 
 def bass_note_tendency_score(candidate, beat):
-    this_chord = config.chord_progression[beat.start()]
+    this_chord = chords.get(beat.start())
     score = 0.0
 
     # first bass note should definitely be the root
     if beat.start() == 0 and pitches.same_species(candidate, this_chord.bass_note):
         return vars.FIRST_BEAT_BASS_ROOT
 
-    last_chord = config.chord_progression[0 if beat.start() == 0 else beat.previous().start()]
+    last_chord = chords.get(0 if beat.start() == 0 else beat.previous().start())
 
     # If beat one, we want to hear the bass note
     if beat.first_beat():
@@ -224,8 +207,9 @@ def motion_tendency_score(candidate, beat, sequence):
     return score / vars.MOTION_TENDENCY_DIVISOR
 
 
-def linear_motion_score(candidate, last_entity, sequence):
+def linear_motion_score(candidate, beat, sequence):
     score = 0.0
+    last_entity = sequence.entity(beat.start() - 1)
 
     if is_linear_motion(candidate, last_entity):
         score += vars.LINEAR_MOTION
@@ -250,11 +234,11 @@ def parts_dont_cross(group, soprano_value):
 
 
 def get_candidate_matrix(beat, soprano_value):
-    current_chord = config.chord_progression[beat.start()]
+    current_chord = chords.get(beat.start())
 
-    alto_candidates = config.alto.part().available_notes(current_chord) + [-1]
-    tenor_candidates = config.tenor.part().available_notes(current_chord) + [-1]
-    bass_candidates = config.bass.part().available_notes(current_chord) + [-1]
+    alto_candidates = sequences.alto().part().available_notes(current_chord) + [-1]
+    tenor_candidates = sequences.tenor().part().available_notes(current_chord) + [-1]
+    bass_candidates = sequences.bass().part().available_notes(current_chord) + [-1]
 
     return [g + [soprano_value] for g
             in combine_pitch_candidates(alto_candidates, tenor_candidates, bass_candidates)

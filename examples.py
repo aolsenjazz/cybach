@@ -11,7 +11,7 @@ class Example:
     def file_name(self):
         return self._file_name
 
-    def chord_progression(self):
+    def load_chord_progression(self):
         return self._chord_progression()
 
 

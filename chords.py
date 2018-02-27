@@ -14,10 +14,13 @@ RE_SLASH = re.compile('^[A-Ga-g]([Bb]|#)?(7|-|m(in)?|dim|maj)?/[A-Ga-g]([Bb]|#)?
 RE_CHORD_ROOT = re.compile('[A-Ga-g]([Bb]|#)?')
 
 
-def __init():
-    global __progression
+progression = None
 
-    __progression = ChordProgression()
+
+def __init():
+    global progression
+
+    progression = ChordProgression()
 
 
 def write(chord, measure=0, beat=0):
@@ -29,32 +32,30 @@ def write(chord, measure=0, beat=0):
         raise TypeError
 
     sample_pos = time.measure(measure).beat(beat).start()
-    __progression[sample_pos] = parsed
+    progression[sample_pos] = parsed
 
 
 def keys():
-    return __progression.keys()
+    return progression.keys()
 
 
 def get(position):
-    chord_or_none = __progression[position]
+    chord_or_none = progression[position]
 
     if chord_or_none is None:
-        keys = __progression.keys()
-        keys.sort()
-        for key in keys:
+        k = progression.keys()
+        k.sort()
+        k = reversed(k)
+
+        for key in k:
             if position > key:
-                return __progression[key]
+                return progression[key]
 
     return chord_or_none
 
 
 def in_measure(measure):
-    return {key: __progression[key] for key in __progression.keys() if measure.start() <= key < measure.end()}
-
-
-def progression():
-    return __progression
+    return {key: progression[key] for key in progression.keys() if measure.start() <= key < measure.end()}
 
 
 def parse(chord, bass_note=None):
@@ -194,13 +195,16 @@ class Chord:
         """
         raise NotImplementedError
 
-    def all_octaves(self):
+    def _compute_octaves(self):
         all_notes = list(itertools.chain(
             *[[i for i in range(128)[pitch.midi() % 12::12]]
               for pitch
               in self.all_degrees()]))
         all_notes.sort()
         return all_notes
+
+    def all_octaves(self):
+        return self._all_octaves
 
 
 class MajorChord(Chord):
@@ -209,6 +213,7 @@ class MajorChord(Chord):
         Chord.__init__(self, root_note, bass_note)
         self.__three = pitches.parse(self._root.midi() + 4)
         self.__five = pitches.parse(self._root.midi() + 7)
+        self._all_octaves = self._compute_octaves()
 
     def three(self):
         return self.__three
@@ -249,6 +254,7 @@ class MinorChord(Chord):
         Chord.__init__(self, root_note, bass_note)
         self.__three = pitches.parse(self._root.midi() + 3)
         self.__five = pitches.parse(self._root.midi() + 7)
+        self._all_octaves = self._compute_octaves()
 
     def three(self):
         return self.__three
@@ -290,6 +296,7 @@ class SevenChord(MajorChord):
         self.__three = pitches.parse(self._root.midi() + 4)
         self.__five = pitches.parse(self._root.midi() + 7)
         self.__seven = pitches.parse(self._root.midi() + 10)
+        self._all_octaves = self._compute_octaves()
 
     def __contains__(self, note):
         parsed = None
@@ -301,7 +308,7 @@ class SevenChord(MajorChord):
 
         if parsed.species() == self.__seven.species():
             return True
-        return __Chord.__contains__(self, parsed)
+        return Chord.__contains__(self, parsed)
 
     def three(self):
         return self.__three
@@ -313,10 +320,12 @@ class SevenChord(MajorChord):
         return pitches.species(self._root) + '7'
 
     def all_degrees(self):
-        most = __Chord.all_degrees(self)
-        all = list(most)
-        all.append(self.__seven)
-        return all
+        return Chord.all_degrees(self) + (self.__seven,)
+
+    def _compute_octaves(self):
+        all_of_em = Chord._compute_octaves(self) + [i for i in range(128)[self.__seven.midi() % 12::12]]
+        all_of_em.sort()
+        return all_of_em
 
     def __note_above(self, pitch):
         if pitch == self.__five:
@@ -325,7 +334,7 @@ class SevenChord(MajorChord):
         if pitch == self.__seven.species:
             return self._root
 
-        return __Chord.__note_above(self, pitch)
+        return Chord.__note_above(self, pitch)
 
     def scale(self):
         return pitches.mixolydian(self._root.midi())
@@ -338,6 +347,7 @@ class DiminishedChord(MinorChord):
         self.__three = pitches.parse(self._root.midi() + 3)
         self.__five = pitches.parse(self._root.midi() + 6)
         self.__seven = pitches.parse(self._root.midi() + 9)
+        self._all_octaves = self._compute_octaves()
 
     def __contains__(self, note):
         parsed = None
@@ -349,7 +359,7 @@ class DiminishedChord(MinorChord):
 
         if parsed.species() == self.__seven.species():
             return True
-        return __Chord.__contains__(self, parsed)
+        return Chord.__contains__(self, parsed)
 
     def three(self):
         return self.__three
@@ -361,10 +371,10 @@ class DiminishedChord(MinorChord):
         return pitches.species(self._root) + 'dim'
 
     def all_degrees(self):
-        return __Chord.all_degrees(self) + (self.__seven,)
+        return Chord.all_degrees(self) + (self.__seven,)
 
-    def all_octaves(self):
-        all_of_em = __Chord.all_octaves(self) + [i for i in range(128)[self.__seven.midi() % 12::12]]
+    def _compute_octaves(self):
+        all_of_em = Chord._compute_octaves(self) + [i for i in range(128)[self.__seven.midi() % 12::12]]
         all_of_em.sort()
         return all_of_em
 
@@ -375,7 +385,7 @@ class DiminishedChord(MinorChord):
         if pitch == self.__seven.species:
             return self._root
 
-        return __Chord.__note_above(self, pitch)
+        return Chord.__note_above(self, pitch)
 
     def scale(self):
         return pitches.half_whole(self._root.midi())
@@ -390,15 +400,8 @@ class ChordProgression(collections.MutableMapping):
         self.store = dict()
         self.update(dict(*args, **kwargs))
 
-    def __getitemhardway(self, index):
-        active_key = 0
-        for k in self.store:
-            if index >= k >= active_key:
-                active_key = k
-        return self.store[active_key]
-
     def __getitem__(self, key):
-        return self.store.get(key, self.__getitemhardway(key))
+        return self.store.get(key, None)
 
     def __setitem__(self, key, value):
         self.store[self.__keytransform__(key)] = value

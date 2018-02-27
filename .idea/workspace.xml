@@ -4,12 +4,26 @@
     <list default="true" id="472a7d30-591c-4a6c-bcc6-3982911d7f4f" name="Default" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change beforePath="$PROJECT_DIR$/chords.py" afterPath="$PROJECT_DIR$/chords.py" />
-      <change beforePath="$PROJECT_DIR$/domain.py" afterPath="$PROJECT_DIR$/domain.py" />
+      <change beforePath="$PROJECT_DIR$/cybach.py" afterPath="$PROJECT_DIR$/cybach.py" />
+      <change beforePath="$PROJECT_DIR$/domain.py" afterPath="$PROJECT_DIR$/sequences.py" />
       <change beforePath="$PROJECT_DIR$/examples.py" afterPath="$PROJECT_DIR$/examples.py" />
+      <change beforePath="$PROJECT_DIR$/fileloader.py" afterPath="$PROJECT_DIR$/fileloader.py" />
+      <change beforePath="$PROJECT_DIR$/ks.py" afterPath="$PROJECT_DIR$/ks.py" />
+      <change beforePath="$PROJECT_DIR$/ks_detector.py" afterPath="$PROJECT_DIR$/ks_detector.py" />
+      <change beforePath="$PROJECT_DIR$/motion.py" afterPath="$PROJECT_DIR$/motion.py" />
+      <change beforePath="$PROJECT_DIR$/note_picker.py" afterPath="$PROJECT_DIR$/note_picker.py" />
+      <change beforePath="$PROJECT_DIR$/pat_util.py" afterPath="$PROJECT_DIR$/pat_util.py" />
       <change beforePath="$PROJECT_DIR$/phrasing.py" afterPath="$PROJECT_DIR$/phrasing.py" />
+      <change beforePath="$PROJECT_DIR$/pitches.py" afterPath="$PROJECT_DIR$/pitches.py" />
       <change beforePath="$PROJECT_DIR$/rhythm/time.py" afterPath="$PROJECT_DIR$/rhythm/time.py" />
-      <change beforePath="$PROJECT_DIR$/test/test_chords.py" afterPath="$PROJECT_DIR$/test/test_chords.py" />
+      <change beforePath="$PROJECT_DIR$/test/test_domain.py" afterPath="$PROJECT_DIR$/test/test_sequences.py" />
+      <change beforePath="$PROJECT_DIR$/test/test_motion.py" afterPath="$PROJECT_DIR$/test/test_motion.py" />
+      <change beforePath="$PROJECT_DIR$/test/test_note_picker.py" afterPath="$PROJECT_DIR$/test/test_note_picker.py" />
+      <change beforePath="$PROJECT_DIR$/test/test_pat_util.py" afterPath="$PROJECT_DIR$/test/test_pat_util.py" />
       <change beforePath="$PROJECT_DIR$/test/test_phrasing.py" afterPath="$PROJECT_DIR$/test/test_phrasing.py" />
+      <change beforePath="$PROJECT_DIR$/test/test_time.py" afterPath="$PROJECT_DIR$/test/test_time.py" />
+      <change beforePath="$PROJECT_DIR$/test/test_transforms.py" afterPath="$PROJECT_DIR$/test/test_transforms.py" />
+      <change beforePath="$PROJECT_DIR$/transforms.py" afterPath="$PROJECT_DIR$/transforms.py" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -21,17 +35,17 @@
   <component name="CoverageDataManager">
     <SUITE FILE_PATH="coverage/cybach$Unittests_for_test_time_TestTime_test__sample_position.coverage" NAME="Unittests for test.test_rhythm.TestRhythm.test__sample_position Coverage Results" MODIFIED="1517863753504" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test" />
     <SUITE FILE_PATH="coverage/cybach$Unittests_for_test_notes_TestNotes_test_is_perfect_fifth.coverage" NAME="Unittests for test_notes.TestNotes.test_is_perfect_fifth Coverage Results" MODIFIED="1517862645134" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test" />
-    <SUITE FILE_PATH="coverage/cybach$Unittests_for_test_test_time_TestTime_test__sample_position.coverage" NAME="Unittests for test.test_time.TestTime.test__sample_position Coverage Results" MODIFIED="1519392691065" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test" />
-    <SUITE FILE_PATH="coverage/cybach$DomainTests.coverage" NAME="DomainTests Coverage Results" MODIFIED="1519511022853" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/cybach$Unittests_for_test_test_time_TestTime_test__sample_position.coverage" NAME="Unittests for test.test_time.TestTime.test__sample_position Coverage Results" MODIFIED="1519672951629" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test" />
+    <SUITE FILE_PATH="coverage/cybach$DomainTests.coverage" NAME="DomainTests Coverage Results" MODIFIED="1519678912529" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/cybach$SixEight__1_.coverage" NAME="Simple Coverage Results" MODIFIED="1516311812978" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/cybach$SixEight.coverage" NAME="SixEight Coverage Results" MODIFIED="1519517966501" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/cybach$UnitTests.coverage" NAME="UnitTests Coverage Results" MODIFIED="1519564822730" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/cybach$UnitTests.coverage" NAME="UnitTests Coverage Results" MODIFIED="1519663144846" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/cybach$Unittests_for_test_notePicker_TestNotePicker_test___contains_parallel_movement.coverage" NAME="Unittests for test_notePicker.TestNotePicker.test___contains_parallel_movement Coverage Results" MODIFIED="1513013740634" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test" />
     <SUITE FILE_PATH="coverage/cybach$test_time.coverage" NAME="test_time Coverage Results" MODIFIED="1519392710557" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test" />
     <SUITE FILE_PATH="coverage/cybach$rhythm.coverage" NAME="rhythm Coverage Results" MODIFIED="1517862807067" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/cybach$Unittests_for_test_notePicker_TestNotePicker.coverage" NAME="Unittests for test_notePicker.TestNotePicker Coverage Results" MODIFIED="1513015613808" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/cybach$SixFour.coverage" NAME="SixFour Coverage Results" MODIFIED="1516365073725" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/cybach$Simple.coverage" NAME="Simple Coverage Results" MODIFIED="1519563044844" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/cybach$Simple.coverage" NAME="Simple Coverage Results" MODIFIED="1519747171131" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/cybach$PhrasingTests.coverage" NAME="PhrasingTests Coverage Results" MODIFIED="1519516922274" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/cybach$FourEight.coverage" NAME="FourEight Coverage Results" MODIFIED="1516362317501" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/cybach$test_notePicker.coverage" NAME="test_notePicker Coverage Results" MODIFIED="1513013706166" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test" />
@@ -42,32 +56,73 @@
     <SUITE FILE_PATH="coverage/cybach$Unittests_for_test_domain_TestDomain_test__Measure_sample_position.coverage" NAME="Unittests for test_domain.TestDomain.test__Measure_sample_position Coverage Results" MODIFIED="1516284540679" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test" />
     <SUITE FILE_PATH="coverage/cybach$examples.coverage" NAME="examples Coverage Results" MODIFIED="1517407519319" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/cybach$KeyChanges.coverage" NAME="KeyChanges Coverage Results" MODIFIED="1518704580140" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/cybach$MixedMeter.coverage" NAME="MixedMeter Coverage Results" MODIFIED="1519525543107" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/cybach$MixedMeter.coverage" NAME="MixedMeter Coverage Results" MODIFIED="1519670388017" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/cybach$TimeTests.coverage" NAME="TimeTests Coverage Results" MODIFIED="1519394589634" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/cybach$TwoFour.coverage" NAME="TwoFour Coverage Results" MODIFIED="1516313155057" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/cybach$Unittests_for_test_sequences_TestDomain_test__Sequence_add_entities.coverage" NAME="Unittests for test_sequences.TestDomain.test__Sequence_add_entities Coverage Results" MODIFIED="1519676904358" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test" />
     <SUITE FILE_PATH="coverage/cybach$Unittests_for_test_domain_TestDomain_test__properly_parse_mixed_meters.coverage" NAME="Unittests for test_domain.TestDomain.test__properly_parse_mixed_meters Coverage Results" MODIFIED="1517945145957" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test" />
     <SUITE FILE_PATH="coverage/cybach$Unittests_in_test.coverage" NAME="Unittests in test Coverage Results" MODIFIED="1516284528922" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test" />
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="domain.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/domain.py">
+      <file leaf-file-name="sequences.py" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/sequences.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="120">
-              <caret line="8" column="13" lean-forward="false" selection-start-line="8" selection-start-column="13" selection-end-line="8" selection-end-column="13" />
+            <state relative-caret-position="-4235">
+              <caret line="8" column="15" lean-forward="true" selection-start-line="8" selection-start-column="15" selection-end-line="8" selection-end-column="15" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="chords.py" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/chords.py">
+      <file leaf-file-name="pat_util.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/pat_util.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="780">
-              <caret line="52" column="30" lean-forward="false" selection-start-line="52" selection-start-column="30" selection-end-line="52" selection-end-column="30" />
+            <state relative-caret-position="309">
+              <caret line="100" column="24" lean-forward="false" selection-start-line="100" selection-start-column="24" selection-end-line="100" selection-end-column="24" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="test_sequences.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/test/test_sequences.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="324">
+              <caret line="74" column="92" lean-forward="true" selection-start-line="74" selection-start-column="92" selection-end-line="74" selection-end-column="92" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="pitches.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/pitches.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="128">
+              <caret line="302" column="25" lean-forward="true" selection-start-line="302" selection-start-column="25" selection-end-line="302" selection-end-column="25" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="phrasing.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/phrasing.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="197">
+              <caret line="14" column="73" lean-forward="false" selection-start-line="14" selection-start-column="73" selection-end-line="14" selection-end-column="73" />
               <folding>
-                <element signature="e#0#18#0" expanded="true" />
+                <element signature="e#0#16#0" expanded="true" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="cybach.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/cybach.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="158">
+              <caret line="56" column="0" lean-forward="false" selection-start-line="56" selection-start-column="0" selection-end-line="56" selection-end-column="0" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -76,83 +131,19 @@
         <entry file="file://$PROJECT_DIR$/note_picker.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="158">
-              <caret line="216" column="0" lean-forward="false" selection-start-line="216" selection-start-column="0" selection-end-line="216" selection-end-column="0" />
+              <caret line="220" column="0" lean-forward="false" selection-start-line="220" selection-start-column="0" selection-end-line="220" selection-end-column="0" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="test_transforms.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/test/test_transforms.py">
+      <file leaf-file-name="ks.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/ks.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-47">
-              <caret line="85" column="0" lean-forward="false" selection-start-line="85" selection-start-column="0" selection-end-line="85" selection-end-column="0" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="transforms.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/transforms.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1050">
-              <caret line="77" column="0" lean-forward="false" selection-start-line="77" selection-start-column="0" selection-end-line="77" selection-end-column="0" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="examples.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/examples.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="2235">
-              <caret line="149" column="41" lean-forward="false" selection-start-line="149" selection-start-column="41" selection-end-line="149" selection-end-column="41" />
+            <state relative-caret-position="510">
+              <caret line="34" column="23" lean-forward="true" selection-start-line="34" selection-start-column="23" selection-end-line="34" selection-end-column="23" />
               <folding>
-                <element signature="e#0#13#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="test_chords.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/test/test_chords.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="267">
-              <caret line="53" column="8" lean-forward="false" selection-start-line="53" selection-start-column="8" selection-end-line="53" selection-end-column="45" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="test_phrasing.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/test/test_phrasing.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="158">
-              <caret line="37" column="38" lean-forward="true" selection-start-line="37" selection-start-column="38" selection-end-line="37" selection-end-column="38" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="time.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/rhythm/time.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="2920">
-              <caret line="281" column="6" lean-forward="false" selection-start-line="281" selection-start-column="6" selection-end-line="281" selection-end-column="6" />
-              <folding>
-                <element signature="e#0#31#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="phrasing.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/phrasing.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="150">
-              <caret line="10" column="36" lean-forward="false" selection-start-line="10" selection-start-column="36" selection-end-line="10" selection-end-column="36" />
-              <folding>
-                <element signature="e#0#16#0" expanded="true" />
+                <element signature="e#0#18#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -169,47 +160,38 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>.part</find>
-      <find>\.motion_tendency$</find>
-      <find>.motion_tendency</find>
-      <find>.motion</find>
-      <find>position</find>
-      <find>.motion_tenden</find>
-      <find>contains_motion</find>
-      <find>is_note_star</find>
-      <find>note_start</find>
-      <find>contains_linear</find>
-      <find>is_pitch_chang</find>
-      <find>sustain_dur</find>
-      <find>beats_for_</find>
-      <find>CHORD_P</find>
-      <find>vars.</find>
-      <find>+</find>
-      <find>_note</find>
-      <find>note</find>
-      <find>Note</find>
-      <find>__signature</find>
-      <find>sop_pitch</find>
-      <find>sop_p</find>
-      <find>pforma</find>
-      <find>chords.Ch</find>
-      <find>chords.Cho</find>
-      <find>chord_progression.</find>
-      <find>chord.</find>
-      <find>set()</find>
-      <find>_pgre</find>
-      <find>_pro</find>
+      <find>config</find>
+      <find>config.chor</find>
+      <find>import domain</find>
+      <find>domain</find>
+      <find>resolution</find>
+      <find>config.soprano</find>
+      <find>soprano</find>
+      <find>except Ind</find>
+      <find>config.alto</find>
+      <find>config.tenor</find>
+      <find>config.bass</find>
+      <find>__Chord</find>
+      <find>bass</find>
+      <find>sequence[</find>
+      <find>.soprano</find>
+      <find>__repor</find>
+      <find>note_dura</find>
+      <find>keys.sort()</find>
+      <find>__measu</find>
+      <find>__beats</find>
+      <find>progression()</find>
+      <find>signatures()</find>
+      <find>measures()</find>
+      <find>song_length</find>
+      <find>length</find>
+      <find>_length</find>
+      <find>time_signatures[</find>
+      <find>signatures()[</find>
+      <find>_KeySignature</find>
+      <find>KeySignatures</find>
     </findStrings>
     <replaceStrings>
-      <replace>domain.Sample</replace>
-      <replace>intermediate_pitch</replace>
-      <replace>root_pitch</replace>
-      <replace>motion</replace>
-      <replace>from</replace>
-      <replace>ch</replace>
-      <replace>arrangement.</replace>
-      <replace>config.chord_progress</replace>
-      <replace>config.chord_pro</replace>
       <replace>config.time_</replace>
       <replace>set_co</replace>
       <replace>key_signatures</replace>
@@ -230,7 +212,16 @@
       <replace>time.signatures</replace>
       <replace>.motion_tendency()</replace>
       <replace>self.beat</replace>
+      <replace>sequences.soprano</replace>
       <replace>chords.</replace>
+      <replace>sequences.alto()</replace>
+      <replace>sequences.tenor()</replace>
+      <replace>sequences.bass()</replace>
+      <replace>Chord</replace>
+      <replace>.soprano()</replace>
+      <replace>beats</replace>
+      <replace>signatures</replace>
+      <replace>config.song_length</replace>
     </replaceStrings>
     <dirStrings>
       <dir>$PROJECT_DIR$/cybach</dir>
@@ -243,8 +234,6 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/cybach/parts.py" />
-        <option value="$PROJECT_DIR$/cybach/note_picker.py" />
         <option value="$PROJECT_DIR$/cybach/vars.py" />
         <option value="$PROJECT_DIR$/cybach/motion.py" />
         <option value="$PROJECT_DIR$/cybach/cybach.py" />
@@ -256,8 +245,6 @@
         <option value="$PROJECT_DIR$/song.py" />
         <option value="$PROJECT_DIR$/arrangement.py" />
         <option value="$PROJECT_DIR$/ts.py" />
-        <option value="$PROJECT_DIR$/constants.py" />
-        <option value="$PROJECT_DIR$/motion.py" />
         <option value="$PROJECT_DIR$/test/test_util.py" />
         <option value="$PROJECT_DIR$/test/test_rhythm.py" />
         <option value="$PROJECT_DIR$/test/test_notes.py" />
@@ -265,35 +252,39 @@
         <option value="$PROJECT_DIR$/notes.py" />
         <option value="$PROJECT_DIR$/config.py" />
         <option value="$PROJECT_DIR$/vars.py" />
-        <option value="$PROJECT_DIR$/ks.py" />
         <option value="$PROJECT_DIR$/songloader.py" />
-        <option value="$PROJECT_DIR$/util.py" />
-        <option value="$PROJECT_DIR$/ks_detector.py" />
         <option value="$PROJECT_DIR$/rhythm.py" />
         <option value="$PROJECT_DIR$/time.py" />
-        <option value="$PROJECT_DIR$/test/test_pat_util.py" />
-        <option value="$PROJECT_DIR$/pat_util.py" />
         <option value="$PROJECT_DIR$/test/test_motion.py" />
         <option value="$PROJECT_DIR$/test/test_notePicker.py" />
-        <option value="$PROJECT_DIR$/cybach.py" />
-        <option value="$PROJECT_DIR$/test/test_time.py" />
         <option value="$PROJECT_DIR$/test/test_note_picker.py" />
         <option value="$PROJECT_DIR$/test/test_transforms.py" />
         <option value="$PROJECT_DIR$/test/test_pitches.py" />
-        <option value="$PROJECT_DIR$/test/test_domain.py" />
-        <option value="$PROJECT_DIR$/transforms.py" />
-        <option value="$PROJECT_DIR$/fileloader.py" />
-        <option value="$PROJECT_DIR$/pitches.py" />
         <option value="$PROJECT_DIR$/parts.py" />
-        <option value="$PROJECT_DIR$/note_picker.py" />
-        <option value="$PROJECT_DIR$/rhythm/time.py" />
         <option value="$PROJECT_DIR$/entities.py" />
-        <option value="$PROJECT_DIR$/domain.py" />
-        <option value="$PROJECT_DIR$/examples.py" />
         <option value="$PROJECT_DIR$/test/test_chords.py" />
-        <option value="$PROJECT_DIR$/phrasing.py" />
-        <option value="$PROJECT_DIR$/test/test_phrasing.py" />
+        <option value="$PROJECT_DIR$/test/test_pat_util.py" />
+        <option value="$PROJECT_DIR$/domain.py" />
+        <option value="$PROJECT_DIR$/constants.py" />
+        <option value="$PROJECT_DIR$/motion.py" />
+        <option value="$PROJECT_DIR$/examples.py" />
+        <option value="$PROJECT_DIR$/util.py" />
+        <option value="$PROJECT_DIR$/test/test_domain.py" />
         <option value="$PROJECT_DIR$/chords.py" />
+        <option value="$PROJECT_DIR$/test/test_phrasing.py" />
+        <option value="$PROJECT_DIR$/test/test_time.py" />
+        <option value="$PROJECT_DIR$/cybach.py" />
+        <option value="$PROJECT_DIR$/fileloader.py" />
+        <option value="$PROJECT_DIR$/phrasing.py" />
+        <option value="$PROJECT_DIR$/pat_util.py" />
+        <option value="$PROJECT_DIR$/pitches.py" />
+        <option value="$PROJECT_DIR$/note_picker.py" />
+        <option value="$PROJECT_DIR$/test/test_sequences.py" />
+        <option value="$PROJECT_DIR$/ks_detector.py" />
+        <option value="$PROJECT_DIR$/sequences.py" />
+        <option value="$PROJECT_DIR$/transforms.py" />
+        <option value="$PROJECT_DIR$/ks.py" />
+        <option value="$PROJECT_DIR$/rhythm/time.py" />
       </list>
     </option>
   </component>
@@ -323,6 +314,8 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="Scope" />
+      <pane id="Scratches" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -349,8 +342,6 @@
           <select />
         </subPane>
       </pane>
-      <pane id="Scratches" />
-      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -387,7 +378,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Python tests.UnitTests">
+  <component name="RunManager" selected="Python.Simple">
     <configuration name="FourEight" type="PythonConfigurationType" factoryName="Python">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -559,25 +550,6 @@
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
     </configuration>
-    <configuration name="rhythm" type="PythonConfigurationType" factoryName="Python" temporary="true">
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <module name="midi-test" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/rhythm/time.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-    </configuration>
     <configuration name="test_time" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -610,7 +582,7 @@
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
       <option name="_new_pattern" value="&quot;&quot;" />
       <option name="_new_additionalArguments" value="&quot;&quot;" />
-      <option name="_new_target" value="&quot;$PROJECT_DIR$/test/test_domain.py&quot;" />
+      <option name="_new_target" value="&quot;$PROJECT_DIR$/test/test_sequences.py&quot;" />
       <option name="_new_targetType" value="&quot;PATH&quot;" />
     </configuration>
     <configuration name="PhrasingTests" type="tests" factoryName="Unittests">
@@ -661,7 +633,7 @@
       <option name="_new_target" value="&quot;$PROJECT_DIR$&quot;" />
       <option name="_new_targetType" value="&quot;PATH&quot;" />
     </configuration>
-    <configuration name="Unittests for test_domain.TestDomain.test__Measure_phrasing_likelihood" type="tests" factoryName="Unittests" temporary="true" nameIsGenerated="true">
+    <configuration name="Unittests for test_sequences.TestDomain.test__Sequence_add_entities" type="tests" factoryName="Unittests" temporary="true" nameIsGenerated="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs />
@@ -673,10 +645,10 @@
       <module name="midi-test" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
       <option name="_new_additionalArguments" value="&quot;&quot;" />
-      <option name="_new_target" value="&quot;test_domain.TestDomain.test__Measure_phrasing_likelihood&quot;" />
+      <option name="_new_target" value="&quot;test_sequences.TestDomain.test__Sequence_add_entities&quot;" />
       <option name="_new_targetType" value="&quot;PYTHON&quot;" />
     </configuration>
-    <configuration name="Unittests for test_domain.TestDomain.test__properly_parse_mixed_meters" type="tests" factoryName="Unittests" temporary="true" nameIsGenerated="true">
+    <configuration name="Unittests for test.test_sequences.TestDomain" type="tests" factoryName="Unittests" temporary="true" nameIsGenerated="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs />
@@ -688,7 +660,22 @@
       <module name="midi-test" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
       <option name="_new_additionalArguments" value="&quot;&quot;" />
-      <option name="_new_target" value="&quot;test_domain.TestDomain.test__properly_parse_mixed_meters&quot;" />
+      <option name="_new_target" value="&quot;test.test_sequences.TestDomain&quot;" />
+      <option name="_new_targetType" value="&quot;PYTHON&quot;" />
+    </configuration>
+    <configuration name="Unittests for test.test_sequences.TestDomain" type="tests" factoryName="Unittests" temporary="true" nameIsGenerated="true">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/test" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="midi-test" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;test.test_sequences.TestDomain&quot;" />
       <option name="_new_targetType" value="&quot;PYTHON&quot;" />
     </configuration>
     <configuration name="Unittests for test.test_time.TestTime.test__sample_position" type="tests" factoryName="Unittests" temporary="true" nameIsGenerated="true">
@@ -722,7 +709,7 @@
       <option name="_new_target" value="&quot;test.test_time.TestTime.test__sample_position&quot;" />
       <option name="_new_targetType" value="&quot;PYTHON&quot;" />
     </configuration>
-    <list size="19">
+    <list size="18">
       <item index="0" class="java.lang.String" itemvalue="Python.SixEight" />
       <item index="1" class="java.lang.String" itemvalue="Python.NineEight" />
       <item index="2" class="java.lang.String" itemvalue="Python.SixFour" />
@@ -738,18 +725,17 @@
       <item index="12" class="java.lang.String" itemvalue="Python tests.PhrasingTests" />
       <item index="13" class="java.lang.String" itemvalue="Python tests.test" />
       <item index="14" class="java.lang.String" itemvalue="Python.test_time" />
-      <item index="15" class="java.lang.String" itemvalue="Python.rhythm" />
-      <item index="16" class="java.lang.String" itemvalue="Python tests.Unittests for test.test_time.TestTime.test__sample_position" />
-      <item index="17" class="java.lang.String" itemvalue="Python tests.Unittests for test_domain.TestDomain.test__Measure_phrasing_likelihood" />
-      <item index="18" class="java.lang.String" itemvalue="Python tests.Unittests for test_domain.TestDomain.test__properly_parse_mixed_meters" />
+      <item index="15" class="java.lang.String" itemvalue="Python tests.Unittests for test.test_time.TestTime.test__sample_position" />
+      <item index="16" class="java.lang.String" itemvalue="Python tests.Unittests for test.test_sequences.TestDomain" />
+      <item index="17" class="java.lang.String" itemvalue="Python tests.Unittests for test_sequences.TestDomain.test__Sequence_add_entities" />
     </list>
     <recent_temporary>
       <list size="5">
-        <item index="0" class="java.lang.String" itemvalue="Python.test_time" />
-        <item index="1" class="java.lang.String" itemvalue="Python tests.Unittests for test_domain.TestDomain.test__Measure_phrasing_likelihood" />
-        <item index="2" class="java.lang.String" itemvalue="Python tests.Unittests for test.test_time.TestTime.test__sample_position" />
-        <item index="3" class="java.lang.String" itemvalue="Python tests.Unittests for test_domain.TestDomain.test__properly_parse_mixed_meters" />
-        <item index="4" class="java.lang.String" itemvalue="Python.rhythm" />
+        <item index="0" class="java.lang.String" itemvalue="Python tests.Unittests for test_sequences.TestDomain.test__Sequence_add_entities" />
+        <item index="1" class="java.lang.String" itemvalue="Python tests.Unittests for test.test_time.TestTime.test__sample_position" />
+        <item index="2" class="java.lang.String" itemvalue="Python.test_time" />
+        <item index="3" class="java.lang.String" itemvalue="Python tests.Unittests for test.test_sequences.TestDomain" />
+        <item index="4" class="java.lang.String" itemvalue="Python tests.Unittests for test.test_sequences.TestDomain" />
       </list>
     </recent_temporary>
   </component>
@@ -778,35 +764,35 @@
     <servers />
   </component>
   <component name="TestHistory">
-    <history-entry file="UnitTests - 2018.02.24 at 19h 12m 08s.xml">
-      <configuration name="UnitTests" configurationId="tests" />
+    <history-entry file="DomainTests - 2018.02.26 at 15h 53m 14s.xml">
+      <configuration name="DomainTests" configurationId="tests" />
     </history-entry>
-    <history-entry file="UnitTests - 2018.02.24 at 19h 15m 01s.xml">
-      <configuration name="UnitTests" configurationId="tests" />
+    <history-entry file="DomainTests - 2018.02.26 at 15h 53m 21s.xml">
+      <configuration name="DomainTests" configurationId="tests" />
     </history-entry>
-    <history-entry file="UnitTests - 2018.02.24 at 19h 15m 06s.xml">
-      <configuration name="UnitTests" configurationId="tests" />
+    <history-entry file="DomainTests - 2018.02.26 at 15h 53m 28s.xml">
+      <configuration name="DomainTests" configurationId="tests" />
     </history-entry>
-    <history-entry file="UnitTests - 2018.02.25 at 08h 17m 36s.xml">
-      <configuration name="UnitTests" configurationId="tests" />
+    <history-entry file="DomainTests - 2018.02.26 at 15h 53m 33s.xml">
+      <configuration name="DomainTests" configurationId="tests" />
     </history-entry>
-    <history-entry file="UnitTests - 2018.02.25 at 08h 17m 49s.xml">
-      <configuration name="UnitTests" configurationId="tests" />
+    <history-entry file="DomainTests - 2018.02.26 at 15h 55m 24s.xml">
+      <configuration name="DomainTests" configurationId="tests" />
     </history-entry>
-    <history-entry file="UnitTests - 2018.02.25 at 08h 18m 33s.xml">
-      <configuration name="UnitTests" configurationId="tests" />
+    <history-entry file="DomainTests - 2018.02.26 at 15h 55m 33s.xml">
+      <configuration name="DomainTests" configurationId="tests" />
     </history-entry>
-    <history-entry file="UnitTests - 2018.02.25 at 08h 18m 45s.xml">
-      <configuration name="UnitTests" configurationId="tests" />
+    <history-entry file="DomainTests - 2018.02.26 at 15h 55m 34s.xml">
+      <configuration name="DomainTests" configurationId="tests" />
     </history-entry>
-    <history-entry file="UnitTests - 2018.02.25 at 08h 19m 51s.xml">
-      <configuration name="UnitTests" configurationId="tests" />
+    <history-entry file="DomainTests - 2018.02.26 at 15h 58m 37s.xml">
+      <configuration name="DomainTests" configurationId="tests" />
     </history-entry>
-    <history-entry file="UnitTests - 2018.02.25 at 08h 20m 11s.xml">
-      <configuration name="UnitTests" configurationId="tests" />
+    <history-entry file="DomainTests - 2018.02.26 at 15h 59m 00s.xml">
+      <configuration name="DomainTests" configurationId="tests" />
     </history-entry>
-    <history-entry file="UnitTests - 2018.02.25 at 08h 20m 24s.xml">
-      <configuration name="UnitTests" configurationId="tests" />
+    <history-entry file="DomainTests - 2018.02.26 at 16h 01m 58s.xml">
+      <configuration name="DomainTests" configurationId="tests" />
     </history-entry>
   </component>
   <component name="TodoView">
@@ -860,9 +846,9 @@
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/ks.py</url>
-          <line>296</line>
-          <option name="timeStamp" value="166" />
+          <url>file://$PROJECT_DIR$/test/test_sequences.py</url>
+          <line>24</line>
+          <option name="timeStamp" value="324" />
         </line-breakpoint>
       </breakpoints>
       <breakpoints-dialog>
@@ -875,13 +861,11 @@
           </properties>
         </breakpoint>
       </default-breakpoints>
-      <option name="time" value="264" />
+      <option name="time" value="353" />
     </breakpoint-manager>
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/cybach/cybach.py" />
-    <entry file="file://$PROJECT_DIR$/cybach/domain.py" />
     <entry file="file://$PROJECT_DIR$/cybach/examples.py" />
     <entry file="file://$PROJECT_DIR$/cybach/constants.py" />
     <entry file="file://$PROJECT_DIR$/instrument_note_picker.py" />
@@ -927,28 +911,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/constants.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="209">
-          <caret line="17" column="24" lean-forward="false" selection-start-line="17" selection-start-column="24" selection-end-line="17" selection-end-column="24" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/test/test_ts.py" />
-    <entry file="jar:///Library/Python/2.7/site-packages/midi-0.2.3-py2.7.egg!/midi/containers.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="200">
-          <caret line="62" column="0" lean-forward="false" selection-start-line="62" selection-start-column="0" selection-end-line="62" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/config.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="180">
-          <caret line="12" column="44" lean-forward="false" selection-start-line="12" selection-start-column="44" selection-end-line="12" selection-end-column="44" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/test/test_ks.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="467">
@@ -958,14 +921,6 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/test/test_util.py" />
     <entry file="file://$PROJECT_DIR$/songloader.py" />
-    <entry file="file://$PROJECT_DIR$/util.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="105">
-          <caret line="7" column="0" lean-forward="false" selection-start-line="7" selection-start-column="0" selection-end-line="7" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$APPLICATION_HOME_DIR$/helpers/pycharm/teamcity/messages.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="225">
@@ -994,69 +949,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/ks_detector.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="615">
-          <caret line="46" column="0" lean-forward="false" selection-start-line="46" selection-start-column="0" selection-end-line="46" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/pat_util.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="780">
-          <caret line="55" column="58" lean-forward="false" selection-start-line="55" selection-start-column="58" selection-end-line="55" selection-end-column="58" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/test/test_motion.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="270">
           <caret line="18" column="0" lean-forward="false" selection-start-line="18" selection-start-column="0" selection-end-line="18" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/test/test_pat_util.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="209">
-          <caret line="24" column="54" lean-forward="false" selection-start-line="24" selection-start-column="54" selection-end-line="24" selection-end-column="54" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/test/test_time.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="310">
-          <caret line="56" column="8" lean-forward="false" selection-start-line="56" selection-start-column="8" selection-end-line="56" selection-end-column="71" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/vars.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="152">
-          <caret line="71" column="0" lean-forward="false" selection-start-line="71" selection-start-column="0" selection-end-line="71" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$USER_HOME$/Library/Caches/PyCharm2017.3/python_stubs/-1247972723/__builtin__.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="240">
-          <caret line="4488" column="6" lean-forward="false" selection-start-line="4488" selection-start-column="6" selection-end-line="4488" selection-end-column="6" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/motion.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1785">
-          <caret line="125" column="56" lean-forward="false" selection-start-line="125" selection-start-column="56" selection-end-line="125" selection-end-column="56" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/ks.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="165">
-          <caret line="151" column="0" lean-forward="false" selection-start-line="151" selection-start-column="0" selection-end-line="151" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1083,114 +979,11 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/test/test_domain.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="158">
-          <caret line="42" column="53" lean-forward="false" selection-start-line="42" selection-start-column="53" selection-end-line="42" selection-end-column="53" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/fileloader.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="187">
-          <caret line="116" column="45" lean-forward="true" selection-start-line="116" selection-start-column="45" selection-end-line="116" selection-end-column="45" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/pitches.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="4605">
-          <caret line="308" column="0" lean-forward="false" selection-start-line="308" selection-start-column="0" selection-end-line="308" selection-end-column="0" />
-          <folding>
-            <element signature="e#0#16#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/parts.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="165">
-          <caret line="11" column="16" lean-forward="false" selection-start-line="11" selection-start-column="16" selection-end-line="11" selection-end-column="16" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/cybach.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="615">
-          <caret line="49" column="24" lean-forward="false" selection-start-line="49" selection-start-column="24" selection-end-line="49" selection-end-column="24" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/rhythm/time.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2920">
-          <caret line="281" column="6" lean-forward="false" selection-start-line="281" selection-start-column="6" selection-end-line="281" selection-end-column="6" />
-          <folding>
-            <element signature="e#0#31#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/entities.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/domain.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="120">
-          <caret line="8" column="13" lean-forward="false" selection-start-line="8" selection-start-column="13" selection-end-line="8" selection-end-column="13" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/examples.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2235">
-          <caret line="149" column="41" lean-forward="false" selection-start-line="149" selection-start-column="41" selection-end-line="149" selection-end-column="41" />
-          <folding>
-            <element signature="e#0#13#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/entities.py" />
     <entry file="file://$PROJECT_DIR$/test/test_chords.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="267">
           <caret line="53" column="8" lean-forward="false" selection-start-line="53" selection-start-column="8" selection-end-line="53" selection-end-column="45" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/phrasing.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="150">
-          <caret line="10" column="36" lean-forward="false" selection-start-line="10" selection-start-column="36" selection-end-line="10" selection-end-column="36" />
-          <folding>
-            <element signature="e#0#16#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/test/test_phrasing.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="158">
-          <caret line="37" column="38" lean-forward="true" selection-start-line="37" selection-start-column="38" selection-end-line="37" selection-end-column="38" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/note_picker.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="158">
-          <caret line="216" column="0" lean-forward="false" selection-start-line="216" selection-start-column="0" selection-end-line="216" selection-end-column="0" />
           <folding />
         </state>
       </provider>
@@ -1203,21 +996,228 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/transforms.py">
+    <entry file="file://$PROJECT_DIR$/test/test_pat_util.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1050">
-          <caret line="77" column="0" lean-forward="false" selection-start-line="77" selection-start-column="0" selection-end-line="77" selection-end-column="0" />
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/instruments.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/config.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="180">
+          <caret line="12" column="44" lean-forward="false" selection-start-line="12" selection-start-column="44" selection-end-line="12" selection-end-column="44" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/constants.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="180">
+          <caret line="17" column="24" lean-forward="false" selection-start-line="17" selection-start-column="24" selection-end-line="17" selection-end-column="24" />
+          <folding>
+            <element signature="e#0#9#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/parts.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="165">
+          <caret line="11" column="16" lean-forward="false" selection-start-line="11" selection-start-column="16" selection-end-line="11" selection-end-column="16" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/motion.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="60">
+          <caret line="4" column="11" lean-forward="true" selection-start-line="4" selection-start-column="11" selection-end-line="4" selection-end-column="11" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/Library/Caches/PyCharm2017.3/python_stubs/-1247972723/__builtin__.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="165">
+          <caret line="549" column="4" lean-forward="false" selection-start-line="549" selection-start-column="4" selection-end-line="549" selection-end-column="4" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/vars.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="165">
+          <caret line="134" column="0" lean-forward="false" selection-start-line="134" selection-start-column="0" selection-end-line="134" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/examples.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="330">
+          <caret line="23" column="0" lean-forward="false" selection-start-line="23" selection-start-column="0" selection-end-line="23" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/util.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="75">
+          <caret line="5" column="24" lean-forward="false" selection-start-line="5" selection-start-column="24" selection-end-line="5" selection-end-column="24" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar:///Library/Python/2.7/site-packages/midi-0.2.3-py2.7.egg!/midi/events.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="165">
+          <caret line="118" column="8" lean-forward="false" selection-start-line="118" selection-start-column="8" selection-end-line="118" selection-end-column="8" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar:///Library/Python/2.7/site-packages/midi-0.2.3-py2.7.egg!/midi/containers.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="159">
+          <caret line="24" column="0" lean-forward="false" selection-start-line="24" selection-start-column="0" selection-end-line="24" selection-end-column="0" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/chords.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="780">
-          <caret line="52" column="30" lean-forward="false" selection-start-line="52" selection-start-column="30" selection-end-line="52" selection-end-column="30" />
+        <state relative-caret-position="291">
+          <caret line="30" column="9" lean-forward="true" selection-start-line="30" selection-start-column="9" selection-end-line="30" selection-end-column="9" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/test_phrasing.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="227">
+          <caret line="52" column="37" lean-forward="false" selection-start-line="52" selection-start-column="37" selection-end-line="52" selection-end-column="37" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/test_time.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="392">
+          <caret line="60" column="64" lean-forward="true" selection-start-line="60" selection-start-column="64" selection-end-line="60" selection-end-column="64" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/fileloader.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="167">
+          <caret line="53" column="36" lean-forward="false" selection-start-line="53" selection-start-column="36" selection-end-line="53" selection-end-column="36" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/pat_util.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="309">
+          <caret line="100" column="24" lean-forward="false" selection-start-line="100" selection-start-column="24" selection-end-line="100" selection-end-column="24" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/test_sequences.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="324">
+          <caret line="74" column="92" lean-forward="true" selection-start-line="74" selection-start-column="92" selection-end-line="74" selection-end-column="92" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/phrasing.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="197">
+          <caret line="14" column="73" lean-forward="false" selection-start-line="14" selection-start-column="73" selection-end-line="14" selection-end-column="73" />
+          <folding>
+            <element signature="e#0#16#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/pitches.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="128">
+          <caret line="302" column="25" lean-forward="true" selection-start-line="302" selection-start-column="25" selection-end-line="302" selection-end-column="25" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/cybach.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="158">
+          <caret line="56" column="0" lean-forward="false" selection-start-line="56" selection-start-column="0" selection-end-line="56" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/ks_detector.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="158">
+          <caret line="63" column="31" lean-forward="false" selection-start-line="63" selection-start-column="31" selection-end-line="63" selection-end-column="31" />
+          <folding>
+            <element signature="e#0#13#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/transforms.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1050">
+          <caret line="77" column="57" lean-forward="false" selection-start-line="77" selection-start-column="57" selection-end-line="77" selection-end-column="57" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/rhythm/time.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="3585">
+          <caret line="239" column="0" lean-forward="false" selection-start-line="239" selection-start-column="0" selection-end-line="239" selection-end-column="0" />
+          <folding>
+            <element signature="e#0#31#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/note_picker.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="158">
+          <caret line="220" column="0" lean-forward="false" selection-start-line="220" selection-start-column="0" selection-end-line="220" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/ks.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="510">
+          <caret line="34" column="23" lean-forward="true" selection-start-line="34" selection-start-column="23" selection-end-line="34" selection-end-column="23" />
           <folding>
             <element signature="e#0#18#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/sequences.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-4235">
+          <caret line="8" column="15" lean-forward="true" selection-start-line="8" selection-start-column="15" selection-end-line="8" selection-end-column="15" />
+          <folding />
         </state>
       </provider>
     </entry>

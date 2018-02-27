@@ -6,7 +6,7 @@ import fileloader
 import chords
 import config
 import constants
-import domain
+import sequences
 import vars
 import parts
 import phrasing
@@ -17,9 +17,9 @@ class TestPhrasing(TestCase):
 
     def test__chord_based_strong_beat_prediction(self):
         pattern = read_pattern(constants.TEST_MIDI + 'mixed_meter.mid')
-        sequence = domain.RootSequence(pattern[0])
+        sequence = sequences.RootSequence(pattern[0])
 
-        config.soprano = sequence
+        sequences.soprano = sequence
         time.add_signature(0, time.TimeSignature(numerator=4, denominator=4))
         time.add_signature(768, time.TimeSignature(numerator=6, denominator=8))
 
@@ -50,7 +50,7 @@ class TestPhrasing(TestCase):
 
         p = (0, 2, 4)
         score = 2 * vars.RHYTHM_PHRASING_COEF + 3 * vars.RHYTHM_PHRASING_COEF
-        first_measure = time.measures()[0]
+        first_measure = time.__measures[0]
 
         self.assertEqual(score, phrasing.rhythm_based_strong_beat_score(first_measure, p))
 

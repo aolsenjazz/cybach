@@ -1,30 +1,20 @@
 from __future__ import division
 
 import collections
-import itertools
 import math
 
 import config
 
 
-def __init():
-    global __signatures
-    global __measures
-    global __beats
-
-    __signatures = TimeSignatures()
-    __measures = {}
-    __beats = {}
+__signatures = {}
+__beats = {}
+__measures = {}
 
 
 def measure(index):
     keys = __measures.keys()
     keys.sort()
     return __measures[keys[index]]
-
-
-def beats():
-    return __beats
 
 
 def beat_at_index(index):
@@ -39,6 +29,7 @@ def beat_at_position(position):
     if beat_or_none is None:
         keys = __beats.keys()
         keys.sort()
+        keys = reversed(keys)
 
         for key in keys:
             if position > key:
@@ -47,17 +38,36 @@ def beat_at_position(position):
     return beat_or_none
 
 
-def signatures():
-    return __signatures
-
-
 def measures():
     return __measures
 
 
+def beats():
+    return __beats
+
+
+def signatures():
+    return __signatures
+
+
+def signature(position):
+    time_signatures_or_none = __signatures.get(position, None)
+
+    if time_signatures_or_none is None:
+        keys = __signatures.keys()
+        keys.sort()
+        keys = reversed(keys)
+
+        for key in keys:
+            if position > key:
+                return __signatures[key]
+
+    return time_signatures_or_none
+
+
 def clear():
     global __signatures
-    __signatures = TimeSignatures()
+    __signatures = Timesignatures
 
 
 def add_signature(sample_position, signature):
@@ -75,8 +85,7 @@ def __compute_time_increments():
     __measures = {}
     __beats = {}
 
-    song_length = len(config.soprano)
-    signature_positions_plus_end = __signatures.keys() + [song_length]
+    signature_positions_plus_end = __signatures.keys() + [config.song_length]
     signature_positions_plus_end.sort()
 
     for pos1, pos2 in zip(signature_positions_plus_end, signature_positions_plus_end[1::]):
@@ -129,63 +138,13 @@ class TimeSignature:
         return self._strong_beat_pattern
 
 
-class TimeSignatures(collections.MutableMapping):
-    def __init__(self, *args, **kwargs):
-        self.store = dict()
-        self.update(dict(*args, **kwargs))
-
-    def __getitemhardway(self, index):
-        active_key = 0
-        for k in self.store:
-            if index >= k >= active_key:
-                active_key = k
-        return self.store[active_key]
-
-    def __getitem__(self, key):
-        return self.store.get(key, self.__getitemhardway(key))
-
-    def __setitem__(self, key, value):
-        self.store[self.__keytransform__(key)] = value
-
-    def __delitem__(self, key):
-        del self.store[self.__keytransform__(key)]
-
-    def __iter__(self):
-        return iter(self.store)
-
-    def __len__(self):
-        return len(self.store)
-
-    def __keytransform__(self, key):
-        return key
-
-    def __repr__(self):
-        string = ''
-        for key in self.store:
-            string += '\n' + str(key) + ': ' + str(self.store[key]) + str(self.store[key]) + str(self.store[key])
-
-        return string
-
-    def sample_position(self, measure=0, beat=0):
-        position = 0
-
-        for i in range(0, measure):
-            active_time_signature = self[position]
-            position += active_time_signature.samples_per_measure()
-
-        active_time_signature = self[position]
-        position += beat * active_time_signature.beat_length()
-
-        return int(position)
-
-
 class Measure:
 
     def __init__(self, start):
         self._start = start
-        self._time_signature = signatures()[start]
+        self._time_signature = signature(start)
         self._samples_per_beat = int(4 / self.time_signature().denominator * config.resolution)
-        self._beats = self.__beats()
+        self._beats = self._compute_beats()
 
     def start(self):
         return self._start
@@ -211,14 +170,14 @@ class Measure:
     def strong_beat_pattern(self):
         return self.time_signature().strong_beat_pattern()
 
-    def __beats(self):
-        beats = []
+    def _compute_beats(self):
+        b = []
 
         for i in range(0, self._time_signature.numerator):
             sample_position = self.start() + i * self.beat_length()
-            beats.append(Beat(sample_position, i, self))
+            b.append(Beat(sample_position, i, self))
 
-        return beats
+        return b
 
     def strong_beats(self):
         return [beat for beat in self.beats() if beat.index_in_measure() in self.strong_beat_pattern()]
@@ -228,7 +187,7 @@ class Beat:
 
     def __init__(self, position, index_in_measure, parent):
         self._start = position
-        self._time_signature = signatures()[position]
+        self._time_signature = signature(position)
         self._end = position + parent.beat_length()
         self._index_in_measure = index_in_measure
         self._parent = parent
@@ -278,5 +237,3 @@ class Beat:
             return self.index_in_measure() == 0 or self.index_in_measure() == 2
 
         return self.strong_beat()
-
-__init()

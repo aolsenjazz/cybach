@@ -312,5 +312,16 @@ class Pitch:
     def species(self):
         return self._species
 
+    def __eq__(self, other):
+        if isinstance(other, int):
+            return self.midi() == other
+        elif isinstance(other, Pitch):
+            return other.midi() == self.midi()
+
+        return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
     def __repr__(self):
         return '%s' % self._midi_value

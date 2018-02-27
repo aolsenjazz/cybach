@@ -1,50 +1,55 @@
 import collections
-import config
+
 import chords
 import pitches
 import vars
 
 
-class KeySignatures(collections.MutableMapping):
+__signatures = {}
 
-    def __init__(self, *args, **kwargs):
-        self.store = dict()
-        self.update(dict(*args, **kwargs))
 
-    def __getitemhardway(self, index):
-        active_key = 0
-        for k in self.store:
-            if index >= k >= active_key:
-                active_key = k
-        return self.store[active_key]
+def signatures():
+    return __signatures
 
-    def __getitem__(self, key):
-        return self.store.get(key, self.__getitemhardway(key))
 
-    def __setitem__(self, key, value):
-        self.store[self.__keytransform__(key)] = value
+def parse(value):
+    if isinstance(value, str):
 
-    def __delitem__(self, key):
-        del self.store[self.__keytransform__(key)]
+        if chords.RE_MAJOR.match(value):
+            return MajorKeySignature(chords.get_root(value))
+        elif chords.RE_MINOR.match(value):
+            return MinorKeySignature(chords.get_root(value))
+        else:
+            raise ValueError
 
-    def __iter__(self):
-        return iter(self.store)
+    elif isinstance(value, chords.Chord):
+        return parse(value.string())
 
-    def __len__(self):
-        return len(self.store)
 
-    def __repr__(self):
-        string = ''
-        for key in self.store:
-            string += '\n' + str(key) + ': ' + str(self.store[key])
+def write(key_signature, position):
+    if isinstance(key_signature, str):
+        parsed = parse(key_signature)
+    elif isinstance(key_signature, _KeySignature):
+        parsed = key_signature
+    else:
+        raise TypeError
 
-        return string
+    __signatures[position] = parsed
 
-    def __keytransform__(self, key):
-        return key
 
-    def set(self):
-        return KeySignatureSetter(self)
+def get(position):
+    key_signature_or_none = __signatures[position]
+
+    if key_signature_or_none is None:
+        keys = __signatures.keys()
+        keys.sort()
+        keys = reversed(keys)
+
+        for key in keys:
+            if position > key:
+                return __signatures[key]
+
+    return key_signature_or_none
 
 
 class _KeySignature:
@@ -57,8 +62,10 @@ class _KeySignature:
     def __eq__(self, other):
         if not isinstance(other, self.__class__):
             return False
+        elif isinstance(other, chords.Chord):
+            return chords.same(other.root_chord, self.root_chord)
 
-        return chords.same(other.root_chord, self.root_chord)
+        return False
 
     def __ne__(self, other):
         if not isinstance(other, self.__class__):
@@ -67,7 +74,7 @@ class _KeySignature:
         return not self.__eq__(other)
 
     def __hash__(self):
-        return hash((self.root_chord.root(), self.root_chord.three))
+        return hash((self.root_chord.root().midi(), self.root_chord.three().midi()))
 
     def is_functional(self, chord):
         raise NotImplementedError
@@ -256,45 +263,3 @@ class MinorKeySignature(_KeySignature):
             score += vars.FIVE_SIX_FUNCTIONALITY
 
         return score
-
-
-class KeySignatureSetter:
-
-    def __init__(self, key_signatures):
-        self.key_signatures = key_signatures
-        self.internal_measure = 0
-        self.internal_beat = 0
-
-    def measure(self, measure):
-        self.internal_measure = measure
-        return self
-
-    def beat(self, beat):
-        self.internal_beat = beat
-        return self
-
-    def commit(self, chord):
-        if isinstance(chord, str):
-            parsed = chords.parse(chord)
-        elif isinstance(chord, Chord):
-            parsed = chord
-        else:
-            raise TypeError
-
-        sample_pos = time.signatures.start(measure=self.internal_measure, beat=self.internal_beat)
-
-        self.key_signatures[sample_pos] = parsed
-
-
-def parse(value):
-    if isinstance(value, str):
-
-        if chords.RE_MAJOR.match(value):
-            return MajorKeySignature(chords.get_root(value))
-        elif chords.RE_MINOR.match(value):
-            return MinorKeySignature(chords.get_root(value))
-        else:
-            raise ValueError
-
-    elif isinstance(value, chords.Chord):
-        return parse(value.string())

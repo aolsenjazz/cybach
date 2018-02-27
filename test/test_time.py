@@ -8,7 +8,7 @@ import constants
 class TestTime(TestCase):
 
     def test__sample_position(self):
-        config.soprano = [1] * 2000
+        sequences.soprano = [1] * 2000
 
         time.add_signature(0, time.TimeSignature(numerator=4, denominator=4))
         time.add_signature(384, time.TimeSignature(numerator=6, denominator=8))
@@ -24,7 +24,7 @@ class TestTime(TestCase):
         time.clear()
 
     def test__Beat_first_beat(self):
-        config.soprano = [1] * 2000
+        sequences.soprano = [1] * 2000
 
         time.add_signature(0, time.TimeSignature(numerator=4, denominator=4))
         time.add_signature(384, time.TimeSignature(numerator=6, denominator=8))
@@ -39,7 +39,7 @@ class TestTime(TestCase):
         time.clear()
 
     def test__Beat_last_beat(self):
-        config.soprano = [1] * 2000
+        sequences.soprano = [1] * 2000
 
         time.add_signature(0, time.TimeSignature(numerator=4, denominator=4))
         time.add_signature(384, time.TimeSignature(numerator=6, denominator=8))
@@ -58,5 +58,5 @@ class TestTime(TestCase):
 
         number_of_measures = 11
 
-        self.assertEqual(number_of_measures, len(time.measures().keys()))
+        self.assertEqual(number_of_measures, len(time.__measures.keys()))
         time.clear()

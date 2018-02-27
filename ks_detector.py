@@ -1,10 +1,10 @@
+import chords
 import config
 import ks
+import pitches
 import util
 import vars
-import pitches
-import domain
-
+from rhythm import time
 
 all_key_signatures = [
     ks.MajorKeySignature('C'),
@@ -35,16 +35,13 @@ all_key_signatures = [
 
 
 def detect_and_set_key_signatures():
-    config.key_signatures = ks.KeySignatures()
-
-    song_length = len(config.soprano)
-    chord_progression = dict(config.chord_progression)
+    chord_progression = dict(chords.progression)
 
     keys = chord_progression.keys()
     keys.sort()
-    keys.append(song_length)
+    keys.append(config.song_length)
 
-    chord_progression[song_length] = chord_progression[keys[-2]]
+    chord_progression[config.song_length] = chord_progression[keys[-2]]
 
     potential_keys = list(all_key_signatures)
     last_key_signature_end = 0
@@ -53,18 +50,18 @@ def detect_and_set_key_signatures():
         removed = [key_sig for key_sig in potential_keys if not key_sig.is_functional(chord)]
         potential_keys = [key_signature for key_signature in potential_keys if key_signature not in removed]
 
-        if len(potential_keys) == 0 or key == song_length:
+        if len(potential_keys) == 0 or key == config.song_length:
             signature_pool = removed if len(potential_keys) == 0 else potential_keys
             chord_segment = {k: chord_progression[k] for k in keys if last_key_signature_end <= k < key}
 
             if [sig for sig in signature_pool if __contains_one_or_five_seven(sig, chord_segment)]:
-                config.key_signatures[last_key_signature_end] = __most_likely_key(signature_pool, chord_segment)
+                ks.write(__most_likely_key(signature_pool, chord_segment), last_key_signature_end)
             else:
                 this_segments_keys = [k for k in keys if last_key_signature_end <= k < key]
                 keys = {key: __most_likely_key(all_key_signatures, {key: chord_progression[key]})
                         for key
                         in this_segments_keys}
-                config.key_signatures.update(keys)
+                ks.signatures().update(keys)
 
             last_key_signature_end = key
             removed = [key_sig for key_sig in potential_keys if not key_sig.is_functional(chord)]
@@ -93,12 +90,11 @@ def __contains_one_or_five_seven(key_signature, chord_progression_stub):
     return False
 
 
-# TODO: FIX ME. COMMENTED FOR TESTING
+# TODO: take a look that this. I don't remember why I comment most of it out
 def __time_coef(sample_index, segment_start):
-    return 1.0
-    # if sample_index == 0 or sample_index == segment_start:
-    #     return vars.FIRST_BEAT_COEF
-    #
-    # beat = config.soprano.beat_at(sample_index)
-    #
-    # return vars.BEAT_ONE_COEF if beat.is_first_beat() else 1.0
+    if sample_index == 0 or sample_index == segment_start:
+        return vars.FIRST_BEAT_COEF
+
+    beat = time.beat_at_position(sample_index)
+
+    return vars.BEAT_ONE_COEF if beat.first_beat() else 1.0
