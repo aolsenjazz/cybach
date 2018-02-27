@@ -1,5 +1,3 @@
-import collections
-
 import chords
 import pitches
 import vars
@@ -24,6 +22,11 @@ def parse(value):
 
     elif isinstance(value, chords.Chord):
         return parse(value.string())
+
+
+def clear():
+    global __signatures
+    __signatures = {}
 
 
 def write(key_signature, position):

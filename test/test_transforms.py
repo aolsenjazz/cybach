@@ -1,19 +1,20 @@
-from unittest import TestCase
+import unittest
 
 import midi
 
 import chords
 import config
 import constants
-import sequences
+import fileloader
 import ks_detector
+import sequences
 import transforms
 import vars
-import fileloader
 from pitches import MIDI_VALUES
 
 
-class TestMotionTransforms(TestCase):
+@unittest.skip
+class TestMotionTransforms(unittest.TestCase):
 
     def test_ApproachTransform_is_applicable(self):
         fileloader.load(constants.TEST_MIDI + 'approach.mid', False)

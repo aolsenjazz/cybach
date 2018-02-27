@@ -1,15 +1,14 @@
-from unittest import TestCase
+import unittest
 
 import midi
 
 import constants
 import fileloader
 import motion
-import chords
-import config
 
 
-class TestMotion(TestCase):
+@unittest.skip
+class TestMotion(unittest.TestCase):
 
     def test__note_duration_at_position(self):
         fileloader.load(constants.TEST_MIDI + '2beat_join.mid', False)

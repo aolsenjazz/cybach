@@ -165,7 +165,7 @@ class RootSequence(Sequence):
                        if isinstance(event, midi.NoteOffEvent) or isinstance(event, midi.NoteOnEvent)]
 
         position = 0
-        for current, last in zip(note_events, note_events[1:]):
+        for current, last in zip(note_events[1:], note_events):
             if isinstance(last, midi.NoteOnEvent):
                 if last.tick > 0:
                     self._entities[position] = Rest(self, position, position + last.tick)

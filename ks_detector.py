@@ -35,7 +35,7 @@ all_key_signatures = [
 
 
 def detect_and_set_key_signatures():
-    chord_progression = dict(chords.progression)
+    chord_progression = dict(chords.__progression)
 
     keys = chord_progression.keys()
     keys.sort()

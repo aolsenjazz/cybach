@@ -2,14 +2,21 @@ from unittest import TestCase
 
 import chords
 import config
-import fileloader
-import pitches
 import constants
+import fileloader
+import ks
+import pitches
 from pitches import MIDI_VALUES
 from rhythm import time
 
 
 class TestChords(TestCase):
+
+    def tearDown(self):
+        super(TestChords, self).tearDown()
+        chords.clear()
+        time.clear()
+        ks.clear()
 
     def test_note_above(self):
         chord = chords.MajorChord(MIDI_VALUES['C1'])

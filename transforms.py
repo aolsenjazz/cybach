@@ -2,8 +2,8 @@ from __future__ import division
 
 import chords
 import config
-import sequences
 import pitches
+import sequences
 import vars
 from rhythm import time
 

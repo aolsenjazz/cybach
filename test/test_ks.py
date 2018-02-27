@@ -1,20 +1,18 @@
 from unittest import TestCase
+
 import chords
-import vars
 import ks
+import vars
+from rhythm import time
 
-
-# if notes.same_species(chord.root, self.five()) and \
-#         isinstance(chord, chords.SevenChord):
-#     return vars.FIVE_DOMINANT_HARMONY
-# elif notes.same_species(chord.root, self.five()) and \
-#         isinstance(chord, chords.MajorChord):
-#     return vars.FIVE_MAJOR_HARMONY
-# elif notes.same_species(chord.root, self.seven()) and \
-#         isinstance(chord, chords.DiminishedChord):
-#     return vars.MAJOR_SEVEN_DIMINISHED_HARMONY
 
 class TestKs(TestCase):
+
+    def tearDown(self):
+        super(TestKs, self).tearDown()
+        chords.clear()
+        time.clear()
+        ks.clear()
 
     def test__harmonic_relevance(self):
         major = ks.MajorKeySignature('C')

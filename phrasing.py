@@ -107,9 +107,8 @@ def rhythm_based_strong_beat_score(measure, pattern):
     sequence = sequences.soprano()
 
     for i in range(len(pattern)):
-        value = pattern[i]
         target_duration = ((pattern + (len(measure.beats()), ))[i + 1] - pattern[i]) * measure.beat_length()
-        entity = sequence.entity(measure.beats()[value].start())
+        entity = sequence.entity(measure.start() + sum([j * measure.beat_length() for j in pattern[:i + 1]]))
 
         if entity.length() == target_duration and entity.start() == position:
             likelihood_score += vars.RHYTHM_PHRASING_COEF * ((pattern + (len(measure.beats()), ))[i + 1] - pattern[i])

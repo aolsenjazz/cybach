@@ -33,8 +33,9 @@ class NotePicker:
         tenor_score = get_tenor_score(candidate[TENOR_POSITION], beat)
         alto_score = get_alto_score(candidate[ALTO_POSITION], beat)
         harmony_score = get_harmony_score(candidate, beat)
-        motion_score = get_motion_score(candidate, beat)
         rest_penalty = get_rest_penalty(candidate)
+        motion_score = parallel_motion_score(candidate, beat, sequences.soprano(), sequences.alto(),
+                                             sequences.tenor(), sequences.bass())
 
         return sum([bass_score, tenor_score, alto_score, harmony_score, motion_score, rest_penalty])
 
@@ -43,16 +44,29 @@ def get_rest_penalty(candidate):
     return len([c for c in candidate if c == -1]) * vars.REST_PENALTY
 
 
-def get_motion_score(candidate, beat):
+def parallel_motion_score(candidate, beat, soprano, alto, tenor, bass):
     last_beat = beat.previous()
     if last_beat is None:
         return 0.0
 
-    last_alto = sequences.alto().pitch(last_beat.start()).midi()
-    last_tenor = sequences.tenor().pitch(last_beat.start()).midi()
-    last_bass = sequences.bass().pitch(last_beat.start()).midi()
+    last_soprano = soprano.pitch(last_beat.start()).midi()
+    last_alto = alto.pitch(last_beat.start()).midi()
+    last_tenor = tenor.pitch(last_beat.start()).midi()
+    last_bass = bass.pitch(last_beat.start()).midi()
 
     score = 0.0
+
+    if transforms.notes_cause_parallel_movement(last_alto, last_soprano,
+                                                candidate[ALTO_POSITION], soprano.pitch(beat.start()).midi()):
+        score += vars.PARALLEL_MOVEMENT
+
+    if transforms.notes_cause_parallel_movement(last_tenor, last_soprano,
+                                                candidate[TENOR_POSITION], soprano.pitch(beat.start()).midi()):
+        score += vars.PARALLEL_MOVEMENT
+
+    if transforms.notes_cause_parallel_movement(last_bass, last_soprano,
+                                                candidate[BASS_POSITION], soprano.pitch(beat.start()).midi()):
+        score += vars.PARALLEL_MOVEMENT
 
     if transforms.notes_cause_parallel_movement(last_alto, last_tenor,
                                                 candidate[ALTO_POSITION], candidate[TENOR_POSITION]):
@@ -185,6 +199,9 @@ def preferred_register_score(val, threshold, soft_limit):
 
 
 def motion_tendency_score(candidate, beat, sequence):
+    if beat.start() == 0:
+        return 0.0
+
     score = 0.0
     last_entity = sequence.entity(beat.start() - 1)
 

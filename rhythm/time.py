@@ -1,10 +1,8 @@
 from __future__ import division
 
-import collections
 import math
 
 import config
-
 
 __signatures = {}
 __beats = {}
@@ -67,7 +65,7 @@ def signature(position):
 
 def clear():
     global __signatures
-    __signatures = Timesignatures
+    __signatures = {}
 
 
 def add_signature(sample_position, signature):
@@ -89,7 +87,7 @@ def __compute_time_increments():
     signature_positions_plus_end.sort()
 
     for pos1, pos2 in zip(signature_positions_plus_end, signature_positions_plus_end[1::]):
-        sig1 = __signatures[pos1]
+        sig1 = signature(pos1)
 
         measure_group = {position: Measure(position) for position in range(pos1, pos2)[::sig1.samples_per_measure()]}
         __measures.update(measure_group)

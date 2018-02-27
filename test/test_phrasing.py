@@ -2,26 +2,25 @@ from unittest import TestCase
 
 import midi
 
-import fileloader
 import chords
-import config
 import constants
-import sequences
-import vars
-import parts
+import fileloader
+import ks
 import phrasing
+import vars
 from rhythm import time
 
 
 class TestPhrasing(TestCase):
 
-    def test__chord_based_strong_beat_prediction(self):
-        pattern = read_pattern(constants.TEST_MIDI + 'mixed_meter.mid')
-        sequence = sequences.RootSequence(pattern[0])
+    def tearDown(self):
+        super(TestPhrasing, self).tearDown()
+        chords.clear()
+        time.clear()
+        ks.clear()
 
-        sequences.soprano = sequence
-        time.add_signature(0, time.TimeSignature(numerator=4, denominator=4))
-        time.add_signature(768, time.TimeSignature(numerator=6, denominator=8))
+    def test__chord_based_strong_beat_prediction(self):
+        fileloader.load(constants.TEST_MIDI + 'mixed_meter.mid', False)
 
         chords.write('C')
         chords.write('F', measure=2)
@@ -43,16 +42,14 @@ class TestPhrasing(TestCase):
         total_combinations = 5
 
         self.assertEqual(total_combinations, len(phrasing.potential_strong_beat_permutations(beats_per_bar)))
-        time.clear()
 
     def test__phrasing_likelihood(self):
         fileloader.load(constants.TEST_MIDI + 'seven_eight.mid', False)
 
         p = (0, 2, 4)
         score = 2 * vars.RHYTHM_PHRASING_COEF + 3 * vars.RHYTHM_PHRASING_COEF
-        first_measure = time.__measures[0]
 
-        self.assertEqual(score, phrasing.rhythm_based_strong_beat_score(first_measure, p))
+        self.assertEqual(score, phrasing.rhythm_based_strong_beat_score(time.measure(0), p))
 
 
 def read_pattern(file_name):

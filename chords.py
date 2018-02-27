@@ -14,13 +14,13 @@ RE_SLASH = re.compile('^[A-Ga-g]([Bb]|#)?(7|-|m(in)?|dim|maj)?/[A-Ga-g]([Bb]|#)?
 RE_CHORD_ROOT = re.compile('[A-Ga-g]([Bb]|#)?')
 
 
-progression = None
+__progression = None
 
 
 def __init():
-    global progression
+    global __progression
 
-    progression = ChordProgression()
+    __progression = ChordProgression()
 
 
 def write(chord, measure=0, beat=0):
@@ -32,30 +32,39 @@ def write(chord, measure=0, beat=0):
         raise TypeError
 
     sample_pos = time.measure(measure).beat(beat).start()
-    progression[sample_pos] = parsed
+    __progression[sample_pos] = parsed
+
+
+def clear():
+    global __progression
+    __progression = {}
 
 
 def keys():
-    return progression.keys()
+    return __progression.keys()
 
 
 def get(position):
-    chord_or_none = progression[position]
+    chord_or_none = __progression.get(position, None)
 
     if chord_or_none is None:
-        k = progression.keys()
+        k = __progression.keys()
         k.sort()
         k = reversed(k)
 
         for key in k:
             if position > key:
-                return progression[key]
+                return __progression[key]
 
     return chord_or_none
 
 
 def in_measure(measure):
-    return {key: progression[key] for key in progression.keys() if measure.start() <= key < measure.end()}
+    return {key: __progression[key] for key in __progression.keys() if measure.start() <= key < measure.end()}
+
+
+def progression():
+    return __progression
 
 
 def parse(chord, bass_note=None):

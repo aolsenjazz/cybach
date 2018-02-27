@@ -1,6 +1,6 @@
 from unittest import TestCase
+
 import pitches
-import chords
 
 
 class TestPitches(TestCase):

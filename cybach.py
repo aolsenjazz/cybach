@@ -9,9 +9,9 @@ import sys
 from itertools import chain
 
 import examples
-import sequences
 import fileloader
 import note_picker
+import sequences
 from rhythm import time
 
 # ~~~~~~~~ verify command line arguments ~~~~~~~~
