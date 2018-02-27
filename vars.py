@@ -134,12 +134,6 @@ MOTION_TENDENCY_DIVISOR = 2
 # If a note pitch candidate results in linear motion, award it
 LINEAR_MOTION = 0.20
 
-# The pitch being considered is the same as the pitch two beats ago
-SAME_PITCH_AS_TWO_BEATS_AGO = -0.08
-
-# The pitch being considered would result in the same two beat phrase twice in a row. Leads to flickering
-TWO_BEATS_REPEATED = -0.15
-
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~ MOTIONIZER VARIABLES ~~~~~~~~~~~~~~~~~~~~~~~~~
 #
 # Motionizer variables impact the synergy of transforms that are applied to the first
@@ -227,7 +221,7 @@ EIGHTH_NOTE_PARALLEL = -0.20
 # Two EighthNoteTransforms being applied at the same time are probably the exact same
 EIGHTH_NOTE_SAME = -0.02
 # While sustain one chord for an extended period of time, notes tend to "flicker" back and forth.
-FLICKER_PENALTY = -0.20
+FLICKER_COEF = -0.20
 
 # MajorThirdScalarTransform intrinsic motion
 MAJOR_THIRD_SCALAR_MOTION = 0.58

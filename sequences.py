@@ -59,6 +59,9 @@ class Sequence:
         """
         return self.entity(position).pitch()
 
+    def entities(self):
+        return self._entities
+
     def add_entities(self, *args):
         """
         Wrapper around add_entity to add multiple

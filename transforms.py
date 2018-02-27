@@ -205,7 +205,7 @@ class MajorThirdScalarTransform(EighthNoteTransform):
         score +=  vars.MAJOR_THIRD_SCALAR_CONTINUES_LINEARITY if last_beat.contains_linear_movement() \
             else vars.MAJOR_THIRD_SCALAR_DEFAULT_MUSICALITY
 
-        score += vars.FLICKER_PENALTY if self.causes_flickering() else 0.0
+        score += vars.FLICKER_COEF if self.causes_flickering() else 0.0
 
         return score
 
@@ -255,7 +255,7 @@ class MinorThirdScalarTransform(EighthNoteTransform):
         score += vars.MINOR_THIRD_SCALAR_CONTINUES_LINEARITY if last_beat.contains_linear_movement() \
             else vars.MINOR_THIRD_SCALAR_DEFAULT_MUSICALITY
 
-        score += vars.FLICKER_PENALTY if self.causes_flickering() else 0.0
+        score += vars.FLICKER_COEF if self.causes_flickering() else 0.0
 
         return score
 
@@ -313,7 +313,7 @@ class ArpeggialTransform(EighthNoteTransform):
         score += vars.ARPEGGIAL_SAME_CHORD if chords.same(this_chord, next_chord) \
             else vars.ARPEGGIAL_NEW_CHORD
 
-        score += vars.FLICKER_PENALTY if self.causes_flickering() else 0.0
+        score += vars.FLICKER_COEF if self.causes_flickering() else 0.0
 
         return score
 
@@ -365,7 +365,7 @@ class HalfStepNeighborTransform(EighthNoteTransform):
         score += vars.HALF_NEIGHBOR_SAME_CHORD if chords.same(this_chord, next_chord) \
             else vars.HALF_NEIGHBOR_DEFAULT_MUSICALITY
 
-        score += vars.FLICKER_PENALTY if self.causes_flickering() else 0.0
+        score += vars.FLICKER_COEF if self.causes_flickering() else 0.0
 
         return score
 
@@ -408,7 +408,7 @@ class WholeStepNeighborTransform(EighthNoteTransform):
             else vars.WHOLE_NEIGHBOR_DEFAULT_MUSICALITY
 
         if self.causes_flickering():
-            score += vars.FLICKER_PENALTY
+            score += vars.FLICKER_COEF
 
         return score
 
@@ -460,7 +460,7 @@ class ApproachTransform(EighthNoteTransform):
         else:
             score += vars.APPROACH_DEFAULT_MUSICALITY
 
-        score += vars.FLICKER_PENALTY if self.causes_flickering() else 0.0
+        score += vars.FLICKER_COEF if self.causes_flickering() else 0.0
 
         return score
 

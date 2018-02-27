@@ -1,10 +1,10 @@
 import chords
-import config
+import entity_util
 import parts
-import sequences
 import pitches
-import util
+import sequences
 import transforms
+import util
 import vars
 
 ALTO_POSITION = 0
@@ -116,29 +116,18 @@ def get_alto_score(candidate, beat):
     return score
 
 
-def flicker_avoidance_score(candidate, position, sequence):
-    score = 0.0
-    last_note = None
-    two_notes_ago = None
+def flicker_avoidance_score(candidate, beat, sequence):
+    candidate_entity = sequences.Note(sequence, beat.start(), beat.end(), candidate)
 
-    # FIXME: still using resolution
-    if position >= config.resolution:
-        last_note = sequence[position - config.resolution]
+    flicker_count = 0
+    current_entity = candidate_entity
+    while current_entity.is_note() and current_entity.start() > 0:
+        last_entity = current_entity.previous_entity()
+        if entity_util.is_flicker(current_entity, last_entity, last_entity.previous_entity()):
+            flicker_count += 1
+        current_entity = last_entity
 
-    if position >= config.resolution * 2:
-        two_notes_ago = sequence[position - config.resolution * 2]
-
-        if candidate == two_notes_ago.midi() and candidate != last_note.pitch():
-            score += vars.SAME_PITCH_AS_TWO_BEATS_AGO
-
-    if position >= config.resolution * 3:
-        three_notes_ago = sequence[position - config.resolution * 3]
-
-        if candidate == two_notes_ago.pitch() and last_note.pitch() == three_notes_ago.midi() \
-                and candidate != last_note.pitch():
-            score = vars.TWO_BEATS_REPEATED
-
-    return score
+    return flicker_count * vars.FLICKER_COEF
 
 
 def get_harmony_score(candidate, beat):
