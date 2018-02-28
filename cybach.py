@@ -6,15 +6,15 @@ CYBACH
 import os.path
 import re
 import sys
-import midi
-import pat_util
 from itertools import chain
 
-import examples
+import midi
+
+import config
 import constants
+import examples
 import fileloader
 import note_picker
-import config
 import sequences
 from rhythm import time
 
@@ -54,7 +54,6 @@ picker = note_picker.NotePicker()
 keys = time.measures().keys()
 keys.sort()
 strong_beats = list(chain.from_iterable([time.measures()[key].strong_beats() for key in keys]))
-
 for i in range(len(strong_beats)):
     beat = strong_beats[i]
     pitches = picker.compute(beat)

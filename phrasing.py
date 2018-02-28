@@ -16,8 +16,8 @@ def detect_and_set_measure_phrasing():
         measures = [time.__measures[key] for key in time.__measures.keys() if pos1 <= key < pos2]
 
         winner = get_most_likely_phrasing(measures)
-
-        time.__signatures[pos1].set_strong_beat_pattern(winner)
+        e = sequences.soprano()
+        time.signature(pos1).set_strong_beat_pattern(winner)
 
 
 def get_most_likely_phrasing(measures):

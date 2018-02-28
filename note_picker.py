@@ -59,19 +59,20 @@ def parallel_motion_score(candidate, beat, soprano, alto, tenor, bass):
     last_alto = alto.pitch(last_beat.start()).midi()
     last_tenor = tenor.pitch(last_beat.start()).midi()
     last_bass = bass.pitch(last_beat.start()).midi()
+    this_soprano = soprano.pitch(beat.start()).midi()
 
     score = 0.0
 
     if transforms.notes_cause_parallel_movement(last_alto, last_soprano,
-                                                candidate[ALTO_POSITION], soprano.pitch(beat.start()).midi()):
+                                                candidate[ALTO_POSITION], this_soprano):
         score += vars.PARALLEL_MOVEMENT
 
     if transforms.notes_cause_parallel_movement(last_tenor, last_soprano,
-                                                candidate[TENOR_POSITION], soprano.pitch(beat.start()).midi()):
+                                                candidate[TENOR_POSITION], this_soprano):
         score += vars.PARALLEL_MOVEMENT
 
     if transforms.notes_cause_parallel_movement(last_bass, last_soprano,
-                                                candidate[BASS_POSITION], soprano.pitch(beat.start()).midi()):
+                                                candidate[BASS_POSITION], this_soprano):
         score += vars.PARALLEL_MOVEMENT
 
     if transforms.notes_cause_parallel_movement(last_alto, last_tenor,
@@ -155,10 +156,13 @@ def flicker_avoidance_score(candidate, beat, sequence):
 
     flicker_count = 0
     current_entity = candidate_entity
-    while current_entity.is_note() and current_entity.start() > 0:
+    is_flicker = True
+    while current_entity.is_note() and current_entity.start() > 0 and is_flicker:
+        is_flicker = False
         last_entity = current_entity.previous_entity()
         if entity_util.is_flicker(current_entity, last_entity, last_entity.previous_entity()):
             flicker_count += 1
+            is_flicker = True
         current_entity = last_entity
 
     return flicker_count * vars.FLICKER_COEF
@@ -190,49 +194,48 @@ def bass_note_tendency_score(candidate, beat):
     this_chord = chords.get(beat.start())
     score = 0.0
 
+    candidate_is_this_chord_bass_note = pitches.same_species(candidate, this_chord.bass_note)
+
     # first bass note should definitely be the root
-    if beat.start() == 0 and pitches.same_species(candidate, this_chord.bass_note):
+    if beat.start() == 0 and candidate_is_this_chord_bass_note:
         return vars.FIRST_BEAT_BASS_ROOT
 
-    last_chord = chords.get(0 if beat.start() == 0 else beat.previous().start())
-
     # If beat one, we want to hear the bass note
-    if beat.first_beat() and pitches.same_species(candidate, this_chord.bass_note):
+    if beat.first_beat() and candidate_is_this_chord_bass_note:
         score += vars.FIRST_BEAT_BASS_NOTE
+
+    last_chord = chords.get(0 if beat.start() == 0 else beat.previous().start())
+    this_and_next_chord_are_same = chords.same(last_chord, this_chord)
+    this_chord_root_in_bass = this_chord.root_in_bass()
 
     # Chord is the same as the last chord, and this is root note. Less important as root was likely
     # already established
-    if chords.same(last_chord, this_chord) and pitches.same_species(candidate, this_chord.bass_note) and \
-            this_chord.root_in_bass():
+    if this_and_next_chord_are_same and candidate_is_this_chord_bass_note and this_chord_root_in_bass:
         score += vars.BASS_ROOT_SAME_CHORD
 
     # Bass note does not equal root note, therefore it is especially important
-    if pitches.same_species(candidate, this_chord.bass_note) and not this_chord.root_in_bass():
+    if pitches.same_species(candidate, this_chord.bass_note) and not this_chord_root_in_bass:
         score += vars.NON_ROOT_BASS_NOTE
 
     # new chord, we definitely want to hear the bass_note
-    if not chords.same(last_chord, this_chord) and pitches.same_species(candidate, this_chord.bass_note):
+    if not this_and_next_chord_are_same and candidate_is_this_chord_bass_note:
         score += vars.BASS_NOTE_NEW_CHORD
 
     return score
 
 
 def threshold_encroachment_score(val, threshold, soft_limit):
-    score = 0.0
-
     if soft_limit < val <= threshold or threshold <= val < soft_limit:
-        score += (2 ** abs(soft_limit - val)) * vars.THRESHOLD_ENCROACHMENT
+        return (2 ** abs(soft_limit - val)) * vars.THRESHOLD_ENCROACHMENT
 
-    return score
+    return 0.0
 
 
 def preferred_register_score(val, threshold, soft_limit):
-    score = 0.0
-
     if soft_limit < val <= threshold or threshold <= val < soft_limit:
-        score += abs(soft_limit - val) * vars.PREFERRED_REGISTER
+        return abs(soft_limit - val) * vars.PREFERRED_REGISTER
 
-    return score
+    return 0.0
 
 
 def motion_tendency_score(candidate, beat, sequence):

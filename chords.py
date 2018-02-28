@@ -204,7 +204,7 @@ class Chord:
     def indicates_subdominant(self, *pitches):
         """
         Returns whether the pitches submitted indicate a subdominant relationship to this chord
-
+`
         :param pitches: array of pitches
         """
         raise NotImplementedError

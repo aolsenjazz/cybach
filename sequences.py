@@ -112,7 +112,7 @@ class Sequence:
         """
         if position < 0:
             return TrackStart(self)
-        elif position >= self._length:
+        elif position >= config.song_length:
             return TrackEnd(self)
 
         entity_or_none = self._entities.get(position, None)
@@ -153,7 +153,7 @@ class Sequence:
         time_signatures = time.signatures()
 
         rest_length = 0
-        for i in range(self._length):
+        for i in range(config.song_length):
             if time_signatures.get(i, None) is not None:
                 sig = time_signatures[i]
                 track.append(midi.TimeSignatureEvent(data=[sig.numerator, sig.denominator, 36, 8]))
@@ -172,15 +172,11 @@ class Sequence:
 
         return pattern
 
-    def length(self):
-        return self._length
-
 
 class RootSequence(Sequence):
 
     def __init__(self, track):
         Sequence.__init__(self)
-        self._length = pat_util.sample_length(track)
         self.__build_entities(track)
 
     def __build_entities(self, track):
@@ -200,6 +196,10 @@ class RootSequence(Sequence):
 
                 self._entities[position] = Note(self, position, position + current.tick, Pitch(last.data[0]))
                 position += current.tick
+
+        if position < config.song_length:
+            self._entities[position] = Rest(self, position, config.song_length)
+
 
 
 class AccompanimentSequence(Sequence):

@@ -68,8 +68,8 @@ def __load_midi(file_name):
     __enforce_midi_validity(pattern)
     config.resolution = pattern.resolution
     config.song_length = pat_util.sample_length(pattern)
-    print config.song_length
     __load_time_signature_events(pattern)
+    __correct_song_length()
     track = pat_util.sorted_note_events(pattern)
     sequences.init(track)
 
@@ -224,6 +224,12 @@ def __offer_part_customization():
 
 
 # endregion
+
+
+def __correct_song_length():
+    keys = time.measures().keys()
+    keys.sort()
+    config.song_length = time.measures()[keys[-1]].end()
 
 
 def __load_time_signature_events(pattern):
