@@ -6,11 +6,13 @@ import pitches
 from rhythm import time
 
 RE_MAJOR = re.compile('^[A-Ga-g]([Bb]|#)?(maj)?$')
-RE_MINOR = re.compile('^[A-Ga-g]([Bb]|#)?(-|m(in)?)?$')
-RE_SEVEN = re.compile('^[A-Ga-g]([Bb]|#)?7?$')
+RE_MINOR = re.compile('^[A-Ga-g]([Bb]|#)?(-|m(in)?)$')
+RE_SEVEN = re.compile('^[A-Ga-g]([Bb]|#)?7$')
 RE_DIMIN = re.compile('^[A-Ga-g]([Bb]|#)?dim$')
-RE_SLASH = re.compile('^[A-Ga-g]([Bb]|#)?(7|-|m(in)?|dim|maj)?/[A-Ga-g]([Bb]|#)?$')
-
+RE_SLASH = re.compile('^[A-Ga-g]([Bb]|#)?(7(sus[24]?)?|-|m(in)?|dim|maj|sus[24]?)?/[A-Ga-g]([Bb]|#)?$')
+RE_SUS2 = re.compile('^[A-Ga-g]([Bb]|#)?(sus2)$')
+RE_SUS4 = re.compile('^[A-Ga-g]([Bb]|#)?(sus(4)?)$')
+RE_7SUS = re.compile('^[A-Ga-g]([Bb]|#)?7(sus(4)?)$')
 RE_CHORD_ROOT = re.compile('[A-Ga-g]([Bb]|#)?')
 
 
@@ -78,6 +80,12 @@ def parse(chord, bass_note=None):
         return DiminishedChord(get_root(chord), bass_note)
     elif RE_SLASH.match(chord):
         return parse(chord.split('/')[0], chord.split('/')[1])
+    elif RE_SUS2.match(chord):
+        return Sus2Chord(get_root(chord), bass_note)
+    elif RE_SUS4.match(chord):
+        return Sus4Chord(get_root(chord), bass_note)
+    elif RE_7SUS.match(chord):
+        return SevenSusChord(get_root(chord), bass_note)
 
 
 def get_root(chord):
@@ -213,6 +221,88 @@ class Chord:
         return self._all_octaves
 
 
+class Sus2Chord(Chord):
+
+    def __init__(self, root_note, bass_note=None):
+        Chord.__init__(self, root_note, bass_note)
+        self.__two = pitches.parse(self._root.midi() + 2)
+        self.__five = pitches.parse(self._root.midi() + 7)
+        self._all_octaves = self._compute_octaves()
+
+    def three(self):
+        return self.__two
+
+    def five(self):
+        return self.__five
+
+    def scale(self):
+        return pitches.ionian(self._root.midi())
+
+    def string(self):
+        return pitches.species(self._root)
+
+    def indicates_dominant(self, *pitches):
+        root_pitch = self._root.midi()
+
+        black_list = (root_pitch % 12, (root_pitch + 6) % 12, (root_pitch + 10) % 12)
+        major_indicators = (root_pitch + 11) % 12, (root_pitch + 7) % 12
+        minor_indicators = (root_pitch + 2) % 12, (root_pitch + 5) % 12
+
+        return len([p for p in pitches if (p % 12) in black_list]) == 0 \
+            and len([p for p in pitches if (p % 12) in major_indicators]) == 1 \
+            and len([p for p in pitches if (p % 12) in minor_indicators]) >= 1
+
+    def indicates_subdominant(self, *pitches):
+        root_pitch = self._root.midi()
+
+        black_list = ((root_pitch + 4) % 12, (root_pitch + 11) % 12)
+        indicators = ((root_pitch + 2) % 12, (root_pitch + 5) % 12, (root_pitch + 9) % 12)
+
+        return len([p for p in pitches if (p % 12) in black_list]) == 0 \
+               and len([p for p in pitches if (p % 12) in indicators]) >= 2
+
+
+class Sus4Chord(Chord):
+
+    def __init__(self, root_note, bass_note=None):
+        Chord.__init__(self, root_note, bass_note)
+        self.__four = pitches.parse(self._root.midi() + 5)
+        self.__five = pitches.parse(self._root.midi() + 7)
+        self._all_octaves = self._compute_octaves()
+
+    def three(self):
+        return self.__four
+
+    def five(self):
+        return self.__five
+
+    def scale(self):
+        return pitches.ionian(self._root.midi())
+
+    def string(self):
+        return pitches.species(self._root)
+
+    def indicates_dominant(self, *pitches):
+        root_pitch = self._root.midi()
+
+        black_list = (root_pitch % 12, (root_pitch + 6) % 12, (root_pitch + 10) % 12)
+        major_indicators = (root_pitch + 11) % 12, (root_pitch + 7) % 12
+        minor_indicators = (root_pitch + 2) % 12, (root_pitch + 5) % 12
+
+        return len([p for p in pitches if (p % 12) in black_list]) == 0 \
+               and len([p for p in pitches if (p % 12) in major_indicators]) == 1 \
+               and len([p for p in pitches if (p % 12) in minor_indicators]) >= 1
+
+    def indicates_subdominant(self, *pitches):
+        root_pitch = self._root.midi()
+
+        black_list = ((root_pitch + 4) % 12, (root_pitch + 11) % 12)
+        indicators = ((root_pitch + 2) % 12, (root_pitch + 5) % 12, (root_pitch + 9) % 12)
+
+        return len([p for p in pitches if (p % 12) in black_list]) == 0 \
+               and len([p for p in pitches if (p % 12) in indicators]) >= 2
+
+
 class MajorChord(Chord):
 
     def __init__(self, root_note, bass_note=None):
@@ -295,13 +385,10 @@ class MinorChord(Chord):
                and len([p for p in pitches if (p % 12) in indicators]) >= 2
 
 
-class SevenChord(MajorChord):
-
+class SevenSusChord(Sus4Chord):
     def __init__(self, root_note, bass_note=None):
-        Chord.__init__(self, root_note, bass_note)
-        self.__three = pitches.parse(self._root.midi() + 4)
-        self.__five = pitches.parse(self._root.midi() + 7)
-        self.__seven = pitches.parse(self._root.midi() + 10)
+        self.__seven = pitches.parse(pitches.parse(root_note).midi() + 10)
+        Sus4Chord.__init__(self, root_note, bass_note)
         self._all_octaves = self._compute_octaves()
 
     def __contains__(self, note):
@@ -316,11 +403,48 @@ class SevenChord(MajorChord):
             return True
         return Chord.__contains__(self, parsed)
 
-    def three(self):
-        return self.__three
+    def string(self):
+        return pitches.species(self._root) + '7sus'
 
-    def five(self):
-        return self.__five
+    def all_degrees(self):
+        return Chord.all_degrees(self) + (self.__seven,)
+
+    def _compute_octaves(self):
+        all_of_em = Chord._compute_octaves(self) + [i for i in range(128)[self.__seven.midi() % 12::12]]
+        all_of_em.sort()
+        return all_of_em
+
+    def __note_above(self, pitch):
+        if pitch == self.__five:
+            return self.__seven.species
+
+        if pitch == self.__seven.species:
+            return self._root
+
+        return Chord.__note_above(self, pitch)
+
+    def scale(self):
+        return pitches.mixolydian(self._root.midi())
+
+
+class SevenChord(MajorChord):
+
+    def __init__(self, root_note, bass_note=None):
+        self.__seven = pitches.parse(pitches.parse(root_note).midi() + 10)
+        MajorChord.__init__(self, root_note, bass_note)
+        self._all_octaves = self._compute_octaves()
+
+    def __contains__(self, note):
+        parsed = None
+
+        if isinstance(note, pitches.Pitch):
+            parsed = note
+        elif isinstance(note, int):
+            parsed = pitches.parse(note)
+
+        if parsed.species() == self.__seven.species():
+            return True
+        return Chord.__contains__(self, parsed)
 
     def string(self):
         return pitches.species(self._root) + '7'
@@ -349,10 +473,9 @@ class SevenChord(MajorChord):
 class DiminishedChord(MinorChord):
 
     def __init__(self, root_note, bass_note=None):
-        Chord.__init__(self, root_note, bass_note)
-        self.__three = pitches.parse(self._root.midi() + 3)
-        self.__five = pitches.parse(self._root.midi() + 6)
-        self.__seven = pitches.parse(self._root.midi() + 9)
+        self.__five = pitches.parse(pitches.parse(root_note).midi() + 6)
+        self.__seven = pitches.parse(pitches.parse(root_note).midi() + 9)
+        MinorChord.__init__(self, root_note, bass_note)
         self._all_octaves = self._compute_octaves()
 
     def __contains__(self, note):
@@ -366,9 +489,6 @@ class DiminishedChord(MinorChord):
         if parsed.species() == self.__seven.species():
             return True
         return Chord.__contains__(self, parsed)
-
-    def three(self):
-        return self.__three
 
     def five(self):
         return self.__five

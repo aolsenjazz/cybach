@@ -40,7 +40,7 @@ def mixed_meter():
     chords.write('C', measure=1, beat=2)
     chords.write('C7', measure=1, beat=3)
     chords.write('F', measure=2)
-    chords.write('D7', measure=2, beat=3)
+    chords.write('D7sus', measure=2, beat=3)
     chords.write('G', measure=3)
     chords.write('G7', measure=3, beat=3)
     chords.write('C', measure=4)
@@ -138,23 +138,6 @@ def nine_eight():
     chords.write('D', measure=3, beat=2)
 
 
-def twelve_eight():
-    return 1
-
-
-def __bach():
-    chords.write('C-')
-    chords.write('Eb', measure=1)
-    chords.write('Ab', measure=2)
-    chords.write('G7', measure=3)
-    chords.write('C-', measure=3, beat=2)
-
-    return {
-        'name': constants.EXAMPLES + 'bach.mid',
-        'chord_progression': chord_progression
-    }
-
-
 _SIMPLE = Example('simple', simple)
 _KEY_CHANGES = Example('key_changes', key_changes)
 _MIXED_METER = Example('mixed_meter', mixed_meter)
@@ -164,7 +147,6 @@ _SIX_FOUR = Example('six_four', six_four)
 _FOUR_EIGHT = Example('four_eight', four_eight)
 _SIX_EIGHT = Example('six_eight', six_eight)
 _NINE_EIGHT = Example('nine_eight', nine_eight)
-_TWELVE_EIGHT = Example('twelve_eight', twelve_eight)
 
 ALL = {
     'simple': _SIMPLE,
@@ -175,6 +157,5 @@ ALL = {
     'six_four': _SIX_FOUR,
     'four_eight': _FOUR_EIGHT,
     'six_eight': _SIX_EIGHT,
-    'nine_eight': _NINE_EIGHT,
-    'twelve_eight': _TWELVE_EIGHT
+    'nine_eight': _NINE_EIGHT
 }
