@@ -168,3 +168,15 @@ class TestPitches(TestCase):
 
         self.assertEqual(c0, pitches.midi_value(string_c0))
         self.assertEqual(c2, pitches.midi_value(string_c2))
+
+    def test__parallel_motion(self):
+        par_4ths = 59, 60, 64, 65
+        par_5ths = 59, 60, 66, 67
+        par_8ths = 60, 65, 48, 53
+        oblique = 60, 58, 72, 68
+
+        self.assertTrue(pitches.parallel_movement(par_4ths[0], par_4ths[1], par_4ths[2], par_4ths[3]))
+        self.assertTrue(pitches.parallel_movement(par_5ths[0], par_5ths[1], par_5ths[2], par_5ths[3]))
+        self.assertTrue(pitches.parallel_movement(par_8ths[0], par_8ths[1], par_8ths[2], par_8ths[3]))
+        self.assertFalse(pitches.parallel_movement(oblique[0], oblique[1], oblique[2], oblique[3]))
+

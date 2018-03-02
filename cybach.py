@@ -14,6 +14,7 @@ import config
 import constants
 import examples
 import fileloader
+import transforms
 import note_picker
 import sequences
 from rhythm import time
@@ -68,7 +69,14 @@ for i in range(len(strong_beats)):
     sequences.tenor().add_entities(tenor_note)
     sequences.alto().add_entities(alto_note)
 
+
 # ~~~~~~~~ Increase or decrease motion by grouping notes together or adding inter-beat motion ~~~~~~~~
+
+
+for last_beat, this_beat in zip(strong_beats, strong_beats[1:]):
+    t = transforms.get_all_transforms(last_beat.start(), this_beat.start(), 3)
+    print 'yo'
+
 
 # motionizer = motion.Motionizer()
 # for measure in sequences.bass().measures():

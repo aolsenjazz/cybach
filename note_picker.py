@@ -63,26 +63,17 @@ def parallel_motion_score(candidate, beat, soprano, alto, tenor, bass):
 
     score = 0.0
 
-    if transforms.notes_cause_parallel_movement(last_alto, last_soprano,
-                                                candidate[ALTO_POSITION], this_soprano):
+    if pitches.parallel_movement(last_alto, candidate[ALTO_POSITION], last_soprano, this_soprano):
         score += vars.PARALLEL_MOVEMENT
-
-    if transforms.notes_cause_parallel_movement(last_tenor, last_soprano,
-                                                candidate[TENOR_POSITION], this_soprano):
+    if pitches.parallel_movement(last_tenor, candidate[TENOR_POSITION], last_soprano, this_soprano):
         score += vars.PARALLEL_MOVEMENT
-
-    if transforms.notes_cause_parallel_movement(last_bass, last_soprano,
-                                                candidate[BASS_POSITION], this_soprano):
+    if pitches.parallel_movement(last_bass, candidate[BASS_POSITION], last_soprano, this_soprano):
         score += vars.PARALLEL_MOVEMENT
-
-    if transforms.notes_cause_parallel_movement(last_alto, last_tenor,
-                                                candidate[ALTO_POSITION], candidate[TENOR_POSITION]):
+    if pitches.parallel_movement(last_alto, candidate[ALTO_POSITION], last_tenor, candidate[TENOR_POSITION]):
         score += vars.PARALLEL_MOVEMENT
-    if transforms.notes_cause_parallel_movement(last_tenor, last_bass,
-                                                candidate[TENOR_POSITION], candidate[BASS_POSITION]):
+    if pitches.parallel_movement(last_tenor,candidate[TENOR_POSITION], last_bass, candidate[BASS_POSITION]):
         score += vars.PARALLEL_MOVEMENT
-    if transforms.notes_cause_parallel_movement(last_bass, last_alto,
-                                                candidate[BASS_POSITION], candidate[ALTO_POSITION]):
+    if pitches.parallel_movement(last_bass, candidate[BASS_POSITION], last_alto, candidate[ALTO_POSITION]):
         score += vars.PARALLEL_MOVEMENT
 
     return score

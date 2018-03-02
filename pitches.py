@@ -88,6 +88,14 @@ OCTAVES = {
 }
 
 
+def parallel_movement(part1_first, part1_second, part2_first, part2_second):
+    first_difference = part1_first - part2_first
+    second_difference = part1_second - part2_second
+
+    return first_difference == second_difference \
+            and (first_difference % 12 == 0 or first_difference % 12 == 5 or first_difference % 12 == 7)
+
+
 def species(value):
     int_value = value
     if isinstance(value, str):
@@ -325,3 +333,35 @@ class Pitch:
 
     def __repr__(self):
         return '%s' % self._midi_value
+
+    def __gt__(self, other):
+        if isinstance(other, Pitch):
+            return self.midi() > other.midi()
+        elif isinstance(other, int):
+            return self.midi() > other
+
+        return False
+
+    def __lt__(self, other):
+        if isinstance(other, Pitch):
+            return self.midi() < other.midi()
+        elif isinstance(other, int):
+            return self.midi() < other
+
+        return False
+
+    def __ge__(self, other):
+        if isinstance(other, Pitch):
+            return self.midi() >= other.midi()
+        elif isinstance(other, int):
+            return self.midi() >= other
+
+        return False
+
+    def __le__(self, other):
+        if isinstance(other, Pitch):
+            return self.midi() <= other.midi()
+        elif isinstance(other, int):
+            return self.midi() <= other
+
+        return False

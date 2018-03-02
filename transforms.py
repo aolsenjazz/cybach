@@ -1,511 +1,168 @@
-from __future__ import division
-
+import itertools
 import chords
 import config
-import pitches
 import sequences
-import vars
 from rhythm import time
 
 
-class MotionTransform:
+def transforms(start_position, end_position):
+    pass
 
-    SCALE_MICRO = 'micro'
-    SCALE_MACRO = 'macro'
+
+def get_all_transforms(start_position, end_position, max_subdivisions):
+    satb = sequences.soprano(), sequences.alto(), sequences.tenor(), sequences.bass()
+    pitches = [(sequence.pitch(start_position), sequence.pitch(end_position)) for sequence in satb]
+
+    chord = chords.get(start_position)
+
+    rhythm_set_groups = get_rhythm_sets(config.minimum_time_unit(), max_subdivisions, end_position - start_position)
+    direction_set_groups = [direction_permutations(i) for i in range(1, max_subdivisions)]
+
+    all_transforms = []
+    for i, (sequence, (start_pitch, end_pitch)) in enumerate(zip(satb[1:], pitches[1:])):
+        # We can't (read: don't want to) transform to or from a rest; skip if the start or end pitch is a rest.
+        if start_pitch == -1 or end_pitch == -1:
+            all_transforms.append([[]])
+            continue
+
+        high_thresh = min([p for p in pitches[i] if p != -1] + [sequence.part().max_high])
+        low_thresh = sequence.part().max_low if i == len(satb) - 1 else min(sequence.part().max_low, pitches[i - 1])
+
+        bounded_pitches = [pitch for pitch in chord.scale() if low_thresh <= pitch <= high_thresh]
+
+        sequence_transforms = []
+        for i, direction_set_group in enumerate(direction_set_groups):
+            pitch_sets = [group for direction_set in direction_set_group
+                          for group in
+                          pitch_sets_for_directions(bounded_pitches, start_pitch, end_pitch, direction_set)]
+            trans = [StrongBeatPhrase(r, p) for p in pitch_sets for r in rhythm_set_groups[i]]
+
+            sequence_transforms.extend(trans)
+
+        all_transforms.append(sequence_transforms)
+
+    product = list(itertools.product(*all_transforms))
+    return product
+
+
+def get_rhythm_sets(minimum_time_unit, max_time_unit_count, length):
+    pool = [i for i in range(minimum_time_unit, length)[::minimum_time_unit]]
+    pools = [pool for i in range(max_time_unit_count)]
+
+    sets = []
+    product = [[]]
+    for pool in pools:
+        product = [x + [y] for x in product for y in pool]
+
+        temp = []
+        for sublist in [sublist for sublist in product if sum(sublist) == length]:
+            temp.append(RhythmSet(sublist))
+        else:
+            if temp:
+                sets.append(temp)
+
+    return sets
+
+
+def pitch_sets_for_directions(bounded_pitches, start, target, directions):
+    groupings = [[i for i in bounded_pitches if _same_direction(directions[0], start, i)]]
+    groupings.extend([bounded_pitches for direction in directions[1:]])
+
+    product = [[]]
+    for i in range(len(groupings)):
+        direction = directions[i]
+        pool = groupings[i]
+        temp = []
+
+        for pool_entry in pool:
+            for result_entry in product:
+                if not result_entry or _same_direction(direction, result_entry[-1], pool_entry):
+                    temp.append(result_entry + [pool_entry])
+        product = temp
+
+    return [PitchSet(start, target, *pitches) for pitches in product]
+
+
+def direction_permutations(total_directions):
+    groupings = [[Direction.UP, Direction.SAME, Direction.DOWN] for d in range(total_directions)]
+    return [i for i in itertools.product(*[i for i in groupings])]
+
+
+class Direction:
+    UP = 1
+    SAME = 0
+    DOWN = -1
 
     def __init__(self):
         pass
 
-    def synergy(self, transform):
-        raise NotImplementedError
+
+class RhythmSet:
+
+    def __init__(self, rhythm_list):
+        self._homogeneous = len(set(rhythm_list)) == 1
+        self._syncopation = False if len(rhythm_list) == 1 else rhythm_list[1] > rhythm_list[0]
+        self.rhythm_list = rhythm_list
+
+    def is_homogeneous(self):
+        return self._homogenous
+
+    def is_syncopation(self):
+        return self._syncopation
 
     def __repr__(self):
-        return self.__class__.__name__ + ' - mu:%f - mo:%f' \
-                                        % (self.intrinsic_musicality, self.intrinsic_motion)
-
-    def apply(self):
-        raise NotImplementedError
-
-    def is_syncopation(self):
-        raise NotImplementedError
-
-    def crosses_bar_line(self):
-        raise NotImplementedError
-
-    def causes_flickering(self):
-        raise NotImplementedError
+        return '\nRhythmSet: ' + str(self.rhythm_list)
 
 
-class JoinTransform(MotionTransform):
+class PitchSet:
 
-    def __init__(self, duration, position, sequence):
-        MotionTransform.__init__(self)
+    def __init__(self, first_pitch, last_pitch, *args):
+        self.first_pitch = first_pitch
+        self.last_pitch = last_pitch
+        self.intermediaries = args
+        self.all = (first_pitch,) + args + (last_pitch,)
+        self.direction = self._direction()
+        self.unidirectional = self._unidirectional()
 
-        self.scale = self.SCALE_MACRO
-        self.sequence = sequence
-        self.position = position
-        self.duration = duration
-        self.intrinsic_motion = 0.50 - (duration * vars.JOIN_MOTION_COEFFICIENT)
-        self.intrinsic_musicality = self.set_musicality()
-
-    def synergy(self, transform):
-        return vars.JOIN_SAME if isinstance(transform, self.__class__) and self.duration == transform.duration else 0.0
-
-    def set_musicality(self):
-        score = 0.0
-
-        # The longer a note is, the higher its musicality; longer notes less common within normal configurations
-        duration_score = (((2 - (.1 * self.duration) / 2) ** self.duration) / 2) / 100
-        score += duration_score
-
-        num_unique_chords = unique_chord_count(self.position, self.duration)
-        score += vars.TWO_BEAT_MULTIPLE_CHORDS * num_unique_chords
-
-        time_signature = time.signature(self.position)
-        if time_signature.numerator % 3 == 0 and not self.is_syncopation():
-            score += vars.JOIN_PREFER_BIG_BEATS
-
-        return score
-
-    def crosses_bar_line(self):
-        beat_index = self.sequence.beat_index_in_measure(self.position)
-        time_signature = time.__signatures(self.position)
-
-        return beat_index + self.duration > time_signature.numerator
-
-    def is_syncopation(self):
-        beat_index = self.sequence.beat_index_in_measure(self.position)
-        time_signature = time.__signatures(self.position)
-
-        return not time.is_big_beat(time_signature, beat_index)
-
-    def apply(self):
-        for i in range(self.position, self.position + self.duration * config.resolution):
-            if i == self.position:
-                continue
-            elif i == self.position + (self.duration * config.resolution) - 1:
-                self.sequence[i].type = sequences.Sample.TYPE_END
+    def _direction(self):
+        direction = 0
+        for p1, p2 in zip(self.all, self.all[1:]):
+            if direction == 0:
+                direction = _direction(p1, p2)
             else:
-                self.sequence[i].type = sequences.Sample.TYPE_SUSTAIN
+                if not _continues_linearity(direction, p1, p2):
+                    return None
 
-        return self.sequence.samples
+        return direction
 
-    def causes_flickering(self):
-        return False
+    def _unidirectional(self):
+        return self.direction is not None
 
+    def __repr__(self):
+        return '\nPitchSet: ' + str(self.first_pitch) + ', ' + str(self.intermediaries) + ', ' + str(self.last_pitch)
 
-class NoneTransform(MotionTransform):
 
-    def __init__(self, sequence):
-        MotionTransform.__init__(self)
+class StrongBeatPhrase:
 
-        self.sequence = sequence
-        self.intrinsic_musicality = 0.0
-        self.intrinsic_motion = 0.5
-        self.position = 0
+    def __init__(self, rhythm_set, pitch_set):
+        self._rhythm_set = rhythm_set
+        self._pitch_set = pitch_set
 
-    def synergy(self, transform):
-        return 0.0
+    def __repr__(self):
+        return '\nStrongBeatPhrase: ' + self._rhythm_set.__repr__() + self._pitch_set.__repr__()
 
-    def apply(self):
-        return self.sequence.samples
 
-    def is_syncopation(self):
-        return False
+def _direction(p1, p2):
+    return Direction.UP if p1 < p2 else Direction.DOWN if p1 > p2 else Direction.SAME
 
-    def crosses_bar_line(self):
-        return False
 
-    def causes_flickering(self):
-        return False
+def _same_direction(direction, p1, p2):
+    return _direction(p1, p2) == direction
 
 
-class EighthNoteTransform(MotionTransform):
+def _continues_linearity(direction, p1, p2):
+    pitch_direction = _direction(p1, p2)
 
-    def __init__(self, position, sequence):
-        MotionTransform.__init__(self)
-
-        self.position = position
-        self.sequence = sequence
-        self.intermediate_pitch = -1
-
-    def apply(self):
-        half_way = int(self.position + (config.resolution / 2))
-
-        for i in range(half_way, self.position + config.resolution):
-            if i == half_way:
-                self.sequence[i - 1] = sequences.Sample(self.sequence[i - 1].midi(), sequences.Sample.TYPE_END)
-                self.sequence[i] = sequences.Sample(self.intermediate_pitch, sequences.Sample.TYPE_START)
-            elif i == self.position + config.resolution - 1:
-                self.sequence[i] = sequences.Sample(self.intermediate_pitch, sequences.Sample.TYPE_END)
-            else:
-                self.sequence[i] = sequences.Sample(self.intermediate_pitch, sequences.Sample.TYPE_SUSTAIN)
-
-        return self.sequence.samples
-
-    def synergy(self, transform):
-        if isinstance(transform, EighthNoteTransform) and not isinstance(transform, self.__class__):
-            next_chord = config.chord_progression[self.position + config.resolution]
-
-            if dissonant(self.intermediate_pitch, transform.intermediate_pitch):
-                return vars.EIGHTH_NOTE_DISSONANCE
-            elif next_chord.indicates_dominant(self.intermediate_pitch, transform.intermediate_pitch):
-                return vars.EIGHTH_NOTE_DOMINANT
-            elif next_chord.indicates_subdominant(self.intermediate_pitch, transform.intermediate_pitch):
-                return vars.EIGHTH_NOTE_SUBDOMINANT
-            elif transforms_cause_parallel_movement(self, transform):
-                return vars.EIGHTH_NOTE_PARALLEL
-
-            return 0.0
-        elif isinstance(transform, self.__class__):
-            return vars.EIGHTH_NOTE_SAME
-
-        return 0.0
-
-    def is_syncopation(self):
-        return False
-
-    def crosses_bar_line(self):
-        return False
-
-    def causes_flickering(self):
-        if self.position < config.resolution:
-            return False
-
-        one_whole_note_ago = self.sequence[self.position - config.resolution].midi()
-        one_half_note_ago = self.sequence[int(self.position - (config.resolution / 2))].midi()
-
-        pitch_at_position = self.sequence[self.position].midi()
-
-        return one_whole_note_ago == pitch_at_position and one_half_note_ago == self.intermediate_pitch \
-            and one_whole_note_ago != one_half_note_ago
-
-
-class MajorThirdScalarTransform(EighthNoteTransform):
-
-    def __init__(self, position, sequence):
-        EighthNoteTransform.__init__(self, position, sequence)
-
-        this_note = sequence[position]
-        next_note = sequence[position + config.resolution]
-        self.intermediate_pitch = int((this_note.midi() + next_note.midi()) / 2)
-
-        self.intrinsic_motion = vars.MAJOR_THIRD_SCALAR_MOTION
-        self.intrinsic_musicality = self.__get_musicality()
-
-    def __get_musicality(self):
-        score = 0.0
-
-        # no previous motion
-        if self.position == 0:
-            return vars.MAJOR_THIRD_SCALAR_BEAT_ONE
-
-        last_beat = self.sequence.beat_at(self.position - config.resolution)
-
-        score +=  vars.MAJOR_THIRD_SCALAR_CONTINUES_LINEARITY if last_beat.contains_linear_movement() \
-            else vars.MAJOR_THIRD_SCALAR_DEFAULT_MUSICALITY
-
-        score += vars.FLICKER_COEF if self.causes_flickering() else 0.0
-
-        return score
-
-    @staticmethod
-    def applicable_at(position, sequence):
-        try:
-            sequence[position + (1 * config.resolution)]
-        except IndexError:
-            return False  # we've reached the end of the track
-
-        this_note = sequence[position]
-        next_note = sequence[position + config.resolution]
-        intermediate_pitch = int((this_note.midi() + next_note.midi()) / 2)
-
-        this_signature = config.key_signatures[position]
-
-        return this_note.type == sequences.Sample.TYPE_START and next_note.type == sequences.Sample.TYPE_START \
-               and abs(this_note.midi() - next_note.midi()) == 4 and intermediate_pitch in this_signature.scale()
-
-
-class MinorThirdScalarTransform(EighthNoteTransform):
-
-    def __init__(self, position, sequence):
-        EighthNoteTransform.__init__(self, position, sequence)
-
-        this_pitch = sequence[position].midi()
-        next_pitch = sequence[position + config.resolution].midi()
-        this_signature = config.key_signatures[position + config.resolution]
-
-        intermediary_notes = this_pitch + 2, this_pitch + 1, this_pitch - 1, this_pitch - 2
-        for note in intermediary_notes:
-            if note in this_signature.scale() and min(this_pitch, next_pitch) < note < max(this_pitch, next_pitch):
-                self.intermediate_pitch = note
-
-        self.intrinsic_motion = vars.MINOR_THIRD_SCALAR_MOTION
-        self.intrinsic_musicality = self.__get_musicality()
-
-    def __get_musicality(self):
-        score = 0.0
-
-        # no previous motion
-        if self.position == 0:
-            return vars.MINOR_THIRD_SCALAR_BEAT_ONE
-
-        last_beat = self.sequence.beat_at(self.position - config.resolution)
-
-        score += vars.MINOR_THIRD_SCALAR_CONTINUES_LINEARITY if last_beat.contains_linear_movement() \
-            else vars.MINOR_THIRD_SCALAR_DEFAULT_MUSICALITY
-
-        score += vars.FLICKER_COEF if self.causes_flickering() else 0.0
-
-        return score
-
-    @staticmethod
-    def applicable_at(position, sequence):
-        try:
-            sequence[position + (1 * config.resolution)]
-        except IndexError:
-            return False  # we've reached the end of the track
-
-        this_note = sequence[position]
-        next_note = sequence[position + config.resolution]
-        intermediary_notes = this_note.midi() + 2, this_note.midi() + 1, this_note.midi() - 1, this_note.midi() - 2
-
-        this_signature = config.key_signatures[position + config.resolution]
-
-        if this_note.type == sequences.Sample.TYPE_START and next_note.type == sequences.Sample.TYPE_START \
-                and abs(this_note.midi() - next_note.midi()) == 3:
-
-            for note in intermediary_notes:
-                if note in this_signature.scale():
-                    return True
-                
-        return False
-
-
-class ArpeggialTransform(EighthNoteTransform):
-
-    def __init__(self, position, sequence):
-        EighthNoteTransform.__init__(self, position, sequence)
-
-        this_note = sequence[position]
-        next_note = sequence[position + config.resolution]
-
-        this_chord = config.chord_progression[position]
-        next_chord = config.chord_progression[position + config.resolution]
-
-        intermediary_notes = [i for i in range(min(this_note.midi() + 1, next_note.midi() + 1),
-                                               max(this_note.midi(), next_note.midi()))]
-
-        self.intrinsic_motion = vars.ARPEGGIAL_MOTION
-        self.intrinsic_musicality = self.__get_musicality()
-
-        for i in intermediary_notes:
-            if i in this_chord and i in next_chord:
-                self.intermediate_pitch = i
-                break
-
-    def __get_musicality(self):
-        score = 0.0
-
-        this_chord = config.chord_progression[self.position]
-        next_chord = config.chord_progression[self.position + config.resolution]
-
-        score += vars.ARPEGGIAL_SAME_CHORD if chords.same(this_chord, next_chord) \
-            else vars.ARPEGGIAL_NEW_CHORD
-
-        score += vars.FLICKER_COEF if self.causes_flickering() else 0.0
-
-        return score
-
-    @staticmethod
-    def applicable_at(position, sequence):
-        try:
-            sequence[position + (1 * config.resolution)]
-        except IndexError:
-            return False  # we've reached the end of the track
-
-        this_note = sequence[position]
-        next_note = sequence[position + config.resolution]
-
-        intermediary_notes = [i for i in range(min(this_note.midi() + 1, next_note.midi() + 1),
-                                               max(this_note.midi(), next_note.midi()))]
-
-        this_chord = config.chord_progression[position]
-        next_chord = config.chord_progression[position + config.resolution]
-
-        if this_chord == next_chord:
-            return this_note.type == sequences.Sample.TYPE_START and next_note.type == sequences.Sample.TYPE_START \
-                   and next_note.midi() == this_chord.note_above(this_chord.note_above(this_note.midi()))
-        else:
-            if this_note.type == sequences.Sample.TYPE_START and next_note.type == sequences.Sample.TYPE_START:
-                for i in intermediary_notes:
-                    if i in this_chord and i in next_chord:
-                        return True
-        return False
-
-
-class HalfStepNeighborTransform(EighthNoteTransform):
-
-    def __init__(self, position, sequence):
-        EighthNoteTransform.__init__(self, position, sequence)
-        self.intrinsic_motion = vars.HALF_NEIGHBOR_MOTION
-
-        this_pitch = sequence[position].midi()
-        this_sig = config.key_signatures[position]
-
-        self.intermediate_pitch = this_pitch + 1 if this_pitch + 1 in this_sig.scale() else this_pitch - 1
-        self.intrinsic_musicality = self.__get_musicality()
-
-    def __get_musicality(self):
-        score = 0.0
-
-        this_chord = config.chord_progression[self.position]
-        next_chord = config.chord_progression[self.position + config.resolution]
-
-        score += vars.HALF_NEIGHBOR_SAME_CHORD if chords.same(this_chord, next_chord) \
-            else vars.HALF_NEIGHBOR_DEFAULT_MUSICALITY
-
-        score += vars.FLICKER_COEF if self.causes_flickering() else 0.0
-
-        return score
-
-    @staticmethod
-    def applicable_at(position, sequence):
-        try:
-            sequence[position + (1 * config.resolution)]
-        except IndexError:
-            return False  # we've reached the end of the track
-
-        this_note = sequence[position]
-        next_note = sequence[position + config.resolution]
-
-        this_sig = config.key_signatures[position]
-
-        return this_note.pitch().midi() == next_note.pitch().midi() \
-               and (this_note.type == sequences.Sample.TYPE_START and next_note.type == sequences.Sample.TYPE_START) \
-               and (this_note.pitch.midi() - 1 in this_sig.scale() or this_note.pitch.midi() + 1 in this_sig.scale())
-
-
-class WholeStepNeighborTransform(EighthNoteTransform):
-
-    def __init__(self, position, sequence):
-        EighthNoteTransform.__init__(self, position, sequence)
-        self.intrinsic_motion = vars.WHOLE_NEIGHBOR_MOTION
-
-        this_pitch = sequence[position].midi()
-        this_sig = config.key_signatures[position]
-
-        self.intermediate_pitch = this_pitch + 2 if this_pitch + 2 in this_sig.scale() else this_pitch - 2
-        self.intrinsic_musicality = self.__get_musicality()
-
-    def __get_musicality(self):
-        score = 0.0
-
-        this_chord = config.chord_progression[self.position]
-        next_chord = config.chord_progression[self.position + config.resolution]
-
-        score += vars.WHOLE_NEIGHBOR_SAME_CHORD if chords.same(this_chord, next_chord) \
-            else vars.WHOLE_NEIGHBOR_DEFAULT_MUSICALITY
-
-        if self.causes_flickering():
-            score += vars.FLICKER_COEF
-
-        return score
-
-    @staticmethod
-    def applicable_at(position, sequence):
-        try:
-            sequence[position + (1 * config.resolution)]
-        except IndexError:
-            return False  # we've reached the end of the track
-
-        this_note = sequence[position]
-        next_note = sequence[position + config.resolution]
-
-        this_sig = config.key_signatures[position]
-
-        return this_note.pitch.midi() == next_note.pitch.midi() \
-               and (this_note.type == sequences.Sample.TYPE_START and next_note.type == sequences.Sample.TYPE_START) \
-               and (this_note.midi() - 2 in this_sig.scale() or this_note.midi() + 2 in this_sig.scale())
-
-
-class ApproachTransform(EighthNoteTransform):
-
-    def __init__(self, position, sequence):
-        EighthNoteTransform.__init__(self, position, sequence)
-        self.intrinsic_motion = vars.APPROACH_MOTION
-
-        next_pitch = sequence[position + config.resolution].midi()
-        this_chord = config.chord_progression[position]
-
-        self.intermediate_pitch = next_pitch + 1 if next_pitch + 1 in this_chord else next_pitch - 1
-        self.intrinsic_musicality = self.__get_musicality()
-
-    def __get_musicality(self):
-        score = 0.0
-
-        next_pitch = self.sequence[self.position + config.resolution].midi()
-        next_chord = config.chord_progression[self.position + config.resolution]
-        next_key = config.key_signatures[self.position + config.resolution]
-        this_key = config.key_signatures[self.position]
-
-        if pitches.same_species(next_pitch, next_chord.root()):
-            y = this_key != next_key
-            s = next_chord.root()
-            e = next_key.one()
-            t = pitches.same_species(next_chord.root(), next_key.one())
-            score += vars.APPROACH_KEY_CHANGE \
-                if pitches.same_species(next_chord.root(), next_key.one()) and this_key != next_key \
-                else vars.APPROACH_NEW_CHORD_ROOT
-        else:
-            score += vars.APPROACH_DEFAULT_MUSICALITY
-
-        score += vars.FLICKER_COEF if self.causes_flickering() else 0.0
-
-        return score
-
-    @staticmethod
-    def applicable_at(position, sequence):
-        try:
-            sequence[position + (1 * config.resolution)]
-        except IndexError:
-            return False  # we've reached the end of the track
-
-        this_note = sequence[position]
-        next_note = sequence[position + config.resolution]
-
-        this_chord = config.chord_progression[position]
-
-        return (next_note.midi() - 1 in this_chord or next_note.midi() + 1 in this_chord) \
-               and (this_note.midi() < next_note.midi() - 2 or this_note.midi() > next_note.midi() + 2) \
-               and next_note.midi() != -1
-
-
-def unique_chord_count(position, beats):
-    return len(set(*[map(lambda key: config.chord_progression[key], range(position, position + beats * config.resolution))]))
-
-
-def dissonant(pitch1, pitch2):
-    return abs(pitch1 - pitch2) % 12 == 1
-
-
-def transforms_cause_parallel_movement(transform1, transform2):
-    if not isinstance(transform1, EighthNoteTransform) or not isinstance(transform2, EighthNoteTransform):
-        return False
-
-    f1 = transform1.sequence[transform1.position].midi()
-    f2 = transform2.sequence[transform2.position].midi()
-
-    i1 = transform1.intermediate_pitch
-    i2 = transform2.intermediate_pitch
-
-    return notes_cause_parallel_movement(f1, f2, i1, i2)
-
-
-def notes_cause_parallel_movement(part1_first, part2_first, part1_second, part2_second):
-    first_difference = part1_first - part2_first
-    second_difference = part1_second - part2_second
-
-    return first_difference == second_difference \
-            and (first_difference % 12 == 0 or first_difference % 12 == 5 or first_difference % 12 == 7)
-
+    return pitch_direction == direction \
+           or pitch_direction == Direction.SAME \
+           or direction == Direction.SAME
