@@ -1,3 +1,7 @@
+# Retired
+
+This is was fun project to explore algorithmic music composition. It has been off of my plate for a while now.
+
 # cybach
 CYBACH is an algorithmic musical arrangement writer using abstract representations of notes, harmony, and rhythm to create musically substantive arrangements based on user-generated melodies and chord progressions. Cybach uses variables + weights to ensure musicality, e.g. two notes that are a minor 9th away will receive a negative score.
 
